@@ -5,7 +5,9 @@
 html,
 body,
 :root {
-  background-color: #14141C;
+  /* background-color: #14141C; */
+  height: 100%;
+  /* color-scheme: dark; */
 }
 
 @layer base {
