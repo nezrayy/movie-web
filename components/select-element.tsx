@@ -1,32 +1,18 @@
 "use client";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-
 interface SelectElementProps {
-  trigger: string;
+  label: string;
   elements: string[];
 }
 
-const SelectElement = ({ trigger, elements }: SelectElementProps) => {
+const SelectElement = ({ label, elements }: SelectElementProps) => {
   return (
-    <Select>
-      <SelectTrigger className="w-fit">
-        <SelectValue placeholder={trigger} />
-      </SelectTrigger>
-      <SelectContent>
-        {elements.map((el) => (
-          <SelectItem value={el}>
-            {el}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <select className="w-full md:w-auto border border-gray-300 rounded px-3 py-2 text-gray-700 focus:outline-none focus:ring focus:border-blue-300">
+      <option>{label}</option>
+      {elements.map((el) => (
+        <option value={el} key={el}>{el}</option>
+      ))}
+    </select>
   )
 }
 
