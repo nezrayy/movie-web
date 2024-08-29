@@ -3,7 +3,7 @@ import SelectElement from "@/components/select-element";
 const Filter = () => {
   return (
     <div className="grid grid-cols-1 gap-4 items-center p-4 max-w-screen-lg mx-auto">
-      <span className="text-gray-600 font-extrabold col-span-1">Filtered by:</span>
+      <span className="font-extrabold col-span-1 text-white">Filtered by:</span>
       <div className="grid grid-cols-2 gap-4 col-span-1">
         <SelectElement 
           label="Year"

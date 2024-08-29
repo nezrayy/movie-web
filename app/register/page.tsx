@@ -1,30 +1,30 @@
 const RegisterPage = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-96">
-        <h1 className="text-center text-2xl font-semibold mb-6">Dramaku</h1>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="bg-[#0C0D11] p-8 rounded-lg shadow-lg w-96">
+        <h1 className="text-center text-2xl font-semibold mb-6 text-white">Dramaku</h1>
         <form>
           <div className="mb-4">
-            <label className="block text-gray-700">Username</label>
+            <label className="block text-white">Username</label>
             <input
               type="text"
-              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 text-white"
               placeholder="Enter your username"
             />
           </div>
           <div className="mb-4">
-            <label className="block text-gray-700">Email</label>
+            <label className="block text-white">Email</label>
             <input
               type="text"
-              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 text-white"
               placeholder="Enter your email"
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-700">Password</label>
+            <label className="block text-white">Password</label>
             <input
               type="password"
-              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300"
+              className="w-full mt-2 p-2 border rounded-lg focus:outline-none focus:ring focus:border-blue-300 text-white"
               placeholder="Enter your password"
             />
           </div>

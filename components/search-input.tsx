@@ -22,7 +22,7 @@ const SearchInput = () => {
       onChange={(e) => setQuery(e.target.value)}
       onKeyPress={handleKeyPress}
       placeholder="Search..."
-      className="border p-2 rounded"
+      className="border p-2 rounded text-white"
     />
   );
 };
