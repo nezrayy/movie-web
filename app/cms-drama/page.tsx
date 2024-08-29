@@ -74,7 +74,6 @@ const CMSDrama = () => {
                 </span>
               </td>
             </tr>
-            {/* Add more rows as needed */}
           </tbody>
         </table>
       </div>
