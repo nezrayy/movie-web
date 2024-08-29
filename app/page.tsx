@@ -78,8 +78,8 @@ export default function Home() {
                   <div className="flex items-center space-x-4">
                     <p className="text-white">Sorted by:</p>
                     <Select>
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Year" />
+                      <SelectTrigger className="w-36">
+                        <SelectValue placeholder="Alphabetics" />
                       </SelectTrigger>
                     </Select>
                   </div>

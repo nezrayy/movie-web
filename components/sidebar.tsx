@@ -47,7 +47,7 @@ export default function Sidebar({ children }: SidebarProps) {
         </SidebarContext.Provider>
 
         <div className="flex p-3">
-          <div className="p-1.5 rounded-md bg-slate-500">
+          <div className="p-3 rounded-md bg-indigo-500">
             <UserRound className="text-white" />
           </div>
 
