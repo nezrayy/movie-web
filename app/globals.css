@@ -83,7 +83,8 @@ body,
   bottom: 0;
   z-index: 1;
   background: linear-gradient(to top, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 20%),
-              linear-gradient(to left, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 20%),
-              linear-gradient(to right, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 20%);
+              linear-gradient(to left, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 28%),
+              linear-gradient(to right, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 28%);
   pointer-events: none;
 }
+
