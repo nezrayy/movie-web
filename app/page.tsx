@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SelectContent } from "@radix-ui/react-select";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -121,9 +122,21 @@ export default function Home() {
                       {card.title} ({card.year})
                     </h3>
                   </div>
-                  <p className="text-balance text-xs text-gray-400">
-                    {card.genre}
-                  </p>
+                  <div className="flex flex-wrap">
+                    {card.genre.slice(0, 3).map((genre, index) => (
+                      <p
+                        key={index}
+                        className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
+                          index < card.genre.slice(0, 3).length - 1
+                            ? "after:content-[','] after:ml-0"
+                            : ""
+                        }`}
+                      >
+                        {genre}
+                      </p>
+                    ))}
+                  </div>
+
                   <p className="text-sm text-yellow-300">{card.rating} / 5</p>
                 </div>
               ))}
