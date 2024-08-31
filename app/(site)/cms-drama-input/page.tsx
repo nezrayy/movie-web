@@ -1,3 +1,8 @@
+"use client"
+
+import ImageDropzone from "@/components/image-drop-zone"
+import { useState } from "react"
+
 const ActorCard = ({ actorName }: { actorName: string }) => {
   return (
     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
@@ -11,14 +16,45 @@ const ActorCard = ({ actorName }: { actorName: string }) => {
 }
 
 const CMSDramaInputPage = () => {
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const handleImageUpload = (file: File) => {
+    setImageFile(file);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!imageFile) {
+      alert("Please upload an image.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    formData.append('title', 'Movie Title'); // example additional data
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (response.ok) {
+      console.log('Image uploaded successfully!');
+    } else {
+      console.error('Failed to upload image.');
+    }
+  };
+
   return (
     <div className="min-h-screen p-8 flex justify-center">
-      <form className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl">
+      <form className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl" onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Left Column */}
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-full h-48 bg-gray-300 rounded"></div>
-            <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block">
+            {/* <div className="w-full h-48 bg-gray-300 rounded"></div> */}
+            <ImageDropzone onImageUpload={handleImageUpload} />
+            <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block" type="submit">
               Submit
             </button>
           </div>
@@ -137,7 +173,7 @@ const CMSDramaInputPage = () => {
               />
             </div>
           </div>
-          <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden">
+          <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden" type="submit">
             Submit
           </button>
         </div>
