@@ -1,13 +1,16 @@
+import MovieApproveModal from "@/components/movie-approve-modal"
+
 const movieSample = [
   {
     id: 1,
     releaseYear: "2024",
     title: 'Japan - Eye Love You',
-    actors: ['Takuya Kimura', 'Takeuchi Yuko', 'Neinen Reina'],
+    actors: ['ilham', 'kurniawan'],
     genres: ['Romance', 'Adventures', 'Comedy'],
     synopsis:
-      'I love this drama. It taught me a lot about money and finance. Love is not everything. We need to face the reality too. Being stoic is the best.',
+      'I love this drama. It taught me a lot about money and finance. Love is not everything. We need to face the reality too. Being stoic is the best. I love this drama. It taught me a lot about money and finance. Love is not everything. We need to face the reality too. Being stoic is the best. I love this drama. It taught me a lot about money and finance. Love is not everything. We need to face the reality too. Being stoic is the best.',
     status: 'Unapproved',
+    availability: 'Fansub: @aoisub on X',
   },
   {
     id: 2,
@@ -18,6 +21,7 @@ const movieSample = [
     synopsis:
       'I love this drama. It taught me a lot about money and finance. Love is not everything. We need to face the reality too. Being stoic is the best.',
     status: 'Unapproved',
+    availability: 'Fansub: @aoisub on X',
   },
 ]
 
@@ -83,7 +87,17 @@ const CMSDrama = () => {
                 <td className="py-2 px-4 border-b">
                   {movie.synopsis}
                 </td>
-                <td className="py-2 px-4 border-b">{movie.status}</td>
+                <td className="py-2 px-4 border-b">
+                  {movie.status}
+                  <MovieApproveModal 
+                    releaseYear={movie.releaseYear}
+                    title={movie.title}
+                    actors={movie.actors}
+                    genres={movie.genres}
+                    synopsis={movie.synopsis}
+                    availability={movie.availability}
+                  />
+                </td>
                 <td className="py-2 px-4 border-b">
                   <span className="text-blue-600 hover:underline cursor-pointer">
                     Edit
