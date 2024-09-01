@@ -118,11 +118,11 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
         {!expanded && (
           <div
             className={`
-            absolute left-full rounded-md px-2 py-1 ml-6
-            bg-indigo-100 text-indigo-800 text-sm
-            invisible opacity-20 -translate-x-3 transition-all
-            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-        `}
+          absolute left-full rounded-md px-2 py-1 ml-6
+          bg-white text-[#0C0D11] text-md
+          invisible opacity-20 -translate-x-3 transition-all
+          group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+      `}
           >
             {text}
           </div>
@@ -134,12 +134,14 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
 
 interface SidebarInputItemProps {
   icon: ReactNode;
+  text?: string;
   placeholder?: string;
   active?: boolean;
   alert?: boolean;
 }
 export function SidebarInputItem({
   icon,
+  text,
   placeholder = "Search...",
   active,
   alert,
@@ -153,17 +155,17 @@ export function SidebarInputItem({
   const { expanded } = context;
 
   return (
-    <div className="my-2">
+    <div className="my-2 relative group">
       <div
         className={`relative flex items-center font-medium rounded-md transition-all ${
           expanded ? "w-full" : "px-0 w-0"
         }`}
       >
         {expanded ? (
-          <Input placeholder={placeholder} className="input" />
+          <Input placeholder={placeholder} className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50" />
         ) : (
           <div
-            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors group ${
+            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${
               active
                 ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
                 : "hover:bg-[#21212E] text-white"
@@ -172,7 +174,7 @@ export function SidebarInputItem({
             <div className="icon overflow-hidden transition-all">{icon}</div>
           </div>
         )}
-        
+
         {alert && (
           <div
             className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
@@ -181,6 +183,19 @@ export function SidebarInputItem({
           />
         )}
       </div>
+
+      {!expanded && text && (
+        <div
+          className={`
+            absolute left-[100%] transform -translate-y-11 rounded-md px-2 py-1 ml-6
+            bg-white text-[#0C0D11] text-md font-medium
+            invisible opacity-0 -translate-x-3 transition-all
+            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+          `}
+        >
+          {text}
+        </div>
+      )}
     </div>
   );
 }

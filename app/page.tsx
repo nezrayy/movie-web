@@ -4,7 +4,15 @@ import Sidebar, { SidebarInputItem, SidebarItem } from "@/components/sidebar";
 import { MonitorPlay, Medal, Users, Search } from "lucide-react";
 import { useState } from "react";
 import cardList from "./data";
-import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { SelectContent } from "@radix-ui/react-select";
+import { Badge } from "@/components/ui/badge";
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -19,8 +27,14 @@ export default function Home() {
         {/* Sidebar */}
         <div className="sticky top-0 h-screen">
           <Sidebar>
-            <SidebarInputItem icon={<Search />} placeholder="Search..." />
-            <SidebarItem icon={<MonitorPlay />} text="Films" />
+            <SidebarInputItem
+              icon={<Search />}
+              text="Search"
+              placeholder="Search..."
+            />
+            <a href="./">
+              <SidebarItem icon={<MonitorPlay />} text="Films" />
+            </a>
             <SidebarItem icon={<Medal />} text="Awards" />
             <SidebarItem icon={<Users />} text="Celebs" />
           </Sidebar>
@@ -45,64 +59,87 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="container">
-            <div className="flex-1 relative mx-auto">
-              <div className="mb-8">
-                <div className="flex items-center justify-between">
-                  {/* Left Section: Filtered by and Selects */}
-                  <div className="flex items-center space-x-4">
-                    <p className="text-white">Filtered by:</p>
-                    <Select>
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Year" />
-                      </SelectTrigger>
-                    </Select>
-                    <Select>
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Genre" />
-                      </SelectTrigger>
-                    </Select>
-                    <Select>
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Availability" />
-                      </SelectTrigger>
-                    </Select>
-                    <Select>
-                      <SelectTrigger className="w-24">
-                        <SelectValue placeholder="Award" />
-                      </SelectTrigger>
-                    </Select>
-                  </div>
+          <div className="container flex-1 relative mx-auto">
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {/* Left Section: Filtered by and Selects */}
+                <div className="flex items-center space-x-4">
+                  <p className="text-white">Filtered by:</p>
+                  <Select>
+                    <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <SelectValue placeholder="Year" />
+                    </SelectTrigger>
+                  </Select>
+                  <Select>
+                    <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <SelectValue placeholder="Genre" />
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="action">Action</SelectItem>
+                          <SelectItem value="adventure">Adventure</SelectItem>
+                          <SelectItem value="thriller">Thriller</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </SelectTrigger>
+                  </Select>
+                  <Select>
+                    <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <SelectValue placeholder="Availability" />
+                    </SelectTrigger>
+                  </Select>
+                  <Select>
+                    <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <SelectValue placeholder="Award" />
+                    </SelectTrigger>
+                  </Select>
+                </div>
 
-                  {/* Right Section: Sorted by */}
-                  <div className="flex items-center space-x-4">
-                    <p className="text-white">Sorted by:</p>
-                    <Select>
-                      <SelectTrigger className="w-36">
-                        <SelectValue placeholder="Alphabetics" />
-                      </SelectTrigger>
-                    </Select>
-                  </div>
+                {/* Right Section: Sorted by */}
+                <div className="flex items-center space-x-4">
+                  <p className="text-white">Sorted by:</p>
+                  <Select>
+                    <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <SelectValue placeholder="Alphabetics" />
+                    </SelectTrigger>
+                  </Select>
                 </div>
               </div>
-              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 3xl:grid-cols-6 text-white">
-                {cardList.map((card) => (
-                  <div className="container mb-6">
-                    <img
-                      src={card.img}
-                      alt=""
-                      className="h-80 rounded-xl bg-fixed"
-                    />
-                    <div>
-                      <h3 className="pt-4 font-bold">
-                        {card.title} ({card.year})
-                      </h3>
-                    </div>
-                    <p className="text-balance text-sm">{card.text}</p>
-                    <p className="text-sm text-yellow-300">{card.rating}</p>
+            </div>
+            <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 text-white">
+              {cardList.map((card) => (
+                <div className="container mb-6">
+                  <div className="w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl">
+                    <a href="./detail">
+                      <img
+                        src={card.img}
+                        alt=""
+                        className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
+                      />
+                    </a>
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <h3 className="pt-4 font-bold">
+                      {card.title} ({card.year})
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap">
+                    {card.genre.slice(0, 3).map((genre, index) => (
+                      <p
+                        key={index}
+                        className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
+                          index < card.genre.slice(0, 3).length - 1
+                            ? "after:content-[','] after:ml-0"
+                            : ""
+                        }`}
+                      >
+                        {genre}
+                      </p>
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-yellow-300">{card.rating} / 5</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
