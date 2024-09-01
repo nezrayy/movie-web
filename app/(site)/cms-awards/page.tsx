@@ -1,3 +1,5 @@
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
 const awardsData = [
   {
     id: 1,
@@ -44,37 +46,31 @@ const CMSDrama = () => {
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
         <input
           type="text"
-          placeholder="Search movies..."
+          placeholder="Search awards..."
           className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
         />
       </div>
 
       {/* Table Section */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-2 px-4 border-b text-left">#</th>
-              <th className="py-2 px-4 border-b text-left">Country</th>
-              <th className="py-2 px-4 border-b text-left">Year</th>
-              <th className="py-2 px-4 border-b text-left">Award</th>
-              <th className="py-2 px-4 border-b text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>#</TableHead>
+              <TableHead>Country</TableHead>
+              <TableHead>Year</TableHead>
+              <TableHead>Award</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {awardsData.map((award, index) => (
-              <tr className="bg-red-50" key={award.id}>
-                <td className="py-2 px-4 border-b">{index+1}</td>
-                <td className="py-2 px-4 border-b">
-                  {award.country}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {award.year}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {award.award}
-                </td>
-                <td className="py-2 px-4 border-b">
+              <TableRow key={index} className="text-white">
+                <TableCell className="font-medium">{index+1}</TableCell>
+                <TableCell>{award.country}</TableCell>
+                <TableCell>{award.year}</TableCell>
+                <TableCell>{award.award}</TableCell>
+                <TableCell>
                   <span className="text-blue-600 hover:underline cursor-pointer">
                     Edit
                   </span>{" "}
@@ -82,11 +78,11 @@ const CMSDrama = () => {
                   <span className="text-red-600 hover:underline cursor-pointer">
                     Delete
                   </span>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

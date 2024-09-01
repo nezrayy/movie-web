@@ -26,10 +26,10 @@ const MovieApproveModal = ({
   const closeModal = () => setIsModalOpen(false);
 
   return (
-    <div className="bg-gray-200 flex items-center justify-center">
+    <div className="flex items-center justify-center">
       <button
         onClick={openModal}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
+        className="text-blue-500 px-4 py-2 rounded"
       >
         Edit status
       </button>
@@ -52,7 +52,7 @@ const MovieApproveModal = ({
 
             
             <div className="space-y-4">
-              <h2 className="text-2xl font-semibold">{title}</h2>
+              <h2 className="text-2xl font-semibold text-black">{title}</h2>
               <p className="text-gray-700"><strong>Other titles:</strong> Title 2, Title 3, Title 4</p>
               <p className="text-gray-700"><strong>Year:</strong> {releaseYear}</p>
               <p className="text-gray-700">
@@ -69,7 +69,7 @@ const MovieApproveModal = ({
             {actors.map((actor, index) => (
               <div className="flex flex-col items-center" key={index}>
                 <div className="w-[100px] h-[150px] bg-gray-300 rounded"></div>
-                <p>{actor}</p>
+                <p className="text-gray-700">{actor}</p>
               </div>
             ))}
           </div>

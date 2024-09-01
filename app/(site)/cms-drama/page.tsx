@@ -1,4 +1,5 @@
 import MovieApproveModal from "@/components/movie-approve-modal"
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const movieSample = [
   {
@@ -59,36 +60,28 @@ const CMSDrama = () => {
 
       {/* Table Section */}
       <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-2 px-4 border-b text-left">#</th>
-              <th className="py-2 px-4 border-b text-left">Drama</th>
-              <th className="py-2 px-4 border-b text-left">Actors</th>
-              <th className="py-2 px-4 border-b text-left">Genres</th>
-              <th className="py-2 px-4 border-b text-left">Synopsis</th>
-              <th className="py-2 px-4 border-b text-left">Status</th>
-              <th className="py-2 px-4 border-b text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>#</TableHead>
+              <TableHead>Drama</TableHead>
+              <TableHead>Actors</TableHead>
+              <TableHead>Genres</TableHead>
+              <TableHead>Synopsis</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Action</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {movieSample.map((movie, index) => (
-              <tr className="bg-red-50" key={movie.id}>
-                <td className="py-2 px-4 border-b">{index+1}</td>
-                <td className="py-2 px-4 border-b">
-                  [{movie.releaseYear}] {movie.title}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {movie.actors.join(', ')}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {movie.genres.join(', ')}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {movie.synopsis}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {movie.status}
+              <TableRow key={index} className="text-white">
+                <TableCell className="font-medium">{index+1}</TableCell>
+                <TableCell>[{movie.releaseYear}] {movie.title}</TableCell>
+                <TableCell>{movie.actors.join(', ')}</TableCell>
+                <TableCell>{movie.genres.join(', ')}</TableCell>
+                <TableCell>{movie.synopsis}</TableCell>
+                <TableCell>
+                  [{movie.status}]
                   <MovieApproveModal 
                     releaseYear={movie.releaseYear}
                     title={movie.title}
@@ -97,8 +90,8 @@ const CMSDrama = () => {
                     synopsis={movie.synopsis}
                     availability={movie.availability}
                   />
-                </td>
-                <td className="py-2 px-4 border-b">
+                </TableCell>
+                <TableCell>
                   <span className="text-blue-600 hover:underline cursor-pointer">
                     Edit
                   </span>{" "}
@@ -106,11 +99,11 @@ const CMSDrama = () => {
                   <span className="text-red-600 hover:underline cursor-pointer">
                     Delete
                   </span>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )
