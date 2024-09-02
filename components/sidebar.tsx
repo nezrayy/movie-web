@@ -162,7 +162,10 @@ export function SidebarInputItem({
         }`}
       >
         {expanded ? (
-          <Input placeholder={placeholder} className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50" />
+          <Input
+            placeholder={placeholder}
+            className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          />
         ) : (
           <div
             className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${

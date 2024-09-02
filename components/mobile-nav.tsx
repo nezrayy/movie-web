@@ -1,4 +1,4 @@
-import { Search, MonitorPlay, Medal, Users, UserRound } from 'lucide-react';
+import { Search, MonitorPlay, Medal, Users, UserRound } from "lucide-react";
 
 const MobileNav: React.FC = () => {
   return (
