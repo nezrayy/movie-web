@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import ImageDropzone from "@/components/image-drop-zone"
 import { useState } from "react"
@@ -86,8 +86,8 @@ const ActorCard = ({ actorName }: { actorName: string }) => {
       </div>
       <button className="text-red-500 font-semibold p-0 leading-none">x</button>
     </div>
-  )
-}
+  );
+};
 
 const CMSDramaInputPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -115,18 +115,18 @@ const CMSDramaInputPage = () => {
     }
 
     const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('title', 'Movie Title'); // example additional data
+    formData.append("image", imageFile);
+    formData.append("title", "Movie Title"); // example additional data
 
-    const response = await fetch('/api/upload', {
-      method: 'POST',
+    const response = await fetch("/api/upload", {
+      method: "POST",
       body: formData,
     });
 
     if (response.ok) {
-      console.log('Data upload successfully');
+      console.log('Image uploaded successfully!');
     } else {
-      console.error('Failed to upload image.');
+      console.error("Failed to upload image.");
     }
   }
 
@@ -136,28 +136,16 @@ const CMSDramaInputPage = () => {
 
   return (
     <div className="min-h-screen p-8 flex justify-center">
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col items-center space-y-4">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="text-white">Upload Image</FormLabel>
-                    <FormControl>
-                      <ImageDropzone value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block">Submit</Button>
-            </div>
+      <form className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl" onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Left Column */}
+          <div className="flex flex-col items-center space-y-4">
+            {/* <div className="w-full h-48 bg-gray-300 rounded"></div> */}
+            <ImageDropzone onImageUpload={handleImageUpload} />
+            <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block" type="submit">
+              Submit
+            </button>
+          </div>
 
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -420,12 +408,14 @@ const CMSDramaInputPage = () => {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden">Submit</Button>
           </div>
-        </form>
-      </Form>
+          <button className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden" type="submit">
+            Submit
+          </button>
+        </div>
+      </form>
     </div>
-  )
-}
+  );
+};
 
-export default CMSDramaInputPage
+export default CMSDramaInputPage;
