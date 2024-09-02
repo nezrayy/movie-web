@@ -41,7 +41,7 @@ const MovieApproveModal = ({
             <button className="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="w-[260px] h-[390px] bg-gray-300 rounded overflow-hidden">
               <img
                 src="https://via.placeholder.com/200x300"
@@ -51,7 +51,7 @@ const MovieApproveModal = ({
             </div>
 
             
-            <div className="space-y-4">
+            <div className="space-y-4 col-span-2">
               <h2 className="text-2xl font-semibold text-black">{title}</h2>
               <p className="text-gray-700"><strong>Other titles:</strong> Title 2, Title 3, Title 4</p>
               <p className="text-gray-700"><strong>Year:</strong> {releaseYear}</p>

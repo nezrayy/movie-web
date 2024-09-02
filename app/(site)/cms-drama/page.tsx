@@ -1,4 +1,6 @@
 import MovieApproveModal from "@/components/movie-approve-modal"
+import SelectElement from "@/components/select-element"
+import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const movieSample = [
@@ -32,27 +34,34 @@ const CMSDrama = () => {
       {/* Filter Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="flex items-center space-x-4">
-          <span className="text-white font-semibold">Filtered by:</span>
-          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 text-white">
+          <span className="text-white font-semibold">Filter:</span>
+          {/* <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:border-blue-300 text-white">
             <option>Unapproved</option>
             <option>Approved</option>
-          </select>
+          </select> */}
+          <SelectElement 
+            label="Status"
+            elements={['Unapproved', 'Approved']}
+          />
         </div>
         <div className="flex flex-col sm:flex-row items-start sm:items-end space-y-4 sm:space-y-0 sm:space-x-4">
           <div className="flex items-center space-x-4">
-            <span className="text-white font-semibold">Shows</span>
-            <select className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300">
-              <option>10</option>
-              <option>25</option>
-              <option>50</option>
-              <option>100</option>
-            </select>
+            {/* <span className="text-white font-semibold">Shows</span> */}
+            <SelectElement 
+              label="Shows"
+              elements={['10', '25', '50', '100']}
+            />
           </div>
           <div className="w-full sm:w-auto">
-            <input
+            {/* <input
               type="text"
               placeholder="Search movies..."
               className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
+            /> */}
+            <Input 
+              type="text"
+              placeholder="Search movies..."
+              className="w-full bg-[#0C0D11] text-white placeholder:text-gray-400"
             />
           </div>
         </div>
