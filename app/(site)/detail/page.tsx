@@ -6,6 +6,9 @@ import reviews from "@/app/data_review";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Rating } from "@smastrom/react-rating";
+import "@smastrom/react-rating/style.css";
+
 import {
   Table,
   TableBody,
@@ -19,6 +22,7 @@ import { Button } from "@/components/ui/button";
 
 export default function Detail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [rating, setRating] = useState(0);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -82,7 +86,7 @@ export default function Detail() {
               <div className="text-white font-light mt-2 mb-4">{card.desc}</div>
 
               {/* Genre and Actor */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-rows-1 gap-4">
                 {/* Genre */}
                 <div>
                   <h3 className="text-gray-400">Genre</h3>
@@ -115,7 +119,7 @@ export default function Detail() {
 
               {/* Rating */}
               <h3 className="text-gray-400 mt-4">Rating</h3>
-              <div className="text-yellow-400 mt-2">{card.rating} / 5</div>
+              <div className="text-yellow-400 mt-2">{card.rating}/ 5</div>
 
               {/* Review */}
               <div className="mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
@@ -161,7 +165,10 @@ export default function Detail() {
                           {review.review}
                         </TableCell>
                         <TableCell className="text-center text-yellow-400">
-                          {review.rating} / 5
+                          <Rating
+                            style={{ maxWidth: 65 }}
+                            value={review.rating}
+                          />
                         </TableCell>
                         <TableCell className="text-xs text-gray-300">
                           {review.date}
@@ -174,12 +181,17 @@ export default function Detail() {
 
               {/* Add review */}
               <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
-                <h3 className="text-white text-md font-normal mb-4">
+                <h3 className="text-white text-md font-normal mb-2">
                   Add your review!
                 </h3>
+                <Rating
+                  style={{ maxWidth: 100 }}
+                  value={0}
+                  onChange={setRating}
+                />
                 <Textarea
                   placeholder="Type your review here..."
-                  className="bg-[#21212E] border-[#3d3d57] text-gray-500 w-full"
+                  className="bg-[#21212E] border-[#3d3d57] text-gray-500 w-full mt-4"
                 />
                 <Button className="bg-orange-700 hover:bg-orange-800 w-24 mt-4 self-end">
                   Submit
