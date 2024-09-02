@@ -2,9 +2,6 @@
 
 import Filter from "@/components/filter";
 import MovieCard from "@/components/movie-card";
-import SearchInput from "@/components/search-input";
-import Sidebar, { SidebarInputItem, SidebarItem } from "@/components/sidebar";
-import { Medal, MonitorPlay, Search, Users } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 const SearchPage = () => {
@@ -12,9 +9,8 @@ const SearchPage = () => {
   const searchResult = searchParams.get("search_query");
 
   return (
-    <div className="flex flex-col items-center w-full max-w-screen-xl mx-auto p-4">
+    <div className="flex flex-col items-center w-full max-w-screen-xl mx-auto p-4 mt-4">
       <div className="w-full flex flex-col items-center mb-6">
-        <SearchInput />
         {searchResult?.trim() !== "" && (
           <h1 className="mt-4 text-xl font-semibold text-white">
             Search result for "{searchResult}"
