@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode } from "react";
 import { Input } from "./ui/input";
+import { useRouter } from 'next/navigation';
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -23,13 +24,15 @@ interface SidebarProps {
 
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
+  const router = useRouter()
 
   return (
     <aside className="h-screen outline-0">
       <nav className="h-full flex flex-col bg-[#0C0D11] shadow-sm">
         <div className="p-4 pb-4 flex justify-between items-center">
           <h1
-            className={`overflow-hidden transition-all font-extrabold text-white text-2xl ${
+            onClick={() => router.push("/")}
+            className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer ${
               expanded ? "w-32" : "w-0"
             }`}
           >
@@ -146,7 +149,17 @@ export function SidebarInputItem({
   active,
   alert,
 }: SidebarInputItemProps) {
+  const [query, setQuery] = useState('');
+  const router = useRouter();
   const context = useContext(SidebarContext);
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      // Ganti spasi dengan "+"
+      const formattedQuery = query.replace(/ /g, '+');
+      router.push(`/search?search_query=${formattedQuery}`);
+    }
+  };
 
   if (!context) {
     throw new Error("SidebarInputItem must be used within a Sidebar");
@@ -162,9 +175,12 @@ export function SidebarInputItem({
         }`}
       >
         {expanded ? (
-          <Input
-            placeholder={placeholder}
-            className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          <Input 
+            placeholder={placeholder} 
+            className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50" 
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyPress={handleKeyPress}
           />
         ) : (
           <div
