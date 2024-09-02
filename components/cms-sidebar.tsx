@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode } from "react";
 import { Input } from "./ui/input";
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -24,7 +24,7 @@ interface SidebarProps {
 
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
-  const router = useRouter();
+  const router = useRouter()
 
   return (
     <aside className="h-screen outline-0">
@@ -104,7 +104,7 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
       >
         {icon}
         <span
-          className={`text-xl overflow-hidden transition-all ${
+          className={`text-md overflow-hidden transition-all ${
             expanded ? "w-30 ml-3" : "w-0"
           }`}
         >
@@ -135,86 +135,86 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
   );
 }
 
-interface SidebarInputItemProps {
-  icon: ReactNode;
-  text?: string;
-  placeholder?: string;
-  active?: boolean;
-  alert?: boolean;
-}
-export function SidebarInputItem({
-  icon,
-  text,
-  placeholder = "Search...",
-  active,
-  alert,
-}: SidebarInputItemProps) {
-  const [query, setQuery] = useState("");
-  const router = useRouter();
-  const context = useContext(SidebarContext);
+// interface SidebarInputItemProps {
+//   icon: ReactNode;
+//   text?: string;
+//   placeholder?: string;
+//   active?: boolean;
+//   alert?: boolean;
+// }
+// export function SidebarInputItem({
+//   icon,
+//   text,
+//   placeholder = "Search...",
+//   active,
+//   alert,
+// }: SidebarInputItemProps) {
+//   const [query, setQuery] = useState('');
+//   const router = useRouter();
+//   const context = useContext(SidebarContext);
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      // Ganti spasi dengan "+"
-      const formattedQuery = query.replace(/ /g, "+");
-      router.push(`/search?search_query=${formattedQuery}`);
-    }
-  };
+//   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+//     if (e.key === 'Enter') {
+//       // Ganti spasi dengan "+"
+//       const formattedQuery = query.replace(/ /g, '+');
+//       router.push(`/search?search_query=${formattedQuery}`);
+//     }
+//   };
 
-  if (!context) {
-    throw new Error("SidebarInputItem must be used within a Sidebar");
-  }
+//   if (!context) {
+//     throw new Error("SidebarInputItem must be used within a Sidebar");
+//   }
 
-  const { expanded } = context;
+//   const { expanded } = context;
 
-  return (
-    <div className="my-2 relative group">
-      <div
-        className={`relative flex items-center font-medium rounded-md transition-all ${
-          expanded ? "w-full" : "px-0 w-0"
-        }`}
-      >
-        {expanded ? (
-          <Input
-            placeholder={placeholder}
-            className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-        ) : (
-          <div
-            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${
-              active
-                ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-                : "hover:bg-[#21212E] text-white"
-            }`}
-          >
-            <div className="icon overflow-hidden transition-all">{icon}</div>
-          </div>
-        )}
+//   return (
+//     <div className="my-2 relative group">
+//       <div
+//         className={`relative flex items-center font-medium rounded-md transition-all ${
+//           expanded ? "w-full" : "px-0 w-0"
+//         }`}
+//       >
+//         {expanded ? (
+//           <Input 
+//             placeholder={placeholder} 
+//             className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50" 
+//             value={query}
+//             onChange={(e) => setQuery(e.target.value)}
+//             onKeyPress={handleKeyPress}
+//           />
+//         ) : (
+//           <div
+//             className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${
+//               active
+//                 ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
+//                 : "hover:bg-[#21212E] text-white"
+//             }`}
+//           >
+//             <div className="icon overflow-hidden transition-all">{icon}</div>
+//           </div>
+//         )}
 
-        {alert && (
-          <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
-              expanded ? "" : "top-2"
-            }`}
-          />
-        )}
-      </div>
+//         {alert && (
+//           <div
+//             className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
+//               expanded ? "" : "top-2"
+//             }`}
+//           />
+//         )}
+//       </div>
 
-      {!expanded && text && (
-        <div
-          className={`
-            absolute left-[100%] transform -translate-y-11 rounded-md px-2 py-1 ml-6
-            bg-white text-[#0C0D11] text-md font-medium
-            invisible opacity-0 -translate-x-3 transition-all
-            group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-          `}
-        >
-          {text}
-        </div>
-      )}
-    </div>
-  );
-}
+//       {!expanded && text && (
+//         <div
+//           className={`
+//             absolute left-[100%] transform -translate-y-11 rounded-md px-2 py-1 ml-6
+//             bg-white text-[#0C0D11] text-md font-medium
+//             invisible opacity-0 -translate-x-3 transition-all
+//             group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+//           `}
+//         >
+//           {text}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
