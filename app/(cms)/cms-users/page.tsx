@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MailCheck, Pencil, Trash2 } from "lucide-react";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username harus minimal 2 karakter").max(50),
@@ -171,11 +172,11 @@ const CMSUsers = () => {
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
+              <TableHead className="w-16">#</TableHead>
               <TableHead>Username</TableHead>
-              <TableHead>Role</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead className="w-36">Role</TableHead>
+              <TableHead className="w-40 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -183,20 +184,18 @@ const CMSUsers = () => {
               <TableRow key={index} className="text-white">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{user.username}</TableCell>
-                <TableCell>{user.role}</TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>{user.role}</TableCell>
                 <TableCell>
-                  <span className="text-green-600 hover:underline cursor-pointer">
-                    Send first email
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Rename
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
-                  </span>
+                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                    <MailCheck className="h-4 w-4" />
+                  </Button>
+                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

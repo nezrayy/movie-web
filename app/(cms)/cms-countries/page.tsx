@@ -21,6 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import { Pencil, Trash2 } from "lucide-react";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -103,9 +104,9 @@ const CMSCountries = () => {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead>#</TableHead>
+              <TableHead className="w-16">#</TableHead>
               <TableHead>Country</TableHead>
-              <TableHead className="w-36">Action</TableHead>
+              <TableHead className="w-36 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -114,13 +115,14 @@ const CMSCountries = () => {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{country.country}</TableCell>
                 <TableCell>
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Rename
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
-                  </span>
+                <div className="flex flex-row justify-center">
+                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

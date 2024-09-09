@@ -22,6 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Pencil, Trash2 } from "lucide-react";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -99,9 +100,11 @@ const CMSGenre = () => {
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
+              <TableHead className="w-16">#</TableHead>
               <TableHead>Genre</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead className="w-32 text-center">
+                Action
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,13 +113,14 @@ const CMSGenre = () => {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.genre}</TableCell>
                 <TableCell>
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Rename
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
-                  </span>
+                  <div className="flex flex-row justify-center">
+                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { ToggleButton } from "@/components/togglebutton";
 import {
   Table,
   TableBody,
@@ -12,18 +14,10 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
+import { Check } from "lucide-react";
 
 const formSchema = z.object({
   name: z.string().min(2).max(50),
@@ -48,7 +42,10 @@ const commentsData = [
   },
 ];
 
-const CMSGenre = () => {
+const CMSComments = () => {
+  const [selectedComments, setSelectedComments] = useState<number[]>([]);
+  const [selectAll, setSelectAll] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -56,9 +53,28 @@ const CMSGenre = () => {
     },
   });
 
+  const handleToggle = (id: number) => {
+    setSelectedComments((prevSelected) =>
+      prevSelected.includes(id)
+        ? prevSelected.filter((commentId) => commentId !== id)
+        : [...prevSelected, id]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedComments([]); // Deselect all
+    } else {
+      const allIds = commentsData.map((comment) => comment.id);
+      setSelectedComments(allIds); // Select all
+    }
+    setSelectAll(!selectAll);
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
+
   return (
     <div className="mt-12 pl-20 pr-20 flex flex-col justify-center">
       {/* Filter Section */}
@@ -95,41 +111,49 @@ const CMSGenre = () => {
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Rating</TableHead>
-              <TableHead>Comment</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
+              <TableHead className="w-16">
+                {/* Select All Checkbox */}
+                <ToggleButton
+                  isChecked={selectAll}
+                  onToggle={handleSelectAll}
+                />
+              </TableHead>
+              <TableHead className="w-48">Name</TableHead>
+              <TableHead className="w-32">Rating</TableHead>
+              <TableHead className="w-96">Comment</TableHead>
+              <TableHead className="w-32">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {commentsData.map((comment, index) => (
               <TableRow key={index} className="text-white">
-                <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableCell className="font-medium">
+                  <ToggleButton
+                    isChecked={selectedComments.includes(comment.id)}
+                    onToggle={() => handleToggle(comment.id)}
+                  />
+                </TableCell>
                 <TableCell>{comment.name}</TableCell>
-                <TableCell><Rating
-                            style={{ maxWidth: 65 }}
-                            value={comment.rating}
-                          /></TableCell>
+                <TableCell>
+                  <Rating style={{ maxWidth: 65 }} value={comment.rating} />
+                </TableCell>
                 <TableCell>{comment.comment}</TableCell>
                 <TableCell>{comment.status}</TableCell>
-                <TableCell>
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Rename
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
-                  </span>
-                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <div className="flex flex-row gap-4">
+          <Button className="bg-cyan-800 hover:bg-cyan-900">
+            Approve
+          </Button>
+          <Button className="bg-red-600 hover:bg-red-800">
+            Delete
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default CMSGenre;
+export default CMSComments;
