@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode } from "react";
 import { Input } from "./ui/input";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -24,7 +24,7 @@ interface SidebarProps {
 
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
-  const router = useRouter()
+  const router = useRouter();
 
   return (
     <aside className="h-screen outline-0">
@@ -105,7 +105,7 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
         {icon}
         <span
           className={`text-md overflow-hidden transition-all ${
-            expanded ? "w-30 ml-3" : "w-0"
+            expanded ? "w-30 ml-3" : "w-0 whitespace-nowrap"
           }`}
         >
           {text}
@@ -121,7 +121,7 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
         {!expanded && (
           <div
             className={`
-          absolute left-full rounded-md px-2 py-1 ml-6
+          absolute left-full rounded-md px-2 py-1 ml-6 whitespace-nowrap
           bg-white text-[#0C0D11] text-md
           invisible opacity-20 -translate-x-3 transition-all
           group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
@@ -175,9 +175,9 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
 //         }`}
 //       >
 //         {expanded ? (
-//           <Input 
-//             placeholder={placeholder} 
-//             className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50" 
+//           <Input
+//             placeholder={placeholder}
+//             className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 //             value={query}
 //             onChange={(e) => setQuery(e.target.value)}
 //             onKeyPress={handleKeyPress}

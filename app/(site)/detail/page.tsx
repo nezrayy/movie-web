@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 import cardList from "@/app/data";
+import actorList from "@/app/actor";
 import reviews from "@/app/data_review";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Select, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Rating } from "@smastrom/react-rating";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Rating, Star } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
 
 import {
@@ -22,14 +29,36 @@ import { Button } from "@/components/ui/button";
 
 export default function Detail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [rating, setRating] = useState(0);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
   const card = cardList[0];
+  const actors = actorList[0];
+  // State untuk menyimpan rating dan teks review
+  const [rating, setRating] = useState(0);
+  const [reviewText, setReviewText] = useState(""); // Nilai awal teks review
 
+  // Fungsi untuk menangani pengiriman review
+  const handleSubmit = () => {
+    if (rating === 0) {
+      alert("Please provide a rating before submitting.");
+      return;
+    }
+    if (!reviewText) {
+      alert("Please write a review before submitting.");
+      return;
+    }
+
+    // Kirim data review dan rating
+    console.log("Submitted Rating:", rating);
+    console.log("Submitted Review:", reviewText);
+
+    // Reset state setelah submit
+    setRating(0);
+    setReviewText("");
+  };
   return (
     <main>
       <div className="flex min-h-screen">
@@ -77,7 +106,7 @@ export default function Detail() {
             </div>
 
             {/* Content Container */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col pl-2">
               {/* Title */}
               <div className="text-white text-2xl md:text-6xl font-bold mb-4">
                 {card.title} ({card.year})
@@ -103,15 +132,22 @@ export default function Detail() {
                 </div>
                 {/* Actor */}
                 <div>
-                  <h3 className="text-gray-400">Actor</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {card.actor.map((actor, index) => (
-                      <Badge
-                        key={index}
-                        className="bg-[#21212E] hover:bg-[#343448] text-white font-normal rounded-md shadow-md"
+                  <h3 className="text-gray-400">Actors</h3>
+                  <div className="flex gap-4 mt-4 pb-4">
+                    {actorList.map((actor) => (
+                      <div
+                        key={actor.id}
+                        className="flex-shrink-0 w-[120px] text-center bg-[#21212E] p-2 rounded-lg"
                       >
-                        {actor}
-                      </Badge>
+                        <img
+                          src={actor.img}
+                          alt={actor.name}
+                          className="w-full h-[80%] object-cover rounded-md shadow-md"
+                        />
+                        <p className="mt-4 text-gray-300 text-sm sm:text-xs">
+                          {actor.name}
+                        </p>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -119,18 +155,47 @@ export default function Detail() {
 
               {/* Rating */}
               <h3 className="text-gray-400 mt-4">Rating</h3>
-              <div className="text-yellow-400 mt-2">{card.rating}/ 5</div>
+              <div className="mt-2">
+                <Rating style={{ maxWidth: 100 }} value={card.rating} />
+              </div>
 
               {/* Review */}
               <div className="mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                   <h3 className="text-white text-md font-normal">Reviews</h3>
                   <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                    <p className="text-white text-sm">Filtered by:</p>
+                    <p className="text-white text-sm">By rate:</p>
                     <Select>
                       <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                         <SelectValue placeholder="Rate" />
                       </SelectTrigger>
+                      <SelectContent className="bg-[#21212E] text-gray-400">
+                        <SelectItem value="5">
+                          <Rating style={{ maxWidth: 75 }} value={5} />
+                        </SelectItem>
+                        <SelectItem value="4">
+                          <Rating style={{ maxWidth: 75 }} value={4} />
+                        </SelectItem>
+                        <SelectItem value="3">
+                          <Rating style={{ maxWidth: 75 }} value={3} />
+                        </SelectItem>
+                        <SelectItem value="2">
+                          <Rating style={{ maxWidth: 75 }} value={2} />
+                        </SelectItem>
+                        <SelectItem value="1">
+                          <Rating style={{ maxWidth: 75 }} value={1} />
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-white text-sm">By date:</p>
+                    <Select>
+                      <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectValue placeholder="Date" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#21212E] text-gray-400">
+                        <SelectItem value="newest">Newest</SelectItem>
+                        <SelectItem value="oldest">Oldest</SelectItem>
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
@@ -186,14 +251,19 @@ export default function Detail() {
                 </h3>
                 <Rating
                   style={{ maxWidth: 100 }}
-                  value={0}
-                  onChange={setRating}
+                  value={rating}
+                  onChange={setRating} // Set rating ketika diubah
                 />
                 <Textarea
                   placeholder="Type your review here..."
                   className="bg-[#21212E] border-[#3d3d57] text-gray-500 w-full mt-4"
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)} // Set teks review ketika diinput
                 />
-                <Button className="bg-orange-700 hover:bg-orange-800 w-24 mt-4 self-end">
+                <Button
+                  className="bg-orange-700 hover:bg-orange-800 w-24 mt-4 self-end"
+                  onClick={handleSubmit} // Kirim review ketika tombol ditekan
+                >
                   Submit
                 </Button>
               </div>

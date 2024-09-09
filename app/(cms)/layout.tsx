@@ -25,7 +25,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/cms-awards">
             <SidebarItem icon={<Medal />} text="Awards" />
           </Link>
-          <Link href="/cms-Comments">
+          <Link href="/cms-comments">
             <SidebarItem icon={<MessageSquareText />} text="Comments" />
           </Link>
           <Link href="/cms-countries">

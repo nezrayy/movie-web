@@ -1,6 +1,17 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Table,
   TableBody,
@@ -9,7 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 
+const formSchema = z.object({
+  country: z.string().min(2).max(50),
+});
 const countriesData = [
   {
     id: 1,
@@ -29,19 +44,50 @@ const countriesData = [
   },
 ];
 
-const CMSDrama = () => {
+const CMSCountries = () => {
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      country: "",
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
+  }
   return (
-    <div className="max-w-7xl mx-auto mt-10 p-4 flex flex-col justify-center">
-      <form className="flex relative w-full sm:w-1/4 mb-4">
-        <input
-          type="text"
-          placeholder="Enter country..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full mb-3"
-        />
-        <Button className="bg-orange-700 hover:bg-orange-800 w-16 ml-4">
-          Submit
-        </Button>
-      </form>
+    <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full sm:w-1/4 mb-6 space-y-4"
+        >
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Genre</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter genre..."
+                    className="bg-transparent text-white placeholder:text-gray-400"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Submit
+          </button>
+        </form>
+      </Form>
 
       {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
@@ -85,4 +131,4 @@ const CMSDrama = () => {
   );
 };
 
-export default CMSDrama;
+export default CMSCountries;
