@@ -31,6 +31,7 @@ import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DatePicker } from "@/components/ui/datepicker"; // Import DatePicker
+import { Pencil, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 
 // Data example untuk actor
@@ -40,21 +41,21 @@ const actorsData = [
     actor: "Ryan Reynolds",
     country: "Indonesia",
     birthdate: "",
-    photo: "",
+    photo_url: "",
   },
   {
     id: 2,
     actor: "Hugh Jackman",
     country: "Indonesia",
     birthdate: "",
-    photo: "",
+    photo_url: "",
   },
   {
     id: 3,
     actor: "Channing Tatum",
     country: "Indonesia",
     birthdate: "",
-    photo: "",
+    photo_url: "",
   },
 ];
 
@@ -186,7 +187,8 @@ const CMSActor = () => {
               <TableHead>Name</TableHead>
               <TableHead>Country</TableHead>
               <TableHead>Birthdate</TableHead>
-              <TableHead className="w-36">Action</TableHead>
+              <TableHead>Photo</TableHead>
+              <TableHead className="w-36 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,14 +198,16 @@ const CMSActor = () => {
                 <TableCell>{actor.actor}</TableCell>
                 <TableCell>{actor.country}</TableCell>
                 <TableCell>{actor.birthdate}</TableCell>
+                <TableCell>{actor.photo_url}</TableCell>
                 <TableCell>
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    Edit
-                  </span>{" "}
-                  |{" "}
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
-                  </span>
+                  <div className="flex flex-row justify-center gap-4">
+                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
