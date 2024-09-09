@@ -1,5 +1,6 @@
 import MovieApproveModal from "@/components/movie-approve-modal"
 import SelectElement from "@/components/select-element"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Pencil, Trash2 } from "lucide-react"
@@ -101,13 +102,15 @@ const CMSDrama = () => {
                     availability={movie.availability}
                   />
                 </TableCell>
-                <TableCell className="justify-center items-center flex space-x-2">
-                  <span className="cursor-pointer bg-cyan-700">
-                    <Pencil  className="h-5 w-5 text-white"/>
-                  </span>
-                  <span className="cursor-pointer bg-red-800">
-                    <Trash2 className="w-5 h-5 text-white" />
-                  </span>
+                <TableCell>
+                  <div className="flex flex-row justify-center gap-4">
+                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

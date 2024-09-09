@@ -97,7 +97,7 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
           transition-colors group
           ${
             active
-              ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
+              ? "bg-[#21212E] text-white"
               : "hover:bg-[#21212E] text-white"
           }
       `}

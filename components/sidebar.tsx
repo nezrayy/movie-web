@@ -32,9 +32,8 @@ export default function Sidebar({ children }: SidebarProps) {
         <div className="p-4 pb-4 flex justify-between items-center">
           <h1
             onClick={() => router.push("/")}
-            className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer ${
-              expanded ? "w-32" : "w-0"
-            }`}
+            className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer ${expanded ? "w-32" : "w-0"
+              }`}
           >
             Logo
           </h1>
@@ -95,26 +94,23 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
           relative flex items-center py-4 px-4 my-1 mt-2 mb-2
           font-medium rounded-md cursor-pointer
           transition-colors group
-          ${
-            active
-              ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
-              : "hover:bg-[#21212E] text-white"
+          ${active
+            ? "bg-[#21212E] text-white"
+            : "hover:bg-[#21212E] text-white"
           }
       `}
       >
         {icon}
         <span
-          className={`text-xl overflow-hidden transition-all ${
-            expanded ? "w-30 ml-3" : "w-0"
-          }`}
+          className={`text-xl overflow-hidden transition-all ${expanded ? "w-30 ml-3" : "w-0"
+            }`}
         >
           {text}
         </span>
         {alert && (
           <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
-              expanded ? "" : "top-2"
-            }`}
+            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"
+              }`}
           />
         )}
         {!expanded && (
@@ -169,9 +165,8 @@ export function SidebarInputItem({
   return (
     <div className="my-2 relative group">
       <div
-        className={`relative flex items-center font-medium rounded-md transition-all ${
-          expanded ? "w-full" : "px-0 w-0"
-        }`}
+        className={`relative flex items-center font-medium rounded-md transition-all ${expanded ? "w-full" : "px-0 w-0"
+          }`}
       >
         {expanded ? (
           <Input
@@ -183,11 +178,10 @@ export function SidebarInputItem({
           />
         ) : (
           <div
-            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${
-              active
+            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${active
                 ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
                 : "hover:bg-[#21212E] text-white"
-            }`}
+              }`}
           >
             <div className="icon overflow-hidden transition-all">{icon}</div>
           </div>
@@ -195,9 +189,8 @@ export function SidebarInputItem({
 
         {alert && (
           <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
-              expanded ? "" : "top-2"
-            }`}
+            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"
+              }`}
           />
         )}
       </div>
