@@ -187,15 +187,17 @@ const CMSUsers = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>
-                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
-                    <MailCheck className="h-4 w-4" />
-                  </Button>
-                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="flex flex-row justify-center gap-4">
+                    <Button className="bg-green-700 p-3 hover:bg-green-800 hover:text-gray-400">
+                      <MailCheck className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}

@@ -102,9 +102,7 @@ const CMSGenre = () => {
             <TableRow>
               <TableHead className="w-16">#</TableHead>
               <TableHead>Genre</TableHead>
-              <TableHead className="w-32 text-center">
-                Action
-              </TableHead>
+              <TableHead className="w-32 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -113,11 +111,11 @@ const CMSGenre = () => {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.genre}</TableCell>
                 <TableCell>
-                  <div className="flex flex-row justify-center">
-                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                  <div className="flex flex-row justify-center gap-4">
+                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-transparent p-3 hover:bg-transparent hover:text-gray-400">
+                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
