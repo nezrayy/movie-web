@@ -51,7 +51,7 @@ const CMSDrama = () => {
     console.log(values)
   }
   return (
-    <div className="max-w-7xl mx-auto mt-10 p-4 flex flex-col justify-center">
+    <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full sm:w-1/4 mb-6 space-y-4">
           <FormField

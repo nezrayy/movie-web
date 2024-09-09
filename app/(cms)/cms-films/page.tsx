@@ -31,7 +31,7 @@ const movieSample = [
 
 const CMSDrama = () => {
   return (
-    <div className="p-4 max-w-7xl mx-auto mt-10">
+    <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       {/* Filter Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="flex items-center space-x-4">
@@ -101,12 +101,12 @@ const CMSDrama = () => {
                     availability={movie.availability}
                   />
                 </TableCell>
-                <TableCell className="justify-center items-center flex mt-4 space-x-2">
-                  <span className="text-blue-600 hover:underline cursor-pointer">
-                    <Pencil  className="h-5 w-5"/>
+                <TableCell className="justify-center items-center flex space-x-2">
+                  <span className="cursor-pointer bg-cyan-700">
+                    <Pencil  className="h-5 w-5 text-white"/>
                   </span>
-                  <span className="text-red-600 hover:underline cursor-pointer">
-                    <Trash2 className="w-5 h-5" />
+                  <span className="cursor-pointer bg-red-800">
+                    <Trash2 className="w-5 h-5 text-white" />
                   </span>
                 </TableCell>
               </TableRow>
