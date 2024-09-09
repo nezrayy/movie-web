@@ -117,7 +117,6 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
             }`}
           />
         )}
-
         {!expanded && (
           <div
             className={`

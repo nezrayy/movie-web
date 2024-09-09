@@ -1,8 +1,24 @@
 "use client";
 
-
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import "@smastrom/react-rating/style.css";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,7 +28,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import React, { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { DatePicker } from "@/components/ui/datepicker"; // Import DatePicker
+import "react-datepicker/dist/react-datepicker.css";
 
+// Data example untuk actor
 const actorsData = [
   {
     id: 1,
@@ -37,56 +58,115 @@ const actorsData = [
   },
 ];
 
+// Form validation schema
+const formSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  birthdate: z
+    .date()
+    .nullable()
+    .refine((value) => value !== null, {
+      message: "Birthdate is required",
+    }),
+  country: z.string().min(1, { message: "Country is required" }),
+});
+
 const CMSActor = () => {
-  const [date, setDate] = React.useState<Date>();
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      birthdate: null,
+      country: "",
+    },
+  });
 
-  const handleImageUpload = (file: File) => {
-    setImageFile(file);
-  };
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    console.log(values);
+  }
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-
-    if (!imageFile) {
-      alert("Please upload an image.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('title', 'Movie Title'); // example additional data
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      console.log('Image uploaded successfully!');
-    } else {
-      console.error('Failed to upload image.');
-    }
-  };
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   return (
-    <div className="max-w-7xl mx-auto mt-10 p-4 flex flex-col justify-center">
-      <form className="w-full sm:w-1/4 mb-4">
-        <input
-          type="text"
-          placeholder="Enter actor..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full mb-3"
-        />
-        <input
-          type="text"
-          placeholder="Enter country..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full mb-3"
-        />
-        
-        <Button className="bg-orange-700 hover:bg-orange-800 w-16 ml-4">
-          Submit
-        </Button>
-      </form>
+    <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="w-full sm:w-1/4 mb-6 space-y-4"
+        >
+          {/* Actor Name Input */}
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Actor Name</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter actor name..."
+                    className="bg-transparent text-white placeholder:text-gray-400"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Birthdate Input with DatePicker */}
+          <FormField
+            control={form.control}
+            name="birthdate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Birthdate</FormLabel>
+                <FormControl>
+                  <DatePicker
+                    selected={selectedDate}
+                    onChange={(date) => {
+                      setSelectedDate(date);
+                      field.onChange(date);
+                    }}
+                    placeholderText="Select birthdate"
+                    className="bg-transparent text-white placeholder:text-gray-400"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Country Select */}
+          <FormField
+            control={form.control}
+            name="country"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Country</FormLabel>
+                <FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#21212E] text-gray-400">
+                      <SelectItem value="Indonesia">Indonesia</SelectItem>
+                      <SelectItem value="USA">USA</SelectItem>
+                      <SelectItem value="UK">UK</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <button
+            type="submit"
+            className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+          >
+            Submit
+          </button>
+        </form>
+      </Form>
 
       {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
