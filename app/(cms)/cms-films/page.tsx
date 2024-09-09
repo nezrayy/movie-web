@@ -2,6 +2,7 @@ import MovieApproveModal from "@/components/movie-approve-modal"
 import SelectElement from "@/components/select-element"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Pencil, Trash2 } from "lucide-react"
 
 const movieSample = [
   {
@@ -100,13 +101,12 @@ const CMSDrama = () => {
                     availability={movie.availability}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell className="justify-center items-center flex mt-4 space-x-2">
                   <span className="text-blue-600 hover:underline cursor-pointer">
-                    Edit
-                  </span>{" "}
-                  |{" "}
+                    <Pencil  className="h-5 w-5"/>
+                  </span>
                   <span className="text-red-600 hover:underline cursor-pointer">
-                    Delete
+                    <Trash2 className="w-5 h-5" />
                   </span>
                 </TableCell>
               </TableRow>
