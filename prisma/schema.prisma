@@ -46,7 +46,7 @@ model Movie {
   rating      Float?   
   linkTrailer String?
   status      Status    @default(UNAPPROVE)
-  createdBy   User       @relation("CreatedMovies", fields: [createdById], references: [id])
+  createdBy   User      @relation("CreatedMovies", fields: [createdById], references: [id])
   createdById Int
   createdAt   DateTime  @default(now())
 
@@ -62,9 +62,9 @@ model Movie {
 model Actor {
   id         Int       @id @default(autoincrement())
   name       String
-  birthdate  DateTime
-  biography  String
-  photoUrl   String
+  birthdate  DateTime?
+  biography  String?
+  photoUrl   String?
   country    Country   @relation(fields: [countryId], references: [id])
   countryId  Int
   createdAt  DateTime  @default(now())
@@ -83,7 +83,7 @@ model Genre {
 model Award {
   id         Int       @id @default(autoincrement())
   name       String
-  description String
+  description String?
   movie      Movie     @relation(fields: [movieId], references: [id])
   movieId    Int
   createdAt  DateTime  @default(now())
@@ -92,7 +92,7 @@ model Award {
 model Country {
   id         Int       @id @default(autoincrement())
   name       String
-  code       String  
+  code       String?
   createdAt  DateTime  @default(now())
 
   actors     Actor[]
