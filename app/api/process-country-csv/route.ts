@@ -1,4 +1,4 @@
-import prisma from '@/lib/db'; // Mengimport Prisma Client
+import prisma from '@/lib/db';
 import fs from 'fs';
 import path from 'path';
 import csvParser from 'csv-parser';
