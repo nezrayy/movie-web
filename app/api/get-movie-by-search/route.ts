@@ -31,9 +31,18 @@ export async function GET(request: Request) {
     
     const moviesBySynopsis = await prisma.movie.findMany({
       where: {
-        synopsis: {
-          contains: searchQuery,
-        },
+        AND: [
+          {
+            synopsis: {
+              contains: searchQuery,
+            },
+          },
+          {
+            id: {
+              notIn: moviesByTitle.map(movie => movie.id),
+            },
+          },
+        ],
       },
       skip: offset,
       take: limit,
