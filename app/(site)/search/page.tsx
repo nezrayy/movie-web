@@ -46,8 +46,11 @@ const SearchPage = () => {
       const data = await response.json();
   
       // Jika movies yang diambil kurang dari limit, berarti tidak ada lagi
-      if (data.length < limit) {
-        setHasMore(false);
+      if (data.length > limit) {
+        setHasMore(true);  // Masih ada lebih banyak movie
+        data.pop(); // Buang movie ke-13
+      } else {
+        setHasMore(false); // Tidak ada lebih banyak movie
       }
   
       // Periksa dan tambahkan hanya movie yang belum ada
@@ -77,9 +80,11 @@ const SearchPage = () => {
 
   // Load more handler
   const handleLoadMore = () => {
-    const newOffset = offset + limit;
-    fetchMovies(newOffset);
-    setOffset(newOffset);
+    if (hasMore) {
+      const newOffset = offset + limit;
+      fetchMovies(newOffset);
+      setOffset(newOffset);
+    }
   };
 
   const isValidImageUrl = (url: string) => {

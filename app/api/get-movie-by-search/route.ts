@@ -14,14 +14,69 @@ export async function GET(request: Request) {
 
   try {
     // Lakukan pencarian di tabel movies berdasarkan title atau synopsis
-    const moviesByTitle = await prisma.movie.findMany({
+    // const moviesByTitle = await prisma.movie.findMany({
+    //   where: {
+    //     title: {
+    //       contains: searchQuery,
+    //     },
+    //   },
+    //   skip: offset,
+    //   take: limit,
+    //   include: {
+    //     country: true,
+    //     genres: {
+    //       select: {
+    //         genre: true,  // Sertakan genre dari relasi MovieGenre
+    //       },
+    //     },
+    //     actors: true,
+    //   },
+    // });
+    
+    // const moviesBySynopsis = await prisma.movie.findMany({
+    //   where: {
+    //     AND: [
+    //       {
+    //         synopsis: {
+    //           contains: searchQuery,
+    //         },
+    //       },
+    //       {
+    //         id: {
+    //           notIn: moviesByTitle.map(movie => movie.id),
+    //         },
+    //       },
+    //     ],
+    //   },
+    //   skip: offset,
+    //   take: limit,
+    //   include: {
+    //     country: true,
+    //     genres: true,
+    //     actors: true,
+    //   },
+    // });
+    
+    // // Menggabungkan hasil, prioritaskan moviesByTitle
+    // const movies = [...moviesByTitle, ...moviesBySynopsis];
+
+    const movies = await prisma.movie.findMany({
       where: {
-        title: {
-          contains: searchQuery,
-        },
+        OR: [
+          {
+            title: {
+              contains: searchQuery,
+            },
+          },
+          {
+            synopsis: {
+              contains: searchQuery,
+            },
+          },
+        ],
       },
       skip: offset,
-      take: limit,
+      take: limit + 1,
       include: {
         country: true,
         genres: {
@@ -32,33 +87,6 @@ export async function GET(request: Request) {
         actors: true,
       },
     });
-    
-    const moviesBySynopsis = await prisma.movie.findMany({
-      where: {
-        AND: [
-          {
-            synopsis: {
-              contains: searchQuery,
-            },
-          },
-          {
-            id: {
-              notIn: moviesByTitle.map(movie => movie.id),
-            },
-          },
-        ],
-      },
-      skip: offset,
-      take: limit,
-      include: {
-        country: true,
-        genres: true,
-        actors: true,
-      },
-    });
-    
-    // Menggabungkan hasil, prioritaskan moviesByTitle
-    const movies = [...moviesByTitle, ...moviesBySynopsis];
     
 
     // Jika tidak ada film yang ditemukan
