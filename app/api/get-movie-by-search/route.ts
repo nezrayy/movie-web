@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';  // Pastikan prisma sudah diinisialisasi dengan benar
+import prisma from '@/lib/db';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const searchQuery = searchParams.get('search_query');
+  const year = searchParams.get('year');
+  const genre = searchParams.get('genre');
+  const status = searchParams.get('status');
+  const availability = searchParams.get('availability');
+  const award = searchParams.get('award');
+  const sortedBy = searchParams.get('sortedBy');
   const offset = parseInt(searchParams.get("offset") || "0", 10);
   const limit = parseInt(searchParams.get("limit") || "12", 10);
 
@@ -13,70 +19,55 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Lakukan pencarian di tabel movies berdasarkan title atau synopsis
-    // const moviesByTitle = await prisma.movie.findMany({
-    //   where: {
-    //     title: {
-    //       contains: searchQuery,
-    //     },
-    //   },
-    //   skip: offset,
-    //   take: limit,
-    //   include: {
-    //     country: true,
-    //     genres: {
-    //       select: {
-    //         genre: true,  // Sertakan genre dari relasi MovieGenre
-    //       },
-    //     },
-    //     actors: true,
-    //   },
-    // });
-    
-    // const moviesBySynopsis = await prisma.movie.findMany({
-    //   where: {
-    //     AND: [
-    //       {
-    //         synopsis: {
-    //           contains: searchQuery,
-    //         },
-    //       },
-    //       {
-    //         id: {
-    //           notIn: moviesByTitle.map(movie => movie.id),
-    //         },
-    //       },
-    //     ],
-    //   },
-    //   skip: offset,
-    //   take: limit,
-    //   include: {
-    //     country: true,
-    //     genres: true,
-    //     actors: true,
-    //   },
-    // });
-    
-    // // Menggabungkan hasil, prioritaskan moviesByTitle
-    // const movies = [...moviesByTitle, ...moviesBySynopsis];
+    // Bangun filter berdasarkan query params
+    const filters: any = {
+      OR: [
+        {
+          title: {
+            contains: searchQuery,
+          },
+        },
+        {
+          synopsis: {
+            contains: searchQuery,
+          },
+        },
+      ],
+    };
+
+    if (year) {
+      filters.releaseYear = parseInt(year, 10);
+    }
+    if (status) {
+      filters.status = status.toUpperCase();
+    }
+    if (availability) {
+      filters.availability = availability;
+    }
+    if (award) {
+      filters.awards = {
+        some: {
+          name: {
+            contains: award,
+          },
+        },
+      };
+    }
+    if (genre) {
+      filters.genres = {
+        some: {
+          genre: {
+            name: genre,
+          },
+        },
+      };
+    }
 
     const movies = await prisma.movie.findMany({
-      where: {
-        OR: [
-          {
-            title: {
-              contains: searchQuery,
-            },
-          },
-          {
-            synopsis: {
-              contains: searchQuery,
-            },
-          },
-        ],
-      },
+      where: filters,
       skip: offset,
       take: limit + 1,
+      orderBy: sortedBy === 'Z-A' ? { title: 'desc' } : { title: 'asc' }, // Sorting berdasarkan pilihan
       include: {
         country: true,
         genres: {
@@ -87,7 +78,6 @@ export async function GET(request: Request) {
         actors: true,
       },
     });
-    
 
     // Jika tidak ada film yang ditemukan
     if (movies.length === 0) {

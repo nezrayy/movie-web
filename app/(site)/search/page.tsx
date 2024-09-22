@@ -35,16 +35,69 @@ const SearchPage = () => {
 
   const limit = 12;
 
-  // Fetch movies berdasarkan searchQuery dan offset
+  // // Fetch movies berdasarkan searchQuery dan offset
+  // const fetchMovies = async (offset = 0) => {
+  //   setLoading(true);
+  
+  //   try {
+  //     const response = await fetch(
+  //       `/api/get-movie-by-search?search_query=${searchResult}&offset=${offset}&limit=${limit}`
+  //     );
+  //     const data = await response.json();
+  
+  //     // Jika movies yang diambil kurang dari limit, berarti tidak ada lagi
+  //     if (data.length > limit) {
+  //       setHasMore(true);  // Masih ada lebih banyak movie
+  //       data.pop(); // Buang movie ke-13
+  //     } else {
+  //       setHasMore(false); // Tidak ada lebih banyak movie
+  //     }
+  
+  //     // Periksa dan tambahkan hanya movie yang belum ada
+  //     setMovies((prevMovies) => {
+  //       console.log("DATA YANG DIDAPATKAN", data)
+  //       const newMovies = data.filter((newMovie: Movie) =>
+  //         !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
+  //       );
+  //       return [...prevMovies, ...newMovies];
+  //     });
+  //   } catch (error) {
+  //     console.error("Error fetching movies:", error);
+  //   }
+  
+  //   setLoading(false);
+  // };
+
+  // Fetch movies berdasarkan searchParams (termasuk searchQuery dan filter lainnya)
   const fetchMovies = async (offset = 0) => {
     setLoading(true);
-  
+
     try {
-      const response = await fetch(
-        `/api/get-movie-by-search?search_query=${searchResult}&offset=${offset}&limit=${limit}`
-      );
+      // Buat URL berdasarkan semua parameter di searchParams
+      const searchQuery = searchParams.get("search_query") || "";
+      const year = searchParams.get("year") || "";
+      const genre = searchParams.get("genre") || "";
+      const status = searchParams.get("status") || "";
+      const availability = searchParams.get("availability") || "";
+      const award = searchParams.get("award") || "";
+      const sortedBy = searchParams.get("sortedBy") || "";
+
+      // Bangun query string untuk dikirim ke backend
+      const queryString = new URLSearchParams({
+        search_query: searchQuery,
+        year,
+        genre,
+        status,
+        availability,
+        award,
+        sortedBy,
+        offset: offset.toString(),
+        limit: limit.toString(),
+      }).toString();
+
+      const response = await fetch(`/api/get-movie-by-search?${queryString}`);
       const data = await response.json();
-  
+
       // Jika movies yang diambil kurang dari limit, berarti tidak ada lagi
       if (data.length > limit) {
         setHasMore(true);  // Masih ada lebih banyak movie
@@ -52,10 +105,10 @@ const SearchPage = () => {
       } else {
         setHasMore(false); // Tidak ada lebih banyak movie
       }
-  
+
       // Periksa dan tambahkan hanya movie yang belum ada
       setMovies((prevMovies) => {
-        console.log("DATA YANG DIDAPATKAN", data)
+        console.log("DATA YANG DIDAPATKAN", data);
         const newMovies = data.filter((newMovie: Movie) =>
           !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
         );
@@ -64,19 +117,27 @@ const SearchPage = () => {
     } catch (error) {
       console.error("Error fetching movies:", error);
     }
-  
+
     setLoading(false);
   };
 
-  // Fetch movies ketika halaman pertama kali dimuat atau search berubah
+
+  // // Fetch movies ketika halaman pertama kali dimuat atau search berubah
+  // useEffect(() => {
+  //   if (searchResult) {
+  //     setMovies([]); // Reset movies ketika search berubah
+  //     setOffset(0); // Reset offset ke 0
+  //     setHasMore(true); // Reset hasMore
+  //     fetchMovies(0); // Fetch movies pertama kali
+  //   }
+  // }, [searchResult]);
+
   useEffect(() => {
-    if (searchResult) {
-      setMovies([]); // Reset movies ketika search berubah
-      setOffset(0); // Reset offset ke 0
-      setHasMore(true); // Reset hasMore
-      fetchMovies(0); // Fetch movies pertama kali
-    }
-  }, [searchResult]);
+    setMovies([]); // Reset movies ketika filter berubah
+    setOffset(0); // Reset offset ke 0
+    setHasMore(true); // Reset hasMore
+    fetchMovies(0); // Fetch movies pertama kali
+  }, [searchParams]); // Trigger fetch setiap searchParams berubah
 
   // Load more handler
   const handleLoadMore = () => {
