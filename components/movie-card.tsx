@@ -4,7 +4,7 @@ interface MovieCardProps {
   imageLink: string;
   title: string;
   releaseYear: string;
-  genres: string[];
+  genres: any;
   actors: string[];
 }
 
@@ -29,28 +29,17 @@ const MovieCard = ({
       <div className="w-2/3 ml-4">
         <h2 className="text-lg font-bold leading-tight">{title}</h2>
         <p className="text-sm text-white">{releaseYear}</p>
-        <p className="text-sm text-white mt-1">{genres.join(', ')}</p>
+        {genres.length > 0 && (
+          <p className="text-sm text-white mt-1">
+            {genres
+              .filter((g: any) => g.genre) // Filter untuk memastikan genre ada
+              .map((g: any) => g.genre.name)
+              .join(', ')}
+          </p>
+        )}
         <p className="text-sm text-white mt-1">{actors.join(', ')}</p>
       </div>
     </div>
-
-    
-    // <div className="container mb-6">
-    //   <Image
-    //     src={imageLink}
-    //     alt={title}
-    //     className="rounded-xl"
-    //     height={100}
-    //     width={100}
-    //   />
-    //   <div>
-    //     <h3 className="pt-4 font-bold text-white">
-    //       {title} ({releaseYear})
-    //     </h3>
-    //   </div>
-    //   <p className="text-balance text-sm text-white">{genres.join(', ')}</p>
-    //   <p className="text-sm text-white">{actors.join(', ')}</p>
-    // </div>
   )
 }
 

@@ -52,6 +52,7 @@ const SearchPage = () => {
   
       // Periksa dan tambahkan hanya movie yang belum ada
       setMovies((prevMovies) => {
+        console.log("DATA YANG DIDAPATKAN", data)
         const newMovies = data.filter((newMovie: Movie) =>
           !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
         );
@@ -107,7 +108,7 @@ const SearchPage = () => {
               title={movie.title}
               releaseYear={movie.releaseYear}
               actors={movie.actors.map((actor) => actor.name)}
-              genres={movie.genres.map((genre) => genre.name)}
+              genres={movie.genres} 
             />
           ))}
         </div>

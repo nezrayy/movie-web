@@ -24,7 +24,11 @@ export async function GET(request: Request) {
       take: limit,
       include: {
         country: true,
-        genres: true,
+        genres: {
+          select: {
+            genre: true,  // Sertakan genre dari relasi MovieGenre
+          },
+        },
         actors: true,
       },
     });
