@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Filter from "@/components/filter";
 import MovieCard from "@/components/movie-card";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface Actor {
   id: number;
@@ -27,6 +27,7 @@ interface Movie {
 const SearchPage = () => {
   const searchParams = useSearchParams();
   const searchResult = searchParams.get("search_query");
+  const router = useRouter()
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
@@ -123,7 +124,7 @@ const SearchPage = () => {
         </div>
         <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
           {movies.map((movie) => (
-            <div key={movie.id} className="hover:cursor-pointer group">
+            <div key={movie.id} className="hover:cursor-pointer group" onClick={() => router.push(`/movie/${movie.id}`)}>
               <MovieCard
                 imageLink={isValidImageUrl(movie.posterUrl) ? movie.posterUrl : "/placeholder-image.jpg"}
                 title={movie.title}
