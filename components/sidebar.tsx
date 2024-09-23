@@ -35,7 +35,7 @@ export default function Sidebar({ children }: SidebarProps) {
             className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer ${expanded ? "w-32" : "w-0"
               }`}
           >
-            Logo
+            <img src="/rewatch.png" alt="" className="w-[240px]" />
           </h1>
           <button
             onClick={() => setExpanded((curr) => !curr)}
