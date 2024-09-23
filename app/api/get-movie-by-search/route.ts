@@ -81,7 +81,7 @@ export async function GET(request: Request) {
 
     // Jika tidak ada film yang ditemukan
     if (movies.length === 0) {
-      return NextResponse.json({ message: 'No movies found' }, { status: 404 });
+      return NextResponse.json([], { status: 404 });
     }
 
     // Jika film ditemukan, kembalikan hasil pencarian
