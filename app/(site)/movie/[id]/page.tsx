@@ -1,7 +1,7 @@
-"use client";
+"use client"; // Harus di paling atas
 
 import { useEffect, useState } from "react";
-import cardList from "@/app/data";
+import { useParams } from "next/navigation"; // Import useParams dari next/navigation
 import actorList from "@/app/actor";
 import reviews from "@/app/data_review";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Rating, Star } from "@smastrom/react-rating";
+import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
-
 import {
   Table,
   TableBody,
@@ -26,7 +25,6 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/router";
 
 interface Actor {
   id: number;
@@ -43,6 +41,8 @@ interface Movie {
   title: string;
   releaseYear: string;
   synopsis: string;
+  linkTrailer: string;
+  availability: string[];
   rating: number;
   posterUrl: string;
   actors: Actor[];
@@ -51,52 +51,53 @@ interface Movie {
 
 export default function Detail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const router = useRouter();
-  const { id } = router.query;
-  const [movie, setMovie] = useState<Movie[]>([]);
+  const params = useParams<{ id: string }>();
+  const [movie, setMovie] = useState<Movie | null>(null); // Menggunakan null sebagai nilai awal
 
   const fetchMovie = async () => {
+    if (!params.id) return; // Pastikan id ada sebelum fetch
     try {
-      const response = await fetch(`/api/get-movie-details/${id}`);
+      const response = await fetch(`/api/get-movie-details/${params.id}`);
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log(data);
       setMovie(data);
     } catch (error) {
       console.error("Error fetching movie detail:", error);
     }
   };
+
   useEffect(() => {
     fetchMovie();
-  }, [id]);
+  }, [params.id]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  // const card = cardList[0];
-  const actors = actorList[0];
-  // State untuk menyimpan rating dan teks review
-  const [rating, setRating] = useState(0);
-  const [reviewText, setReviewText] = useState(""); // Nilai awal teks review
+  function convertToEmbedLink(youtubeLink: string): string {
+    const regex =
+      /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = youtubeLink.match(regex);
 
-  // Fungsi untuk menangani pengiriman review
-  const handleSubmit = () => {
-    if (rating === 0) {
-      alert("Please provide a rating before submitting.");
-      return;
+    if (match && match[1]) {
+      // Jika cocok, buat link embed
+      return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1`;
+    } else {
+      // Jika URL tidak valid, kembalikan link YouTube default atau handle error sesuai kebutuhan
+      return "";
     }
-    if (!reviewText) {
-      alert("Please write a review before submitting.");
-      return;
-    }
+  }
+  const embedLink = convertToEmbedLink(movie?.linkTrailer || "");
 
-    // Kirim data review dan rating
-    console.log("Submitted Rating:", rating);
-    console.log("Submitted Review:", reviewText);
+  if (!movie) {
+    return <p>Loading...</p>; // Loading state jika data belum tersedia
+  }
 
-    // Reset state setelah submit
-    setRating(0);
-    setReviewText("");
-  };
   return (
     <main>
       <div className="flex min-h-screen">
@@ -104,10 +105,9 @@ export default function Detail() {
         <div className="w-full items-center">
           {/* Video Header with Fade Effect */}
           <div className="relative w-full h-[200px] md:h-[420px] mb-4 bg-center bg-cover bg-no-repeat fade-mask">
-            {/* iFrame Element */}
             <iframe
               className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/73_1biulkYk?autoplay=1&mute=1&loop=1&playlist=73_1biulkYk"
+              src={embedLink} // Gunakan embedLink di sini
               frameBorder="0"
               allow="autoplay; encrypted-media"
               allowFullScreen
@@ -120,7 +120,7 @@ export default function Detail() {
             <div className="flex flex-col w-full sm:w-auto items-center">
               <div className="w-[120px] h-[180px] sm:w-[240px] sm:h-[360px] flex-shrink-0">
                 <img
-                  src={movie.photo}
+                  src={movie.posterUrl}
                   alt={movie.title}
                   className="w-full h-full object-cover rounded-lg shadow-md"
                 />
@@ -131,14 +131,18 @@ export default function Detail() {
                 </h3>
                 <Separator className="my-4 bg-gray-500" />
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {movie.availability.map((availability, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
-                    >
-                      {availability}
-                    </Badge>
-                  ))}
+                  {Array.isArray(movie.availability) ? (
+                    movie.availability.map((availability, index) => (
+                      <Badge
+                        key={index}
+                        className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
+                      >
+                        {availability}
+                      </Badge>
+                    ))
+                  ) : (
+                    <p>No availability data</p> // Fallback jika availability bukan array atau tidak ada
+                  )}
                 </div>
               </div>
             </div>
@@ -147,11 +151,11 @@ export default function Detail() {
             <div className="flex-1 flex flex-col pl-2">
               {/* Title */}
               <div className="text-white text-2xl md:text-6xl font-bold mb-4">
-                {movie.title} ({movie.year})
+                {movie.title} ({movie.releaseYear})
               </div>
               {/* Description */}
               <div className="text-white font-light mt-2 mb-4">
-                {movie.desc}
+                {movie.synopsis}
               </div>
 
               {/* Genre and Actor */}
@@ -160,27 +164,28 @@ export default function Detail() {
                 <div>
                   <h3 className="text-gray-400">Genre</h3>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {movie.genre.map((genre, index) => (
+                    {movie.genres.map((movieGenre, index) => (
                       <Badge
                         key={index}
                         className="bg-[#21212E] hover:bg-[#343448] pl-3 pr-3 text-white text-sm font-normal rounded-md shadow-md"
                       >
-                        {genre}
+                        {movieGenre.genre.name}
                       </Badge>
                     ))}
                   </div>
                 </div>
+
                 {/* Actor */}
                 <div>
                   <h3 className="text-gray-400">Actors</h3>
                   <div className="flex gap-4 mt-4 pb-4">
-                    {actorList.map((actor) => (
+                    {movie.actors.map((actor) => (
                       <div
                         key={actor.id}
                         className="flex-shrink-0 w-[120px] text-center bg-[#21212E] p-2 rounded-lg"
                       >
                         <img
-                          src={actor.img}
+                          src={actor.img} // Pastikan objek actor memiliki properti 'img'
                           alt={actor.name}
                           className="w-full h-[80%] object-cover rounded-md shadow-md"
                         />
@@ -285,7 +290,7 @@ export default function Detail() {
               </div>
 
               {/* Add review */}
-              <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
+              {/* <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
                 <h3 className="text-white text-md font-normal mb-2">
                   Add your review!
                 </h3>
@@ -306,7 +311,7 @@ export default function Detail() {
                 >
                   Submit
                 </Button>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
