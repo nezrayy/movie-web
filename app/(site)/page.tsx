@@ -294,7 +294,7 @@ export default function Home() {
               {currentItems.map((card) => (
                 <div key={card.id} className="container mb-6 mx-auto sm:mx-0">
                   <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
-                    <a href="./movie/${card.id}">
+                    <a href={`./movie/${card.id}`}>
                       <img
                         src={card.posterUrl}
                         alt=""
