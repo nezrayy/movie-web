@@ -57,6 +57,25 @@ model Movie {
   actors      MovieActor[]
   genres      MovieGenre[]
   comments    Comment[]
+  availabilities MovieAvailability[]
+}
+
+model Availability {
+  id         Int       @id @default(autoincrement())
+  name       String
+  createdAt  DateTime  @default(now())
+  
+  movies     MovieAvailability[]
+}
+
+model MovieAvailability {
+  movie       Movie       @relation(fields: [movieId], references: [id])
+  movieId     Int
+  availability Availability @relation(fields: [availabilityId], references: [id])
+  availabilityId Int
+  createdAt   DateTime    @default(now())
+
+  @@id([movieId, availabilityId])
 }
 
 model Actor {
