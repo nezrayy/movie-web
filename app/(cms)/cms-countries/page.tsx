@@ -68,10 +68,10 @@ const CMSCountries = () => {
             name="country"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Genre</FormLabel>
+                <FormLabel className="text-white">Country</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter genre..."
+                    placeholder="Enter country..."
                     className="bg-transparent text-white placeholder:text-gray-400"
                     {...field}
                   />

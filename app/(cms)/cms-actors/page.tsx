@@ -1,6 +1,9 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -11,7 +14,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import "@smastrom/react-rating/style.css";
 import {
   Select,
   SelectContent,
@@ -27,145 +29,199 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import React, { useState } from "react";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { DatePicker } from "@/components/ui/datepicker"; // Import DatePicker
+import { DatePicker } from "@/components/ui/datepicker";
 import { Pencil, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
+import ImageDropzone from "@/components/image-drop-zone-sm";
 
-// Data example untuk actor
-const actorsData = [
+// Tipe data untuk aktor
+interface Actor {
+  id: number;
+  name: string;
+  country: string;
+  birthdate: Date;
+  photo_url: string;
+}
+
+// Data contoh untuk aktor
+const actorsData: Actor[] = [
   {
     id: 1,
-    actor: "Ryan Reynolds",
-    country: "Indonesia",
-    birthdate: "",
+    name: "Ryan Reynolds",
+    country: "Canada",
+    birthdate: new Date("1976-10-23"),
     photo_url: "",
   },
   {
     id: 2,
-    actor: "Hugh Jackman",
-    country: "Indonesia",
-    birthdate: "",
+    name: "Hugh Jackman",
+    country: "Australia",
+    birthdate: new Date("1968-10-12"),
     photo_url: "",
   },
   {
     id: 3,
-    actor: "Channing Tatum",
-    country: "Indonesia",
-    birthdate: "",
+    name: "Channing Tatum",
+    country: "USA",
+    birthdate: new Date("1980-04-26"),
     photo_url: "",
   },
 ];
 
-// Form validation schema
+// Schema validasi form
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
-  birthdate: z
-    .date()
-    .nullable()
-    .refine((value) => value !== null, {
-      message: "Birthdate is required",
-    }),
+  birthdate: z.date(), // Mengizinkan nilai null
   country: z.string().min(1, { message: "Country is required" }),
+  image: z.any().optional(),
 });
 
-const CMSActor = () => {
-  const form = useForm<z.infer<typeof formSchema>>({
+type FormValues = z.infer<typeof formSchema>;
+
+const CMSActor: React.FC = () => {
+  const [actors, setActors] = useState<Actor[]>(actorsData);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      birthdate: null,
+      birthdate: new Date(), // Set default ke tanggal saat ini
       country: "",
+      image: undefined,
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = (values: FormValues) => {
     console.log(values);
-  }
+    // Implementasi logika untuk menambahkan atau memperbarui aktor
+    const newActor: Actor = {
+      id: actors.length + 1,
+      name: values.name,
+      country: values.country,
+      birthdate: values.birthdate,
+      photo_url: values.image ? URL.createObjectURL(values.image as Blob) : "",
+    };
+    setActors([...actors, newActor]);
+    form.reset();
+  };
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const handleDelete = (id: number) => {
+    setActors(actors.filter((actor) => actor.id !== id));
+  };
+
+  const handleEdit = (actor: Actor) => {
+    // Konversi tipe untuk mencocokkan dengan expectasi form
+    form.reset({
+      name: actor.name,
+      country: actor.country,
+      birthdate: actor.birthdate,
+      image: undefined, // Anda mungkin perlu menangani ini secara berbeda tergantung pada kebutuhan
+    });
+  };
+
+  const filteredActors = actors.filter((actor) =>
+    actor.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full sm:w-1/4 mb-6 space-y-4"
+          className="w-full flex space-x-4"
         >
-          {/* Actor Name Input */}
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">Actor Name</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter actor name..."
-                    className="bg-transparent text-white placeholder:text-gray-400"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Left Column */}
+          <div className="w-full mb-6 sm:w-1/4 space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">Actor Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter actor name..."
+                      className="bg-transparent text-white placeholder:text-gray-400"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Birthdate Input with DatePicker */}
-          <FormField
-            control={form.control}
-            name="birthdate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">Birthdate</FormLabel>
-                <FormControl>
-                  <DatePicker
-                    selected={selectedDate}
-                    onChange={(date) => {
-                      setSelectedDate(date);
-                      field.onChange(date);
-                    }}
-                    placeholderText="Select birthdate"
-                    className="bg-transparent text-white placeholder:text-gray-400"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <Controller
+              name="birthdate"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">Birthdate</FormLabel>
+                  <FormControl>
+                    <DatePicker
+                      selected={field.value}
+                      onChange={(date: Date) => field.onChange(date)}
+                      placeholderText="Select birthdate"
+                      className="bg-transparent text-white placeholder:text-gray-400"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {/* Country Select */}
-          <FormField
-            control={form.control}
-            name="country"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-white">Country</FormLabel>
-                <FormControl>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
-                      <SelectValue placeholder="Select country" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#21212E] text-gray-400">
-                      <SelectItem value="Indonesia">Indonesia</SelectItem>
-                      <SelectItem value="USA">USA</SelectItem>
-                      <SelectItem value="UK">UK</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="country"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-white">Country</FormLabel>
+                  <FormControl>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#21212E] text-gray-400">
+                        <SelectItem value="Indonesia">Indonesia</SelectItem>
+                        <SelectItem value="USA">USA</SelectItem>
+                        <SelectItem value="UK">UK</SelectItem>
+                        <SelectItem value="Canada">Canada</SelectItem>
+                        <SelectItem value="Australia">Australia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <button
-            type="submit"
-            className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
-          >
-            Submit
-          </button>
+            <Button
+              type="submit"
+              className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+            >
+              Submit
+            </Button>
+          </div>
+
+          {/* Right Column - Upload Image */}
+          <div className="w-full sm:w-1/3 space-y-4">
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-white">Upload Image</FormLabel>
+                  <FormControl>
+                    <ImageDropzone
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </form>
       </Form>
 
@@ -175,6 +231,8 @@ const CMSActor = () => {
           type="text"
           placeholder="Search actor..."
           className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
@@ -192,19 +250,25 @@ const CMSActor = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {actorsData.map((actor, index) => (
-              <TableRow key={index} className="text-white hover:bg-muted/5">
+            {filteredActors.map((actor, index) => (
+              <TableRow key={actor.id} className="text-white hover:bg-muted/5">
                 <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>{actor.actor}</TableCell>
+                <TableCell>{actor.name}</TableCell>
                 <TableCell>{actor.country}</TableCell>
-                <TableCell>{actor.birthdate}</TableCell>
-                <TableCell>{actor.photo_url}</TableCell>
+                <TableCell>{actor.birthdate?.toLocaleDateString()}</TableCell>
+                <TableCell>{actor.photo_url ? "Yes" : "No"}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
-                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                    <Button
+                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
+                      onClick={() => handleEdit(actor)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                    <Button
+                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
+                      onClick={() => handleDelete(actor.id)}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

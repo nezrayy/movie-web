@@ -91,3 +91,5 @@ export function DatePicker({ initialDate, onError }: Props) {
     </Popover>
   );
 }
+
+export default DatePicker;

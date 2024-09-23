@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import cardList from "@/app/data";
 import actorList from "@/app/actor";
 import reviews from "@/app/data_review";
@@ -26,15 +26,53 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/router";
+
+interface Actor {
+  id: number;
+  name: string;
+}
+
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface Movie {
+  id: number;
+  title: string;
+  releaseYear: string;
+  synopsis: string;
+  rating: number;
+  posterUrl: string;
+  actors: Actor[];
+  genres: Genre[];
+}
 
 export default function Detail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const router = useRouter();
+  const { id } = router.query;
+  const [movie, setMovie] = useState<Movie[]>([]);
+
+  const fetchMovie = async () => {
+    try {
+      const response = await fetch(`/api/get-movie-details/${id}`);
+      const data = await response.json();
+      setMovie(data);
+    } catch (error) {
+      console.error("Error fetching movie detail:", error);
+    }
+  };
+  useEffect(() => {
+    fetchMovie();
+  }, [id]);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const card = cardList[0];
+  // const card = cardList[0];
   const actors = actorList[0];
   // State untuk menyimpan rating dan teks review
   const [rating, setRating] = useState(0);
@@ -82,8 +120,8 @@ export default function Detail() {
             <div className="flex flex-col w-full sm:w-auto items-center">
               <div className="w-[120px] h-[180px] sm:w-[240px] sm:h-[360px] flex-shrink-0">
                 <img
-                  src={card.img}
-                  alt={card.title}
+                  src={movie.photo}
+                  alt={movie.title}
                   className="w-full h-full object-cover rounded-lg shadow-md"
                 />
               </div>
@@ -93,7 +131,7 @@ export default function Detail() {
                 </h3>
                 <Separator className="my-4 bg-gray-500" />
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {card.availability.map((availability, index) => (
+                  {movie.availability.map((availability, index) => (
                     <Badge
                       key={index}
                       className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
@@ -109,10 +147,12 @@ export default function Detail() {
             <div className="flex-1 flex flex-col pl-2">
               {/* Title */}
               <div className="text-white text-2xl md:text-6xl font-bold mb-4">
-                {card.title} ({card.year})
+                {movie.title} ({movie.year})
               </div>
               {/* Description */}
-              <div className="text-white font-light mt-2 mb-4">{card.desc}</div>
+              <div className="text-white font-light mt-2 mb-4">
+                {movie.desc}
+              </div>
 
               {/* Genre and Actor */}
               <div className="grid grid-rows-1 gap-4">
@@ -120,7 +160,7 @@ export default function Detail() {
                 <div>
                   <h3 className="text-gray-400">Genre</h3>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {card.genre.map((genre, index) => (
+                    {movie.genre.map((genre, index) => (
                       <Badge
                         key={index}
                         className="bg-[#21212E] hover:bg-[#343448] pl-3 pr-3 text-white text-sm font-normal rounded-md shadow-md"
@@ -156,7 +196,7 @@ export default function Detail() {
               {/* Rating */}
               <h3 className="text-gray-400 mt-4">Rating</h3>
               <div className="mt-2">
-                <Rating style={{ maxWidth: 100 }} value={card.rating} />
+                <Rating style={{ maxWidth: 100 }} value={movie.rating} />
               </div>
 
               {/* Review */}

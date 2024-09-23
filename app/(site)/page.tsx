@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import cardList from "@/app/data";
 import {
   Pagination,
@@ -28,7 +28,22 @@ import {
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
 
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface Movie {
+  id: number;
+  title: string;
+  releaseYear: string;
+  rating: number;
+  posterUrl: string;
+  genres: Genre[];
+}
+
 export default function Home() {
+  const [movies, setMovies] = useState<Movie[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const toggleSidebar = () => {
@@ -39,10 +54,10 @@ export default function Home() {
   const itemsPerPage = 10;
 
   // Calculate total pages
-  const totalPages = Math.ceil(cardList.length / itemsPerPage);
+  const totalPages = Math.ceil(movies.length / itemsPerPage);
 
   // Get current items based on the page
-  const currentItems = cardList.slice(
+  const currentItems = movies.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
@@ -50,6 +65,120 @@ export default function Home() {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const fetchMovies = async () => {
+    try {
+      const response = await fetch("/api/get-movies");
+      const data = await response.json();
+      console.log(data); // Cek apa yang di-return oleh API
+      setMovies(data);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchMovies();
+    console.log(movies);
+  }, []);
+
+  const renderPaginationItems = () => {
+    const paginationItems = [];
+
+    if (totalPages <= 5) {
+      // Jika total halaman 5 atau kurang, tampilkan semua halaman
+      for (let i = 1; i <= totalPages; i++) {
+        paginationItems.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className={
+                currentPage === i
+                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500" // Border untuk halaman aktif
+                  : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+              }
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Jika total halaman lebih dari 5
+      // Tampilkan halaman pertama
+      paginationItems.push(
+        <PaginationItem key={1}>
+          <PaginationLink
+            href="#"
+            onClick={() => handlePageChange(1)}
+            isActive={currentPage === 1}
+            className={
+              currentPage === 1
+                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
+                : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+            }
+          >
+            1
+          </PaginationLink>
+        </PaginationItem>
+      );
+
+      // Tampilkan halaman kedua hingga kelima atau sampai sebelum halaman terakhir
+      if (currentPage > 4) {
+        paginationItems.push(<PaginationEllipsis key="start-ellipsis" />);
+      }
+
+      const startPage = Math.max(2, currentPage - 1);
+      const endPage = Math.min(currentPage + 1, totalPages - 1);
+
+      for (let i = startPage; i <= endPage; i++) {
+        paginationItems.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}
+              className={
+                currentPage === i
+                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
+                  : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+              }
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+
+      // Tampilkan ellipsis jika halaman terakhir belum ditampilkan
+      if (currentPage < totalPages - 3) {
+        paginationItems.push(<PaginationEllipsis key="end-ellipsis" />);
+      }
+
+      // Tampilkan halaman terakhir
+      paginationItems.push(
+        <PaginationItem key={totalPages}>
+          <PaginationLink
+            href="#"
+            onClick={() => handlePageChange(totalPages)}
+            isActive={currentPage === totalPages}
+            className={
+              currentPage === totalPages
+                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
+                : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+            }
+          >
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return paginationItems;
+  };
+
   return (
     <main>
       <div className="flex min-h-screen">
@@ -165,9 +294,9 @@ export default function Home() {
               {currentItems.map((card) => (
                 <div key={card.id} className="container mb-6 mx-auto sm:mx-0">
                   <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
-                    <a href="./detail">
+                    <a href="./movie/${card.id}">
                       <img
-                        src={card.img}
+                        src={card.posterUrl}
                         alt=""
                         className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
                       />
@@ -184,22 +313,27 @@ export default function Home() {
                   </div>
                   <div className="text-center sm:text-left">
                     <h3 className="pt-4 font-bold">
-                      {card.title} ({card.year})
+                      {card.title} ({card.releaseYear})
                     </h3>
                   </div>
                   <div className="flex flex-wrap justify-center sm:justify-start">
-                    {card.genre.slice(0, 3).map((genre, index) => (
-                      <p
-                        key={index}
-                        className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
-                          index < card.genre.slice(0, 3).length - 1
-                            ? "after:content-[','] after:ml-0"
-                            : ""
-                        }`}
-                      >
-                        {genre}
+                    {card.genres && card.genres.length > 0 ? (
+                      card.genres.slice(0, 3).map((movieGenre, index) => (
+                        <p
+                          key={index}
+                          className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
+                            index < card.genres.slice(0, 3).length - 1
+                              ? "after:content-['/'] after:ml-0"
+                              : ""
+                          }`}
+                        >
+                          {movieGenre.genre.name} {/* Mengakses nama genre */}
+                        </p>
+                      ))
+                    ) : (
+                      <p className="text-gray-400 text-xs font-normal">
                       </p>
-                    ))}
+                    )}
                   </div>
                 </div>
               ))}
@@ -223,22 +357,10 @@ export default function Home() {
                     }
                   />
                 </PaginationItem>
-                {[...Array(totalPages)].map((_, index) => (
-                  <PaginationItem key={index}>
-                    <PaginationLink
-                      href="#"
-                      onClick={() => handlePageChange(index + 1)}
-                      isActive={currentPage === index + 1}
-                      className={
-                        currentPage === index + 1
-                          ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500" // Border untuk halaman aktif
-                          : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
-                      }
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
+
+                {/* Render pagination items */}
+                {renderPaginationItems()}
+
                 <PaginationItem>
                   <PaginationNext
                     href="#"

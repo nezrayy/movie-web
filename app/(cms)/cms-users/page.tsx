@@ -126,8 +126,9 @@ const CMSUsers = () => {
                       <SelectValue placeholder="Role" />
                     </SelectTrigger>
                     <SelectContent className="bg-[#14141E] text-gray-400">
-                      <SelectItem value="available">Writer</SelectItem>
-                      <SelectItem value="unavailable">Admin</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="writer">Writer</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
