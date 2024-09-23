@@ -35,40 +35,6 @@ const SearchPage = () => {
 
   const limit = 12;
 
-  // // Fetch movies berdasarkan searchQuery dan offset
-  // const fetchMovies = async (offset = 0) => {
-  //   setLoading(true);
-  
-  //   try {
-  //     const response = await fetch(
-  //       `/api/get-movie-by-search?search_query=${searchResult}&offset=${offset}&limit=${limit}`
-  //     );
-  //     const data = await response.json();
-  
-  //     // Jika movies yang diambil kurang dari limit, berarti tidak ada lagi
-  //     if (data.length > limit) {
-  //       setHasMore(true);  // Masih ada lebih banyak movie
-  //       data.pop(); // Buang movie ke-13
-  //     } else {
-  //       setHasMore(false); // Tidak ada lebih banyak movie
-  //     }
-  
-  //     // Periksa dan tambahkan hanya movie yang belum ada
-  //     setMovies((prevMovies) => {
-  //       console.log("DATA YANG DIDAPATKAN", data)
-  //       const newMovies = data.filter((newMovie: Movie) =>
-  //         !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
-  //       );
-  //       return [...prevMovies, ...newMovies];
-  //     });
-  //   } catch (error) {
-  //     console.error("Error fetching movies:", error);
-  //   }
-  
-  //   setLoading(false);
-  // };
-
-  // Fetch movies berdasarkan searchParams (termasuk searchQuery dan filter lainnya)
   const fetchMovies = async (offset = 0) => {
     setLoading(true);
 
@@ -121,17 +87,6 @@ const SearchPage = () => {
     setLoading(false);
   };
 
-
-  // // Fetch movies ketika halaman pertama kali dimuat atau search berubah
-  // useEffect(() => {
-  //   if (searchResult) {
-  //     setMovies([]); // Reset movies ketika search berubah
-  //     setOffset(0); // Reset offset ke 0
-  //     setHasMore(true); // Reset hasMore
-  //     fetchMovies(0); // Fetch movies pertama kali
-  //   }
-  // }, [searchResult]);
-
   useEffect(() => {
     setMovies([]); // Reset movies ketika filter berubah
     setOffset(0); // Reset offset ke 0
@@ -166,16 +121,17 @@ const SearchPage = () => {
         <div className="w-full lg:w-1/4">
           <Filter />
         </div>
-        <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-5">
+        <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
           {movies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              imageLink={isValidImageUrl(movie.posterUrl) ? movie.posterUrl : "/placeholder-image.jpg"}
-              title={movie.title}
-              releaseYear={movie.releaseYear}
-              actors={movie.actors.map((actor) => actor.name)}
-              genres={movie.genres} 
-            />
+            <div key={movie.id} className="hover:cursor-pointer group">
+              <MovieCard
+                imageLink={isValidImageUrl(movie.posterUrl) ? movie.posterUrl : "/placeholder-image.jpg"}
+                title={movie.title}
+                releaseYear={movie.releaseYear}
+                actors={movie.actors}
+                genres={movie.genres} 
+              />
+            </div>
           ))}
         </div>
       </div>

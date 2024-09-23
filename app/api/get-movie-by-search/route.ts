@@ -75,7 +75,11 @@ export async function GET(request: Request) {
             genre: true,  // Sertakan genre dari relasi MovieGenre
           },
         },
-        actors: true,
+        actors: {
+          select: {
+            actor: true, // Sertakan actor dari relasi MovieActor
+          }
+        },
       },
     });
 
