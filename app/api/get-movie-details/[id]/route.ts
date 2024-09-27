@@ -15,10 +15,19 @@ export async function GET(
         id: Number(id),
       },
       include: {
-        actors: true,
+        actors: {
+          select: {
+            actor: true, // Meng-include tabel Genre
+          },
+        },
         genres: {
           include: {
             genre: true, // Meng-include tabel Genre
+          },
+        },
+        availabilities: {
+          include: {
+            availability: true, 
           },
         },
       },

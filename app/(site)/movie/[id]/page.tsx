@@ -31,6 +31,11 @@ interface Actor {
   name: string;
 }
 
+interface Availability {
+  id: number;
+  name: string;
+}
+
 interface Genre {
   id: number;
   name: string;
@@ -42,7 +47,7 @@ interface Movie {
   releaseYear: string;
   synopsis: string;
   linkTrailer: string;
-  availability: string[];
+  availabilities: Availability[];
   rating: number;
   posterUrl: string;
   actors: Actor[];
@@ -131,18 +136,15 @@ export default function Detail() {
                 </h3>
                 <Separator className="my-4 bg-gray-500" />
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {Array.isArray(movie.availability) ? (
-                    movie.availability.map((availability, index) => (
-                      <Badge
-                        key={index}
-                        className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
-                      >
-                        {availability}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p>No availability data</p> // Fallback jika availability bukan array atau tidak ada
-                  )}
+                  {movie.availabilities.map((movieAvailability) => (
+                    <Badge
+                      key={movieAvailability.id}
+                      className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
+                    >
+                      {movieAvailability.availability.name}{" "}
+                      {/* Akses langsung ke movieAvailability.name */}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             </div>
@@ -178,19 +180,20 @@ export default function Detail() {
                 {/* Actor */}
                 <div>
                   <h3 className="text-gray-400">Actors</h3>
-                  <div className="flex gap-4 mt-4 pb-4">
+                  <div className="flex gap-4 mt-4 pb-4 overflow-x-auto max-w-fit">
                     {movie.actors.map((actor) => (
                       <div
                         key={actor.id}
                         className="flex-shrink-0 w-[120px] text-center bg-[#21212E] p-2 rounded-lg"
                       >
-                        <img
-                          src={actor.img} // Pastikan objek actor memiliki properti 'img'
-                          alt={actor.name}
-                          className="w-full h-[80%] object-cover rounded-md shadow-md"
-                        />
+                        {/* <img
+          src={actor.photoUrl} // Pastikan objek actor memiliki properti 'img'
+          alt={actor.name}
+          className="w-full h-[80%] object-cover rmax-w-5xl shadow-md"
+        /> */}
                         <p className="mt-4 text-gray-300 text-sm sm:text-xs">
-                          {actor.name}
+                          {/* @ts-ignore */}
+                          {actor.actor.name}
                         </p>
                       </div>
                     ))}
