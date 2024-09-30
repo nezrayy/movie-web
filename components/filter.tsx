@@ -62,7 +62,7 @@ const Filter = () => {
         />
         <SelectElement 
           label="Genre"
-          elements={['Action', 'Adventure', 'Sci-Fi']}
+          elements={['Action', 'Adventure', 'Sci-Fi', 'Family']}
           value={genre}
           onChange={setGenre}
         />
@@ -74,7 +74,7 @@ const Filter = () => {
         />
         <SelectElement 
           label="Availability"
-          elements={['Free', 'Paid']}
+          elements={['Disney+', 'Netflix']}
           value={availability}
           onChange={setAvailability}
         />
@@ -86,7 +86,7 @@ const Filter = () => {
         />
         <SelectElement 
           label="Sorted By"
-          elements={['A-Z', 'Z-A']}
+          elements={['A-Z', 'Z-A', 'Oldest', 'Newest']}
           value={sortedBy}
           onChange={setSortedBy}
         />
