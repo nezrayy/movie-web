@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import cardList from "@/app/data";
+import { FilterSortProvider } from "../contexts/FilterSortContext";
 import {
   Pagination,
   PaginationContent,
@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/accordion";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
+import { useFilterSort } from "../contexts/FilterSortContext";
+import { Availability } from "@prisma/client";
 
 interface Genre {
   id: number;
@@ -43,43 +45,89 @@ interface Movie {
 }
 
 export default function Home() {
+  const {
+    sortBy,
+    yearFilter,
+    availabilityFilter,
+    categoryFilter,
+    setSortBy,
+    setAvailabilityFilter,
+    setYearFilter,
+    setCategoryFilter,
+  } = useFilterSort();
+
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
   // Calculate total pages
   const totalPages = Math.ceil(movies.length / itemsPerPage);
 
   // Get current items based on the page
-  const currentItems = movies.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const currentItems =
+    movies.length > 0
+      ? movies.slice(
+          (currentPage - 1) * itemsPerPage,
+          currentPage * itemsPerPage
+        )
+      : []; // Pastikan `movies` diproses hanya jika ada data
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
+  // Fetch movies based on filters and sort
   const fetchMovies = async () => {
     try {
-      const response = await fetch("/api/get-movies");
+      const queryParams = new URLSearchParams({
+        sort: sortBy || "title_asc",
+        year: yearFilter || "",
+        genre: categoryFilter || "",
+        availability: availabilityFilter || "",
+      });
+
+      const response = await fetch(`/api/get-movies?${queryParams}`);
       const data = await response.json();
-      console.log(data); // Cek apa yang di-return oleh API
       setMovies(data);
     } catch (error) {
       console.error("Error fetching movies:", error);
     }
   };
 
+  const fetchGenres = async () => {
+    try {
+      const response = await fetch("/api/get-genres"); // Pastikan API ini sudah ada
+      const data = await response.json();
+      setGenres(data);
+    } catch (error) {
+      console.error("Error fetching genres:", error);
+    }
+  };
+
+  const fetchAvailabilities = async () => {
+    try {
+      const response = await fetch("/api/get-availabilities"); // Pastikan API ini sudah ada
+      const data = await response.json();
+      setAvailabilities(data);
+    } catch (error) {
+      console.error("Error fetching availabilities:", error);
+    }
+  };
+
   useEffect(() => {
     fetchMovies();
-    console.log(movies);
+  }, [sortBy, yearFilter, categoryFilter, availabilityFilter]);
+
+  useEffect(() => {
+    fetchGenres();
+    fetchAvailabilities();
   }, []);
 
   const renderPaginationItems = () => {
@@ -215,39 +263,56 @@ export default function Home() {
                 <AccordionContent>
                   <div className="flex flex-col md:flex-row justify-between">
                     {/* Left Section: Filtered by and Selects */}
-                    <div className="flex flex-col xl:flex-row md:items-center md:space-x-4 md:space-y-0 space-y-2 mt-2">
+                    <div className="flex flex-col md:flex-row md:items-center md:space-x-4 md:space-y-0 space-y-2 mt-2">
                       <p className="text-white">Filtered by:</p>
-                      <Select>
-                        <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                      <Select onValueChange={(value) => setYearFilter(value)}>
+                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Year" />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#21212E] text-gray-400">
-                          <SelectItem value="2021">2021</SelectItem>
-                          <SelectItem value="2022">2022</SelectItem>
-                          <SelectItem value="2023">2023</SelectItem>
+                        <SelectContent className="bg-[#21212E] text-white">
+                          <SelectItem value="<1990"> 1990</SelectItem>
+                          <SelectItem value="1990_1994">1990 - 1994</SelectItem>
+                          <SelectItem value="1995_1999">1995 - 1999</SelectItem>
+                          <SelectItem value="2000_2004">2000 - 2004</SelectItem>
+                          <SelectItem value="2005_2009">2005 - 2009</SelectItem>
+                          <SelectItem value="2010_2014">2010 - 2014</SelectItem>
+                          <SelectItem value="2015_2019">2015 - 2019</SelectItem>
+                          <SelectItem value="2020_2024">2020 - 2024</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Select>
+                      <Select
+                        onValueChange={(value) => setCategoryFilter(value)}
+                      >
                         <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Genre" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
                           <SelectGroup>
-                            <SelectItem value="action">Action</SelectItem>
-                            <SelectItem value="adventure">Adventure</SelectItem>
-                            <SelectItem value="thriller">Thriller</SelectItem>
+                            {genres.map((genre) => (
+                              <SelectItem key={genre.id} value={genre.name}>
+                                {genre.name}
+                              </SelectItem>
+                            ))}
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <Select>
+                      <Select
+                        onValueChange={(value) => setAvailabilityFilter(value)}
+                      >
                         <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Availability" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
-                          <SelectItem value="available">Available</SelectItem>
-                          <SelectItem value="unavailable">
-                            Unavailable
-                          </SelectItem>
+                          <SelectGroup>
+                            {availabilities.map((availability) => (
+                              <SelectItem
+                                key={availability.id}
+                                value={availability.name}
+                              >
+                                {availability.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                       <Select>
@@ -273,13 +338,25 @@ export default function Home() {
                     {/* Right Section: Sorted by */}
                     <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 mt-2">
                       <p className="text-white">Sorted by:</p>
-                      <Select>
+                      <Select onValueChange={(value) => setSortBy(value)}>
                         <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Sort by..." />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-white">
-                          <SelectItem value="asc">A to Z</SelectItem>
-                          <SelectItem value="desc">Z to A</SelectItem>
+                          <SelectItem value="title_asc">
+                            Title: A to Z
+                          </SelectItem>
+                          <SelectItem value="title_desc">
+                            Title: Z to A
+                          </SelectItem>
+                          <SelectItem value="rating_asc">
+                            Rating: Low to High
+                          </SelectItem>
+                          <SelectItem value="rating_desc">
+                            Rating: High to Low
+                          </SelectItem>
+                          <SelectItem value="year_asc">Oldest</SelectItem>
+                          <SelectItem value="year_desc">Newest</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -288,97 +365,104 @@ export default function Home() {
               </AccordionItem>
             </Accordion>
           </div>
+          {currentItems.length > 0 ? (
+            <div className="container flex-1 relative mx-auto">
+              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 text-white">
+                {currentItems.map((card) => (
+                  <div key={card.id} className="container mb-6 mx-auto sm:mx-0">
+                    <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
+                      <a href={`./movie/${card.id}`}>
+                        <img
+                          src={card.posterUrl}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
+                        />
 
-          <div className="container flex-1 relative mx-auto">
-            <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 text-white">
-              {currentItems.map((card) => (
-                <div key={card.id} className="container mb-6 mx-auto sm:mx-0">
-                  <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
-                    <a href={`./movie/${card.id}`}>
-                      <img
-                        src={card.posterUrl}
-                        alt=""
-                        className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
-                      />
-
-                      <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 transition-opacity duration-500 ease-in-out flex items-center justify-center hover:opacity-100">
-                        <div className="pt-60">
-                          <Rating
-                            style={{ maxWidth: 80 }}
-                            value={card.rating}
-                          />
+                        <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 transition-opacity duration-500 ease-in-out flex items-center justify-center hover:opacity-100">
+                          <div className="pt-60">
+                            <Rating
+                              style={{ maxWidth: 80 }}
+                              value={card.rating}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </a>
+                      </a>
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <h3 className="pt-4 font-bold">
+                        {card.title} ({card.releaseYear})
+                      </h3>
+                    </div>
+                    <div className="flex flex-wrap justify-center sm:justify-start">
+                      {card.genres && card.genres.length > 0 ? (
+                        card.genres.slice(0, 3).map((movieGenre, index) => (
+                          <p
+                            key={index}
+                            className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
+                              index < card.genres.slice(0, 3).length - 1
+                                ? "after:content-['/'] after:ml-0"
+                                : ""
+                            }`}
+                          >
+                            {movieGenre.genre.name} {/* Mengakses nama genre */}
+                          </p>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-xs font-normal"></p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-center sm:text-left">
-                    <h3 className="pt-4 font-bold">
-                      {card.title} ({card.releaseYear})
-                    </h3>
-                  </div>
-                  <div className="flex flex-wrap justify-center sm:justify-start">
-                    {card.genres && card.genres.length > 0 ? (
-                      card.genres.slice(0, 3).map((movieGenre, index) => (
-                        <p
-                          key={index}
-                          className={`bg-transparent hover:bg-transparent pl-0 pr-1 text-gray-400 text-xs font-normal rounded-none mb-1 ${
-                            index < card.genres.slice(0, 3).length - 1
-                              ? "after:content-['/'] after:ml-0"
-                              : ""
-                          }`}
-                        >
-                          {movieGenre.genre.name} {/* Mengakses nama genre */}
-                        </p>
-                      ))
-                    ) : (
-                      <p className="text-gray-400 text-xs font-normal">
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+
+              {/* Pagination Component */}
+              <Pagination>
+                <PaginationContent className="text-gray-400">
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={() => {
+                        if (currentPage > 1) {
+                          handlePageChange(currentPage - 1);
+                        }
+                      }}
+                      className={
+                        currentPage === 1
+                          ? "opacity-50 cursor-not-allowed"
+                          : "hover:bg-[#21212E] hover:text-gray-400"
+                      }
+                    />
+                  </PaginationItem>
+
+                  {/* Render pagination items */}
+                  {renderPaginationItems()}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={() => {
+                        if (currentPage < totalPages) {
+                          handlePageChange(currentPage + 1);
+                        }
+                      }}
+                      className={
+                        currentPage === totalPages
+                          ? "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400"
+                          : "hover:bg-[#21212E] hover:text-gray-400"
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
             </div>
-
-            {/* Pagination Component */}
-            <Pagination>
-              <PaginationContent className="text-gray-400">
-                <PaginationItem>
-                  <PaginationPrevious
-                    href="#"
-                    onClick={() => {
-                      if (currentPage > 1) {
-                        handlePageChange(currentPage - 1);
-                      }
-                    }}
-                    className={
-                      currentPage === 1
-                        ? "opacity-50 cursor-not-allowed"
-                        : "hover:bg-[#21212E] hover:text-gray-400"
-                    }
-                  />
-                </PaginationItem>
-
-                {/* Render pagination items */}
-                {renderPaginationItems()}
-
-                <PaginationItem>
-                  <PaginationNext
-                    href="#"
-                    onClick={() => {
-                      if (currentPage < totalPages) {
-                        handlePageChange(currentPage + 1);
-                      }
-                    }}
-                    className={
-                      currentPage === totalPages
-                        ? "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400"
-                        : "hover:bg-[#21212E] hover:text-gray-400"
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
+          ) : (
+            // Pesan jika tidak ada film yang cocok
+            <div className="flex justify-center items-center h-64">
+              <p className="text-gray-500 text-lg">
+                Sorry! No movies found. Try another filter.{" "}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </main>

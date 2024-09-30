@@ -8,6 +8,7 @@ import {
   Clapperboard,
   Earth,
   FileVideo,
+  Image,
   Medal,
   MessageSquareText,
   Sparkles,
@@ -47,6 +48,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
           <Link href="/cms-users">
             <SidebarItem icon={<Users />} text="Users" active={pathname === "/cms-users"} />
+          </Link>
+          <Link href="/cms-header">
+            <SidebarItem icon={<Image />} text="Header" active={pathname === "/cms-header"} />
           </Link>
         </Sidebar>
       </div>
