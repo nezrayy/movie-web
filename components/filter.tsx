@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SelectElement from "@/components/select-element";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -11,6 +11,8 @@ const Filter = () => {
   const [availability, setAvailability] = useState("");
   const [award, setAward] = useState("");
   const [sortedBy, setSortedBy] = useState("");
+  const [genres, setGenres] = useState([])
+  const [availabilities, setAvailabilities] = useState([])
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,6 +34,16 @@ const Filter = () => {
     router.push(`/search?${query.toString()}`);
   };
 
+  const fetchGenres = async () => {
+    const response = await fetch("/api/get-genres");
+    setGenres(await response.json());
+  }
+
+  const fetchAvailabilities = async () => {
+    const response = await fetch("/api/get-availabilities");
+    setAvailabilities(await response.json());
+  }
+
   const handleReset = () => {
     const query = new URLSearchParams(); // Reset semua parameter filter
 
@@ -50,6 +62,11 @@ const Filter = () => {
     setSortedBy("");
   };
 
+  useEffect(() => {
+    fetchGenres();
+    fetchAvailabilities();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 gap-4 items-center p-4 max-w-screen-lg mx-auto">
       <span className="font-extrabold col-span-1 text-white">Filtered by:</span>
@@ -62,19 +79,21 @@ const Filter = () => {
         />
         <SelectElement 
           label="Genre"
-          elements={['Action', 'Adventure', 'Sci-Fi', 'Family']}
+          // @ts-ignore
+          elements={genres.map((genre) => genre.name)}
           value={genre}
           onChange={setGenre}
         />
-        <SelectElement 
+        {/* <SelectElement 
           label="Status"
           elements={['Ongoing', 'Completed']}
           value={status}
           onChange={setStatus}
-        />
+        /> */}
         <SelectElement 
           label="Availability"
-          elements={['Disney+', 'Netflix']}
+          // @ts-ignore
+          elements={availabilities.map((a) => a.name)}
           value={availability}
           onChange={setAvailability}
         />

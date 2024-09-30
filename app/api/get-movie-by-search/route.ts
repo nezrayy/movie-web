@@ -67,17 +67,21 @@ export async function GET(request: Request) {
       where: filters,
       skip: offset,
       take: limit + 1,
-      orderBy: sortedBy === 'Z-A' ? { title: 'desc' } : { title: 'asc' }, // Sorting berdasarkan pilihan
+      orderBy: 
+        sortedBy === 'z-a' ? { title: 'desc' } : 
+        sortedBy === 'a-z' ? { title: 'asc' } : 
+        sortedBy === 'oldest' ? { releaseYear: 'asc' } : 
+        { releaseYear: 'desc' }, 
       include: {
         country: true,
         genres: {
           select: {
-            genre: true,  // Sertakan genre dari relasi MovieGenre
+            genre: true,  
           },
         },
         actors: {
           select: {
-            actor: true, // Sertakan actor dari relasi MovieActor
+            actor: true, 
           }
         },
       },
