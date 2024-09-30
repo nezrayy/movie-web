@@ -248,7 +248,7 @@ export default function Home() {
                 Find, Review, and Enjoy.
               </h1>
               <h3 className="absolute top-96 flex items-center text-gray-500 text-lg font-light italic origin-top-right z-50">
-                Deadpool and Wolverine (2024)
+                {/* Deadpool and Wolverine (2024) */}
               </h3>
             </div>
           </div>
@@ -315,7 +315,7 @@ export default function Home() {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      <Select>
+                      {/* <Select>
                         <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Award" />
                         </SelectTrigger>
@@ -323,8 +323,8 @@ export default function Home() {
                           <SelectItem value="oscar">Oscar</SelectItem>
                           <SelectItem value="grammy">Grammy</SelectItem>
                         </SelectContent>
-                      </Select>
-                      <Select>
+                      </Select> */}
+                      {/* <Select>
                         <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
@@ -332,7 +332,7 @@ export default function Home() {
                           <SelectItem value="new">New</SelectItem>
                           <SelectItem value="popular">Popular</SelectItem>
                         </SelectContent>
-                      </Select>
+                      </Select> */}
                     </div>
 
                     {/* Right Section: Sorted by */}

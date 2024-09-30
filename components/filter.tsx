@@ -97,12 +97,12 @@ const Filter = () => {
           value={availability}
           onChange={setAvailability}
         />
-        <SelectElement 
+        {/* <SelectElement 
           label="Award"
           elements={['Oscar', 'Golden Globe']}
           value={award}
           onChange={setAward}
-        />
+        /> */}
         <SelectElement 
           label="Sorted By"
           elements={['A-Z', 'Z-A', 'Oldest', 'Newest']}

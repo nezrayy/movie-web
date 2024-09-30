@@ -69,7 +69,6 @@ export default function Detail() {
       }
 
       const data = await response.json();
-      console.log(data);
       setMovie(data);
     } catch (error) {
       console.error("Error fetching movie detail:", error);
