@@ -73,7 +73,8 @@ const Filter = () => {
       <div className="grid grid-cols-2 gap-4 col-span-1">
         <SelectElement 
           label="Year"
-          elements={Array.from({ length: 55 }, (_, i) => `${1970 + i}`)}
+          // elements={Array.from({ length: 55 }, (_, i) => `${1970 + i}`)}
+          elements={['<1990', '1990-1994', '1995-1999', '2000-2004', '2005-2009', '2010-2014', '2015-2019', '2020-2024']}
           value={year}
           onChange={setYear}
         />

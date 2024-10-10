@@ -26,14 +26,71 @@ enum Status {
 
 model User {
   id        Int      @id @default(autoincrement())
-  username  String
+  username  String   @unique
   email     String   @unique
   password  String
   role      Role     @default(USER)
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
   createdAt DateTime @default(now())
 
   movies    Movie[]  @relation("CreatedMovies")
   comments  Comment[]
+}
+
+model PreUser {
+  id         Int      @id @default(autoincrement())
+  username   String
+  email      String   @unique
+  password   String
+  emailToken String   @unique
+  status     String   @default("UNVERIFIED")  // Status default
+  createdAt  DateTime @default(now())
+}
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   Int  @unique
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User?   @relation(fields: [userId], references: [id])
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id])
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@unique([identifier, token])
 }
 
 model Movie {
@@ -94,7 +151,7 @@ model Actor {
 model Genre {
   id         Int       @id @default(autoincrement())
   name       String    @unique
-  createdAt  DateTime  @default(now())
+  createdAt  DateTime  @default(now()) 
 
   movies     MovieGenre[]
 }
@@ -105,7 +162,11 @@ model Award {
   description String?
   movie      Movie     @relation(fields: [movieId], references: [id])
   movieId    Int
+  awardYear  Int
   createdAt  DateTime  @default(now())
+
+  countryId Int
+  country Country @relation(fields: [countryId], references: [id])
 }
 
 model Country {
@@ -116,6 +177,7 @@ model Country {
 
   actors     Actor[]
   movies     Movie[]
+  awards    Award[]
 }
 
 model Comment {

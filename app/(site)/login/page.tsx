@@ -37,7 +37,7 @@ const LoginPage = () => {
               alt="Google Icon"
               className="w-5 h-5 mr-2"
             />
-            <span className="text-sm font-medium">Sign in with Google</span>
+            <span className="text-sm font-medium">Continue with Google</span>
           </button>
         </form>
         <p className="text-white mt-5 text-center">
