@@ -71,6 +71,8 @@ const RegisterPage = () => {
         // Jika email sudah digunakan, tampilkan pesan error
         if (result.message === "Email sudah digunakan") {
           form.setError("email", { type: "manual", message: "Email sudah digunakan" });
+        } else if (result.message === "User with this email or username already exists.") {
+          form.setError("email", { type: "manual", message: "Email sudah terdaftar" });
         } else {
           console.error("Error:", result.message);
         }

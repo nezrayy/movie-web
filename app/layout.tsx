@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans as FontSans } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "next-auth/react"
 
 const font = FontSans({ subsets: ["latin"] });
 
@@ -16,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={font.className}>{children}</body>
+      <SessionProvider>
+        <body className={font.className}>{children}</body>
+      </SessionProvider>
     </html>
   );
 }
