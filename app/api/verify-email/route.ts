@@ -33,7 +33,7 @@ export async function GET(request: Request) {
     });
 
     // return NextResponse.json({ message: "Email verified successfully. You can now log in." }, { status: 200 });
-    return NextResponse.redirect('http://localhost:3000/');
+    return NextResponse.redirect('http://localhost:3000/login');
     
   } catch (error) {
     console.error("Error verifying email:", error);
