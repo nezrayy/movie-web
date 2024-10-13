@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation'
 import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarItem } from "@/components/cms-sidebar";
 import { Accordion, AccordionItem } from "@/components/ui/accordion";
+import getClientSession from "next-auth";
 import {
   Clapperboard,
   Earth,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (

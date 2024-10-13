@@ -27,16 +27,24 @@ interface Movie {
 const SearchPage = () => {
   const searchParams = useSearchParams();
   const searchResult = searchParams.get("search_query");
-  const router = useRouter()
+  const router = useRouter();
 
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(false);
   const [offset, setOffset] = useState(0); // Offset untuk "Load More"
   const [hasMore, setHasMore] = useState(true); // Untuk "Load More"
+  const [searchQueryError, setSearchQueryError] = useState(false); // Menyimpan status error
 
   const limit = 12;
 
   const fetchMovies = async (offset = 0) => {
+    // Jika input search kosong, jangan lakukan pencarian
+    if (!searchResult || searchResult.trim() === "") {
+      setSearchQueryError(true);
+      return;
+    }
+
+    setSearchQueryError(false); // Reset error jika input tidak kosong
     setLoading(true);
 
     try {
@@ -67,7 +75,7 @@ const SearchPage = () => {
 
       // Jika movies yang diambil kurang dari limit, berarti tidak ada lagi
       if (data.length > limit) {
-        setHasMore(true);  // Masih ada lebih banyak movie
+        setHasMore(true); // Masih ada lebih banyak movie
         data.pop(); // Buang movie ke-13
       } else {
         setHasMore(false); // Tidak ada lebih banyak movie
@@ -75,9 +83,9 @@ const SearchPage = () => {
 
       // Periksa dan tambahkan hanya movie yang belum ada
       setMovies((prevMovies) => {
-        console.log("DATA YANG DIDAPATKAN", data);
-        const newMovies = data.filter((newMovie: Movie) =>
-          !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
+        const newMovies = data.filter(
+          (newMovie: Movie) =>
+            !prevMovies.some((prevMovie) => prevMovie.id === newMovie.id)
         );
         return [...prevMovies, ...newMovies];
       });
@@ -112,7 +120,14 @@ const SearchPage = () => {
   return (
     <div className="flex flex-col items-center w-full max-w-screen-xl mx-auto p-4 mt-4">
       <div className="w-full flex flex-col items-center mb-6">
-        {searchResult?.trim() !== "" && (
+        {/* Tampilkan error jika search input kosong */}
+        {searchQueryError && (
+          <p className="text-red-500 mt-4 text-xl">
+            Please enter a search query.
+          </p>
+        )}
+        {/* Tampilkan hasil search jika input valid */}
+        {!searchQueryError && searchResult?.trim() !== "" && (
           <h1 className="mt-4 text-xl font-semibold text-white">
             Search result for "{searchResult}"
           </h1>
@@ -124,13 +139,21 @@ const SearchPage = () => {
         </div>
         <div className="w-full lg:w-3/4 grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-6 mt-5">
           {movies.map((movie) => (
-            <div key={movie.id} className="hover:cursor-pointer group" onClick={() => router.push(`/movie/${movie.id}`)}>
+            <div
+              key={movie.id}
+              className="hover:cursor-pointer group"
+              onClick={() => router.push(`/movie/${movie.id}`)}
+            >
               <MovieCard
-                imageLink={isValidImageUrl(movie.posterUrl) ? movie.posterUrl : "/placeholder-image.jpg"}
+                imageLink={
+                  isValidImageUrl(movie.posterUrl)
+                    ? movie.posterUrl
+                    : "/placeholder-image.jpg"
+                }
                 title={movie.title}
                 releaseYear={movie.releaseYear}
                 actors={movie.actors}
-                genres={movie.genres} 
+                genres={movie.genres}
               />
             </div>
           ))}
@@ -147,9 +170,7 @@ const SearchPage = () => {
         </button>
       )}
 
-      {loading && (
-        <p className="text-white mt-4">Loading...</p>
-      )}
+      {loading && <p className="text-white mt-4">Loading...</p>}
     </div>
   );
 };

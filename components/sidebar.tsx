@@ -5,10 +5,13 @@ import {
   ChevronsLeft,
   ChevronsRight,
   UserRound,
+  LogOut
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode, useRef } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
+import { useSession, signOut } from "next-auth/react"
+import { Button } from "./ui/button";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -26,6 +29,7 @@ interface SidebarProps {
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
   const router = useRouter();
+  const { data: session } = useSession()
 
   return (
     <aside className="h-screen outline-0">
@@ -61,11 +65,22 @@ export default function Sidebar({ children }: SidebarProps) {
           `}
           >
             <div className="leading-4">
-              <h4 className="font-semibold text-white">User 1</h4>
-              <span className="text-xs text-gray-600">user1@gmail.com</span>
+              {session && session?.user?.username && (
+                <h4 className="font-semibold text-white">{session?.user?.username}</h4>
+              )}
+              {session && session?.user?.email && (
+                <span className="text-xs text-gray-600">{session?.user?.email}</span>
+              )}
             </div>
             <MoreVertical size={20} />
           </div>
+          {session && (
+            <div>
+              <Button variant="destructive" onClick={() => signOut()}>
+                <LogOut />
+              </Button>
+            </div>
+          )}
         </div>
       </nav>
     </aside>

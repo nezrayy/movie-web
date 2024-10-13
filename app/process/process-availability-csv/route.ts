@@ -27,13 +27,13 @@ async function processAvailabilityData(filePath: string) {
 
         for (const availabilityName of availabilityNames) {
           if (!availabilityName) continue;
-
+        
           try {
-            // Cek apakah availability sudah ada di database
+            // Cek apakah availability sudah ada di database, menggunakan findUnique karena name bersifat unik
             let availability = await prisma.availability.findUnique({
-              where: { name: availabilityName },
+              where: { name: availabilityName },  // Pastikan bahwa name ini adalah kolom unik
             });
-
+        
             // Jika availability belum ada, tambahkan ke database
             if (!availability) {
               availability = await prisma.availability.create({
@@ -43,7 +43,7 @@ async function processAvailabilityData(filePath: string) {
             } else {
               console.log(`Availability exists: ${availabilityName}`);
             }
-
+        
             // Cek apakah relasi MovieAvailability sudah ada
             const existingMovieAvailability = await prisma.movieAvailability.findUnique({
               where: {
@@ -53,7 +53,7 @@ async function processAvailabilityData(filePath: string) {
                 }
               }
             });
-
+        
             // Jika relasi belum ada, tambahkan ke tabel MovieAvailability
             if (!existingMovieAvailability) {
               await prisma.movieAvailability.create({
@@ -69,7 +69,7 @@ async function processAvailabilityData(filePath: string) {
           } catch (error) {
             console.error(`Error processing availability ${availabilityName} for movie ${movieTitle}:`, error);
           }
-        }
+        }              
       })
       .on('end', () => {
         console.log("Finished processing availabilities.");
