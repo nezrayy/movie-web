@@ -58,6 +58,8 @@ export default function Detail() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const params = useParams<{ id: string }>();
   const [movie, setMovie] = useState<Movie | null>(null); // Menggunakan null sebagai nilai awal
+  const [rating, setRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
 
   const fetchMovie = async () => {
     if (!params.id) return; // Pastikan id ada sebelum fetch
@@ -102,6 +104,44 @@ export default function Detail() {
   if (!movie) {
     return <p>Loading...</p>; // Loading state jika data belum tersedia
   }
+
+  const handleSubmit = async () => {
+    // Pastikan movieId dan userId sudah ada sebelum mengirimkan data
+    if (!movie || !movie.id) {
+      console.error("Movie ID is not available");
+      return;
+    }
+
+    // Misalnya userId didapat dari sesi user yang login, pastikan kamu ambil dari auth atau context
+    const userId = 1; // Ganti dengan cara yang benar untuk mendapatkan userId
+
+    try {
+      const response = await fetch("/api/post-comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          movieId: movie.id, // Mengambil movieId dari data movie
+          userId: userId, // Menggunakan userId yang valid
+          commentText: reviewText,
+          rating,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Comment added:", result);
+        // Reset input setelah sukses
+        setRating(0);
+        setReviewText("");
+      } else {
+        console.error("Failed to add comment");
+      }
+    } catch (error) {
+      console.error("Error submitting comment:", error);
+    }
+  };
 
   return (
     <main>
@@ -293,7 +333,7 @@ export default function Detail() {
               </div>
 
               {/* Add review */}
-              {/* <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
+              <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
                 <h3 className="text-white text-md font-normal mb-2">
                   Add your review!
                 </h3>
@@ -314,7 +354,7 @@ export default function Detail() {
                 >
                   Submit
                 </Button>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>

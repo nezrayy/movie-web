@@ -6,12 +6,13 @@ import {
   ChevronsRight,
   UserRound,
 } from "lucide-react";
-import { useContext, createContext, useState, ReactNode } from "react";
+import { useContext, createContext, useState, ReactNode, useRef } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 
 interface SidebarContextProps {
   expanded: boolean;
+  setExpanded: (expanded: boolean) => void;
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(
@@ -44,7 +45,7 @@ export default function Sidebar({ children }: SidebarProps) {
             {expanded ? <ChevronsLeft /> : <ChevronsRight />}
           </button>
         </div>
-        <SidebarContext.Provider value={{ expanded }}>
+        <SidebarContext.Provider value={{ expanded, setExpanded }}>
           <ul className="flex-1 px-3">{children}</ul>
         </SidebarContext.Provider>
 
@@ -147,6 +148,7 @@ export function SidebarInputItem({
   const [query, setQuery] = useState("");
   const router = useRouter();
   const context = useContext(SidebarContext);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -154,6 +156,15 @@ export function SidebarInputItem({
       const formattedQuery = query.replace(/ /g, "+");
       router.push(`/search?search_query=${formattedQuery}`);
     }
+  };
+
+  const handleIconClick = () => {
+    // Expand the sidebar if not expanded
+    if (!context?.expanded) {
+      context.setExpanded(true);
+    }
+    // Focus the input
+    inputRef.current?.focus();
   };
 
   if (!context) {
@@ -170,6 +181,7 @@ export function SidebarInputItem({
       >
         {expanded ? (
           <Input
+            ref={inputRef}
             placeholder={placeholder}
             className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             value={query}
@@ -178,6 +190,7 @@ export function SidebarInputItem({
           />
         ) : (
           <div
+            onClick={handleIconClick} // When icon is clicked, expand and focus
             className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${active
                 ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
                 : "hover:bg-[#21212E] text-white"

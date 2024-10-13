@@ -270,7 +270,7 @@ export default function Home() {
                           <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-white">
-                          <SelectItem value="<1990"> 1990</SelectItem>
+                          <SelectItem value="<1990">&lt;1990</SelectItem>
                           <SelectItem value="1990_1994">1990 - 1994</SelectItem>
                           <SelectItem value="1995_1999">1995 - 1999</SelectItem>
                           <SelectItem value="2000_2004">2000 - 2004</SelectItem>

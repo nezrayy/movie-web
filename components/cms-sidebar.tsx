@@ -36,7 +36,7 @@ export default function Sidebar({ children }: SidebarProps) {
               expanded ? "w-32" : "w-0"
             }`}
           >
-            Logo
+            <img src="/rewatch.png" alt="" className="w-[240px]" />
           </h1>
           <button
             onClick={() => setExpanded((curr) => !curr)}
@@ -96,9 +96,7 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
           font-medium rounded-md cursor-pointer
           transition-colors group
           ${
-            active
-              ? "bg-[#21212E] text-white"
-              : "hover:bg-[#21212E] text-white"
+            active ? "bg-[#21212E] text-white" : "hover:bg-[#21212E] text-white"
           }
       `}
       >
