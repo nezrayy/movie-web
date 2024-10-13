@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Eye, EyeOff } from "lucide-react";
 
 // Schema validasi dengan Zod
 const formSchema = z.object({
@@ -41,28 +42,41 @@ const LoginPage = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wrongCredentials, setWrongCredentials] = useState("");
+  const [showPassword, setShowPassword] = useState<boolean>(false)
   const searchParams = useSearchParams();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true); // Mulai loading
 
     try {
-      signIn("credentials", data)
+      const result = await signIn("credentials", {
+        redirect: false, // Jangan redirect otomatis, kita akan tangani di page
+        email: data.email,
+        password: data.password,
+      });
+  
+      if (result?.error) {
+        setWrongCredentials("Email atau password salah");
+      } else {
+        // Redirect ke halaman home jika login berhasil
+        window.location.href = "/";
+      }
 
-      setIsSubmitting(false); // Hentikan loading
+      setIsSubmitting(false); 
     } catch (error) {
       console.error("Login error:", error);
-      setIsSubmitting(false); // Hentikan loading jika gagal
+      setIsSubmitting(false); 
     }
   };
 
-  // useEffect(() => {
-  //   const error = searchParams.get("error");
+  useEffect(() => {
+    const error = searchParams.get("error");
 
-  //   if (error === "OAuthAccountNotLinked") {
-  //     form.setError("email", { message: "Email sudah digunakan" });
-  //   } 
-  // }, [searchParams]);
+    if (error === "OAuthAccountNotLinked") {
+      form.setError("email", { message: "Email sudah digunakan" });
+    } 
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -101,17 +115,34 @@ const LoginPage = () => {
                 <FormItem>
                   <FormLabel className="text-white">Password</FormLabel>
                   <FormControl>
+                  <div className="relative w-full">
+                    {/* Input field */}
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"} // Tampilkan teks jika showPassword true, sebaliknya tampilkan password
                       placeholder="Enter your password"
-                      {...field}
-                      className="bg-[#222d3c] text-white"
+                      {...field} // Spread field props (assuming this comes from useForm)
+                      className="bg-[#222d3c] text-white w-full pr-10" // Tambah padding kanan untuk space icon
                     />
+                    
+                    {/* Icon for showing/hiding password */}
+                    <Button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      variant="ghost"
+                      className="absolute inset-y-0 right-0 flex items-center justify-center h-full w-12 text-white"
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {wrongCredentials !== "" && (
+              <p className="text-red-500 text-sm">{wrongCredentials}</p>
+            )}
 
             <Button
               type="submit"

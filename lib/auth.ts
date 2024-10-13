@@ -90,12 +90,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user || !user.password) {
-          throw new Error("User not found or password not set.");
+          throw new Error("Email atau password salah");
         }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
         if (!isPasswordValid) {
-          throw new Error("Invalid password.");
+          throw new Error("Email atau password salah");
         }
 
         return {
