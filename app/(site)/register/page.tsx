@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
 import { useState } from "react";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -18,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import { signIn } from "next-auth/react";
 
 // Schema untuk validasi menggunakan Zod
 const formSchema = z.object({
@@ -181,6 +181,7 @@ const RegisterPage = () => {
                 type="button"
                 className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center"
                 disabled={isSubmitting} // Matikan tombol ketika loading
+                onClick={() => signIn("google")}
               >
                 <img
                   src="/google-icon.svg"

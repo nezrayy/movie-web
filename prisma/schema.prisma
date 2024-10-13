@@ -26,9 +26,9 @@ enum Status {
 
 model User {
   id        Int      @id @default(autoincrement())
-  username  String   @unique
-  email     String   @unique
-  password  String
+  username  String?   @unique
+  email     String?   @unique
+  password  String?
   role      Role     @default(USER)
   emailVerified DateTime?
   accounts      Account[]
@@ -51,7 +51,7 @@ model PreUser {
 
 model Account {
   id                       String  @id @default(cuid())
-  userId                   Int  @unique
+  userId                   Int  
   type                     String
   provider                 String
   providerAccountId        String

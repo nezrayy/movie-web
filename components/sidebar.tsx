@@ -5,12 +5,13 @@ import {
   ChevronsLeft,
   ChevronsRight,
   UserRound,
+  LogOut
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react"
-import data from "@/app/data";
+import { useSession, signOut } from "next-auth/react"
+import { Button } from "./ui/button";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -63,8 +64,8 @@ export default function Sidebar({ children }: SidebarProps) {
           `}
           >
             <div className="leading-4">
-              {session && session?.user?.name && (
-                <h4 className="font-semibold text-white">{session?.user?.name}</h4>
+              {session && session?.user?.username && (
+                <h4 className="font-semibold text-white">{session?.user?.username}</h4>
               )}
               {session && session?.user?.email && (
                 <span className="text-xs text-gray-600">{session?.user?.email}</span>
@@ -72,6 +73,13 @@ export default function Sidebar({ children }: SidebarProps) {
             </div>
             <MoreVertical size={20} />
           </div>
+          {session && (
+            <div>
+              <Button variant="destructive" onClick={() => signOut()}>
+                <LogOut />
+              </Button>
+            </div>
+          )}
         </div>
       </nav>
     </aside>

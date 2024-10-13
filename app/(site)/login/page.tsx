@@ -6,8 +6,9 @@ import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 import {
   Form,
   FormField,
@@ -40,6 +41,7 @@ const LoginPage = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const searchParams = useSearchParams();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true); // Mulai loading
@@ -53,6 +55,14 @@ const LoginPage = () => {
       setIsSubmitting(false); // Hentikan loading jika gagal
     }
   };
+
+  // useEffect(() => {
+  //   const error = searchParams.get("error");
+
+  //   if (error === "OAuthAccountNotLinked") {
+  //     form.setError("email", { message: "Email sudah digunakan" });
+  //   } 
+  // }, [searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -114,6 +124,8 @@ const LoginPage = () => {
             <Button
               type="button"
               className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center"
+              onClick={() => signIn("google")}
+              disabled={isSubmitting}
             >
               <img
                 src="/google-icon.svg"
