@@ -31,6 +31,8 @@ model User {
   password  String?
   role      Role     @default(USER)
   emailVerified DateTime?
+  resetPasswordToken   String?  
+  resetPasswordExpiry  DateTime? 
   accounts      Account[]
   sessions      Session[]
   createdAt DateTime @default(now())

@@ -1,14 +1,12 @@
-"use client";
+'use client'
 
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { z } from "zod";
 import Image from "next/image";
-import { signIn } from "next-auth/react"
-import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
 import {
   Form,
   FormField,
@@ -20,11 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 
-// Schema validasi dengan Zod
 const formSchema = z.object({
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
   password: z.string().min(6, {
     message: "Password must be at least 6 characters.",
   }),
@@ -32,51 +26,48 @@ const formSchema = z.object({
 
 type FormData = z.infer<typeof formSchema>;
 
-const LoginPage = () => {
+const ResetPasswordPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token"); // Dapatkan token dari URL
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
       password: "",
     },
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [wrongCredentials, setWrongCredentials] = useState("");
   const [showPassword, setShowPassword] = useState<boolean>(false)
-  const searchParams = useSearchParams();
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true); // Mulai loading
+    setIsSubmitting(true);
+
+    const { password } = data
 
     try {
-      const result = await signIn("credentials", {
-        redirect: false, // Jangan redirect otomatis, kita akan tangani di page
-        email: data.email,
-        password: data.password,
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
       });
   
-      if (result?.error) {
-        setWrongCredentials("Wrong email or password");
+      const result = await response.json();
+      if (response.ok) {
+        setSuccess("Password reset successful");
+        router.push("/login"); // Redirect ke halaman login setelah reset berhasil
       } else {
-        // Redirect ke halaman home jika login berhasil
-        window.location.href = "/";
+        setError(result.message);
       }
-
-      setIsSubmitting(false); 
+      setIsSubmitting(false)
     } catch (error) {
-      console.error("Login error:", error);
-      setIsSubmitting(false); 
-    }
-  };
-
-  useEffect(() => {
-    const error = searchParams.get("error");
-
-    if (error === "OAuthAccountNotLinked") {
-      form.setError("email", { message: "Email sudah digunakan" });
+      console.log("INTERNAL SERVER ERROR")
+      setIsSubmitting(false)
     } 
-  }, [searchParams]);
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -90,25 +81,7 @@ const LoginPage = () => {
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your email"
-                      {...field}
-                      className="bg-[#222d3c] text-white"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
+          <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
@@ -140,50 +113,26 @@ const LoginPage = () => {
               )}
             />
 
-            {wrongCredentials !== "" && (
-              <p className="text-red-500 text-sm">{wrongCredentials}</p>
+            {error && (
+              <p className="text-white text-center">{error}</p>
             )}
 
-            <p className="text-white text-sm">
-              Forgot password?{" "}
-              <Link href="/forgot-password" className="hover:underline underline-offset-4 text-blue-500">
-                Reset here
-              </Link>
-            </p>
+            {success && (
+              <p className="text-white text-center">{success}</p>
+            )}
 
             <Button
               type="submit"
               className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
               disabled={isSubmitting} // Matikan tombol saat loading
             >
-              {isSubmitting ? "Loading..." : "Sign in"}
-            </Button>
-
-            <Button
-              type="button"
-              className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center"
-              onClick={() => signIn("google")}
-              disabled={isSubmitting}
-            >
-              <img
-                src="/google-icon.svg"
-                alt="Google Icon"
-                className="w-5 h-5 mr-2"
-              />
-              <span className="text-sm font-medium">Continue with Google</span>
+              {isSubmitting ? "Loading..." : "Reset Password"}
             </Button>
           </form>
         </Form>
-
-        <p className="text-white mt-5 text-center">
-          Don&apos;t have an account?{" "}
-          <Link href="/register" className="hover:underline underline-offset-4 text-blue-500">
-            Register
-          </Link>
-        </p>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default ResetPasswordPage;
