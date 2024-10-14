@@ -7,11 +7,12 @@ import {
   UserRound,
   LogOut
 } from "lucide-react";
-import { useContext, createContext, useState, ReactNode } from "react";
+import { useContext, createContext, useState, ReactNode, useEffect } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "./ui/button";
+import useSessionStore from "@/app/hooks/useSessionStore";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -29,6 +30,14 @@ export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
   const router = useRouter();
   const { data: session } = useSession()
+  const setSession = useSessionStore((state: any) => state.setSession); // Zustand setSession
+  const zustandSession = useSessionStore((state: any) => state.session);
+
+  useEffect(() => {
+    if (session) {
+      setSession(session);
+    }
+  }, [session, setSession]);
 
   return (
     <aside className="h-screen outline-0">
@@ -63,23 +72,32 @@ export default function Sidebar({ children }: SidebarProps) {
               overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
           `}
           >
-            <div className="leading-4">
-              {session && session?.user?.username && (
+            <div className="leading-4 flex gap-x-4">
+              {/* {session && session?.user?.username && (
                 <h4 className="font-semibold text-white">{session?.user?.username}</h4>
               )}
               {session && session?.user?.email && (
                 <span className="text-xs text-gray-600">{session?.user?.email}</span>
+              )} */}
+              <div>
+                {zustandSession && zustandSession.user?.username && (
+                  <h4 className="font-semibold text-white">{zustandSession.user.username}</h4>
+                )}
+                {zustandSession && zustandSession.user?.email && (
+                  <span className="text-xs text-gray-600">{zustandSession.user.email}</span>
+                )}
+              </div>
+              {session && (
+                <div>
+                  <Button variant="destructive" onClick={() => signOut()}>
+                    <LogOut />
+                  </Button>
+                </div>
               )}
             </div>
             <MoreVertical size={20} />
           </div>
-          {session && (
-            <div>
-              <Button variant="destructive" onClick={() => signOut()}>
-                <LogOut />
-              </Button>
-            </div>
-          )}
+          
         </div>
       </nav>
     </aside>
