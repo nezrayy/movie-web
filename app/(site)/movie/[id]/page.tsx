@@ -1,9 +1,7 @@
 "use client"; // Harus di paling atas
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // Import useParams dari next/navigation
-import actorList from "@/app/actor";
-import reviews from "@/app/data_review";
+import { useParams } from "next/navigation"; // Import tanpa generic
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -25,6 +23,9 @@ import {
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { useSession } from "next-auth/react";
+import { ReviewProvider, useReview } from "@/contexts/ReviewContext";
+import ReviewTable from "@/components/review-table";
 
 interface Actor {
   id: number;
@@ -54,13 +55,26 @@ interface Movie {
   genres: Genre[];
 }
 
-export default function Detail() {
+function MovieDetailContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const params = useParams<{ id: string }>();
-  const [movie, setMovie] = useState<Movie | null>(null); // Menggunakan null sebagai nilai awal
+  const params = useParams(); // Tidak perlu generic type
+  const [movie, setMovie] = useState<Movie | null>(null);
+  const { data: session } = useSession();
+  const [rating, setRating] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const { fetchReviews } = useReview();
+
+  useEffect(() => {
+    if (params.id) {
+      // Fetch review hanya ketika movieId ada dan berubah
+      fetchReviews(Number(params.id));
+    }
+  }, [params.id]); // Hanya jalankan efek ketika `params.id` berubah
 
   const fetchMovie = async () => {
-    if (!params.id) return; // Pastikan id ada sebelum fetch
+    if (!params.id) return;
     try {
       const response = await fetch(`/api/get-movie-details/${params.id}`);
 
@@ -89,10 +103,8 @@ export default function Detail() {
     const match = youtubeLink.match(regex);
 
     if (match && match[1]) {
-      // Jika cocok, buat link embed
       return `https://www.youtube.com/embed/${match[1]}?autoplay=1&mute=1`;
     } else {
-      // Jika URL tidak valid, kembalikan link YouTube default atau handle error sesuai kebutuhan
       return "";
     }
   }
@@ -101,6 +113,43 @@ export default function Detail() {
   if (!movie) {
     return <p>Loading...</p>; // Loading state jika data belum tersedia
   }
+
+  const handleSubmit = async () => {
+    if (!session || !session.user) {
+      setErrorMessage("You need to log in to add a review.");
+      return;
+    }
+
+    const reviewData = {
+      movieId: movie.id,
+      userId: session.user.id, // Mengambil userId dari session
+      commentText: reviewText,
+      rating,
+    };
+
+    try {
+      const response = await fetch("/api/post-comment", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setErrorMessage(errorData.message || "Failed to submit review.");
+        return;
+      }
+
+      setRating(0);
+      setReviewText("");
+      setErrorMessage(""); // Kosongkan pesan error jika berhasil
+    } catch (error) {
+      setErrorMessage("An error occurred while submitting the review.");
+      console.error("Error submitting comment:", error);
+    }
+  };
 
   return (
     <main>
@@ -140,8 +189,7 @@ export default function Detail() {
                       key={movieAvailability.id}
                       className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
                     >
-                      {movieAvailability.availability.name}{" "}
-                      {/* Akses langsung ke movieAvailability.name */}
+                      {movieAvailability.availability.name}
                     </Badge>
                   ))}
                 </div>
@@ -159,165 +207,59 @@ export default function Detail() {
                 {movie.synopsis}
               </div>
 
-              {/* Genre and Actor */}
-              <div className="grid grid-rows-1 gap-4">
-                {/* Genre */}
-                <div>
-                  <h3 className="text-gray-400">Genre</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {movie.genres.map((movieGenre, index) => (
-                      <Badge
-                        key={index}
-                        className="bg-[#21212E] hover:bg-[#343448] pl-3 pr-3 text-white text-sm font-normal rounded-md shadow-md"
-                      >
-                        {movieGenre.genre.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Actor */}
-                <div>
-                  <h3 className="text-gray-400">Actors</h3>
-                  <div className="flex gap-4 mt-4 pb-4 overflow-x-auto max-w-fit">
-                    {movie.actors.map((actor) => (
-                      <div
-                        key={actor.id}
-                        className="flex-shrink-0 w-[120px] text-center bg-[#21212E] p-2 rounded-lg"
-                      >
-                        {/* <img
-          src={actor.photoUrl} // Pastikan objek actor memiliki properti 'img'
-          alt={actor.name}
-          className="w-full h-[80%] object-cover rmax-w-5xl shadow-md"
-        /> */}
-                        <p className="mt-4 text-gray-300 text-sm sm:text-xs">
-                          {/* @ts-ignore */}
-                          {actor.actor.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Rating */}
-              <h3 className="text-gray-400 mt-4">Rating</h3>
-              <div className="mt-2">
-                <Rating style={{ maxWidth: 100 }} value={movie.rating} />
-              </div>
-
-              {/* Review */}
-              <div className="mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
-                  <h3 className="text-white text-md font-normal">Reviews</h3>
-                  <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-                    <p className="text-white text-sm">By rate:</p>
-                    <Select>
-                      <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
-                        <SelectValue placeholder="Rate" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#21212E] text-gray-400">
-                        <SelectItem value="5">
-                          <Rating style={{ maxWidth: 75 }} value={5} />
-                        </SelectItem>
-                        <SelectItem value="4">
-                          <Rating style={{ maxWidth: 75 }} value={4} />
-                        </SelectItem>
-                        <SelectItem value="3">
-                          <Rating style={{ maxWidth: 75 }} value={3} />
-                        </SelectItem>
-                        <SelectItem value="2">
-                          <Rating style={{ maxWidth: 75 }} value={2} />
-                        </SelectItem>
-                        <SelectItem value="1">
-                          <Rating style={{ maxWidth: 75 }} value={1} />
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-white text-sm">By date:</p>
-                    <Select>
-                      <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
-                        <SelectValue placeholder="Date" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#21212E] text-gray-400">
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="oldest">Oldest</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <Separator className="my-4 bg-gray-500" />
-                <Table>
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="w-[100px] font-normal text-gray-300">
-                        Name
-                      </TableHead>
-                      <TableHead className="font-normal text-gray-300">
-                        Review
-                      </TableHead>
-                      <TableHead className="font-normal text-gray-300">
-                        Rating
-                      </TableHead>
-                      <TableHead className="font-normal text-gray-300">
-                        Date
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reviews.map((review) => (
-                      <TableRow
-                        className="hover:bg-muted/5"
-                        key={review.review}
-                      >
-                        <TableCell className="font-medium text-gray-300">
-                          {review.userName}
-                        </TableCell>
-                        <TableCell className="text-gray-300">
-                          {review.review}
-                        </TableCell>
-                        <TableCell className="text-center text-yellow-400">
-                          <Rating
-                            style={{ maxWidth: 65 }}
-                            value={review.rating}
-                          />
-                        </TableCell>
-                        <TableCell className="text-xs text-gray-300">
-                          {review.date}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              {/* Review Table */}
+              <ReviewTable />
 
               {/* Add review */}
-              {/* <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
-                <h3 className="text-white text-md font-normal mb-2">
-                  Add your review!
-                </h3>
-                <Rating
-                  style={{ maxWidth: 100 }}
-                  value={rating}
-                  onChange={setRating} // Set rating ketika diubah
-                />
-                <Textarea
-                  placeholder="Type your review here..."
-                  className="bg-[#21212E] border-[#3d3d57] text-gray-500 w-full mt-4"
-                  value={reviewText}
-                  onChange={(e) => setReviewText(e.target.value)} // Set teks review ketika diinput
-                />
-                <Button
-                  className="bg-orange-700 hover:bg-orange-800 w-24 mt-4 self-end"
-                  onClick={handleSubmit} // Kirim review ketika tombol ditekan
-                >
-                  Submit
-                </Button>
-              </div> */}
+              <div>
+                {session ? (
+                  <div className="flex flex-col mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md">
+                    <h3 className="text-white text-md font-normal mb-2">
+                      Add your review!
+                    </h3>
+                    <Rating
+                      style={{ maxWidth: 100 }}
+                      value={rating}
+                      onChange={setRating}
+                    />
+                    <Textarea
+                      placeholder="Type your review here..."
+                      className="bg-[#21212E] border-[#3d3d57] text-gray-500 w-full mt-4"
+                      value={reviewText}
+                      onChange={(e) => setReviewText(e.target.value)}
+                    />
+                    <div className="flex items-center mt-4">
+                      <Button
+                        className="bg-orange-700 hover:bg-orange-800 w-24"
+                        onClick={handleSubmit}
+                      >
+                        Submit
+                      </Button>
+                      {errorMessage && (
+                        <p className="text-red-500 text-sm ml-4">
+                          {errorMessage}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-white mt-4">
+                    You need to log in to add a review.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+export default function Detail() {
+  return (
+    <ReviewProvider>
+      <MovieDetailContent />
+    </ReviewProvider>
   );
 }
