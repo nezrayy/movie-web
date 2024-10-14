@@ -5,10 +5,13 @@ import {
   ChevronsLeft,
   ChevronsRight,
   UserRound,
+  LogOut,
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import { Button } from "./ui/button";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -25,6 +28,7 @@ interface SidebarProps {
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
   const router = useRouter();
+  const { data: session } = useSession()
 
   return (
     <aside className="h-screen outline-0">
@@ -50,20 +54,38 @@ export default function Sidebar({ children }: SidebarProps) {
         </SidebarContext.Provider>
 
         <div className="flex p-3">
-          <div className="p-3 rounded-md bg-indigo-500">
+          <div className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer" onClick={() => router.push('/login')}>
             <UserRound className="text-white" />
           </div>
 
           <div
             className={`
               flex justify-between items-center
-              overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}
+              overflow-hidden transition-all gap-x-8 ${expanded ? "w-52 ml-3" : "w-0"}
           `}
           >
-            <div className="leading-4">
-              <h4 className="font-semibold text-white">User 1</h4>
-              <span className="text-xs text-gray-600">user1@gmail.com</span>
+            <div className="leading-4 flex gap-x-4">
+              <div>
+                {session && session?.user?.username && (
+                  <h4 className="font-semibold text-white">{session?.user?.username}</h4>
+                )}
+                {/* {session && session?.user?.email && (
+                  <span className="text-xs text-gray-600">{session?.user?.email}</span>
+                )} */}
+                <span className="text-xs text-gray-600">
+                  {session?.user?.email?.length > 25
+                    ? `${session?.user?.email.slice(0, 25)}...`
+                    : session?.user?.email}
+                </span>
+              </div>
             </div>
+            {session && (
+              <div>
+                <Button variant="destructive" onClick={() => signOut()}>
+                  <LogOut />
+                </Button>
+              </div>
+            )}
             <MoreVertical size={20} />
           </div>
         </div>

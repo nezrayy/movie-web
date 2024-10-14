@@ -114,7 +114,8 @@ const SearchPage = () => {
 
   const isValidImageUrl = (url: string) => {
     // Cek apakah URL dimulai dengan http:// atau https://
-    return url.startsWith("http://") || url.startsWith("https://");
+    // return url.startsWith("http://") || url.startsWith("https://");
+    return url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
   };
 
   return (

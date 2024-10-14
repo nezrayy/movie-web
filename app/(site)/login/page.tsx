@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -60,7 +60,15 @@ const LoginPage = () => {
         setWrongCredentials("Wrong email or password");
       } else {
         // Redirect ke halaman home jika login berhasil
-        window.location.href = "/";
+        const session = await getSession(); // Ambil session setelah login
+        const role = session?.user?.role; // Ambil role dari session
+
+        // Redirect sesuai dengan role
+        if (role === "ADMIN") {
+          window.location.href = "/cms-films"; // Halaman khusus admin
+        } else {
+          window.location.href = "/"; // Redirect default jika role tidak ditemukan
+        }
       }
 
       setIsSubmitting(false); 
