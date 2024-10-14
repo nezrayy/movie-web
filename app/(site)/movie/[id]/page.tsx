@@ -57,7 +57,8 @@ interface Movie {
 
 function MovieDetailContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const params = useParams(); // Tidak perlu generic type
+  const params = useParams<{ id: string }>(); // Gunakan useParams untuk mendapatkan id dari URL
+  const movieId = parseInt(params.id, 10);
   const [movie, setMovie] = useState<Movie | null>(null);
   const { data: session } = useSession();
   const [rating, setRating] = useState(0);
@@ -208,7 +209,7 @@ function MovieDetailContent() {
               </div>
 
               {/* Review Table */}
-              <ReviewTable />
+              <ReviewTable movieId={movieId} />
 
               {/* Add review */}
               <div>
