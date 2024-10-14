@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FilterSortProvider } from "../contexts/FilterSortContext";
+import { FilterSortProvider } from "../../contexts/FilterSortContext";
 import {
   Pagination,
   PaginationContent,
@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/accordion";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
-import { useFilterSort } from "../contexts/FilterSortContext";
+import { useFilterSort } from "../../contexts/FilterSortContext";
 import { Availability } from "@prisma/client";
 
 interface Genre {
