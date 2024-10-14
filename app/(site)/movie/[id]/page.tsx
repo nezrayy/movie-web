@@ -4,23 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation"; // Import tanpa generic
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
@@ -65,14 +50,14 @@ function MovieDetailContent() {
   const [reviewText, setReviewText] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const { fetchReviews } = useReview();
+  // const { fetchReviews } = useReview();
 
-  useEffect(() => {
-    if (params.id) {
-      // Fetch review hanya ketika movieId ada dan berubah
-      fetchReviews(Number(params.id));
-    }
-  }, [params.id]); // Hanya jalankan efek ketika `params.id` berubah
+  // useEffect(() => {
+  //   if (params.id) {
+  //     // Fetch review hanya ketika movieId ada dan berubah
+  //     fetchReviews(Number(params.id));
+  //   }
+  // }, [params.id]); // Hanya jalankan efek ketika `params.id` berubah
 
   const fetchMovie = async () => {
     if (!params.id) return;
@@ -112,7 +97,7 @@ function MovieDetailContent() {
   const embedLink = convertToEmbedLink(movie?.linkTrailer || "");
 
   if (!movie) {
-    return <p>Loading...</p>; // Loading state jika data belum tersedia
+    return <p>Loading...</p>;
   }
 
   const handleSubmit = async () => {
@@ -123,7 +108,7 @@ function MovieDetailContent() {
 
     const reviewData = {
       movieId: movie.id,
-      userId: session.user.id, // Mengambil userId dari session
+      userId: session.user.id, // Mengambil userId dari session 
       commentText: reviewText,
       rating,
     };

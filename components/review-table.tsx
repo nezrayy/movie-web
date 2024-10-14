@@ -19,7 +19,6 @@ import {
 } from "./ui/select";
 
 export default function ReviewTable({ movieId }) {
-  // movieId harus diterima dari props
   const { reviews, loading, fetchReviews } = useReview();
   const [reviewList, setReviewList] = useState([]);
   const [sortOrder, setSortOrder] = useState("rating");
@@ -80,40 +79,45 @@ export default function ReviewTable({ movieId }) {
 
       <Separator className="my-4 bg-gray-500" />
 
-      <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            <TableHead className="w-[100px] font-normal text-gray-300">
-              Name
-            </TableHead>
-            <TableHead className="font-normal text-gray-300">Review</TableHead>
-            <TableHead className="font-normal text-gray-300">Rating</TableHead>
-            <TableHead className="font-normal text-gray-300">Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {reviewList.map((review) => (
-            <TableRow className="hover:bg-muted/5" key={review.id}>
-              <TableCell className="font-medium text-gray-300">
-                {review.user.username}
-              </TableCell>
-              <TableCell className="text-gray-300">
-                {review.commentText}
-              </TableCell>
-              <TableCell className="text-center text-yellow-400">
-                <Rating
-                  style={{ maxWidth: 65 }}
-                  value={review.rating}
-                  readOnly
-                />
-              </TableCell>
-              <TableCell className="text-xs text-gray-300">
-                {new Date(review.createdAt).toLocaleDateString()}
-              </TableCell>
+      {/* Tampilkan pesan "No reviews yet" jika tidak ada review */}
+      {reviewList.length === 0 ? (
+        <p className="text-white text-center">Be the first one to review!</p>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="w-[100px] font-normal text-gray-300">
+                Name
+              </TableHead>
+              <TableHead className="font-normal text-gray-300">Review</TableHead>
+              <TableHead className="font-normal text-gray-300">Rating</TableHead>
+              <TableHead className="font-normal text-gray-300">Date</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {reviewList.map((review) => (
+              <TableRow className="hover:bg-muted/5" key={review.id}>
+                <TableCell className="font-medium text-gray-300">
+                  {review.user.username}
+                </TableCell>
+                <TableCell className="text-gray-300">
+                  {review.commentText}
+                </TableCell>
+                <TableCell className="text-center text-yellow-400">
+                  <Rating
+                    style={{ maxWidth: 65 }}
+                    value={review.rating}
+                    readOnly
+                  />
+                </TableCell>
+                <TableCell className="text-xs text-gray-300">
+                  {new Date(review.createdAt).toLocaleDateString()}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 }
