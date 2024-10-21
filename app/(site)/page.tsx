@@ -130,6 +130,12 @@ export default function Home() {
     fetchAvailabilities();
   }, []);
 
+  const isValidImageUrl = (url: string) => {
+    // Cek apakah URL dimulai dengan http:// atau https://
+    // return url.startsWith("http://") || url.startsWith("https://");
+    return url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
+  };
+
   const renderPaginationItems = () => {
     const paginationItems = [];
 
@@ -373,7 +379,7 @@ export default function Home() {
                     <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
                       <a href={`./movie/${card.id}`}>
                         <img
-                          src={card.posterUrl}
+                          src={isValidImageUrl(card.posterUrl) ? card.posterUrl : '/placeholder-image.jpg'}
                           alt=""
                           className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
                         />

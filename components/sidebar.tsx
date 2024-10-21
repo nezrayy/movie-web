@@ -74,8 +74,8 @@ export default function Sidebar({ children }: SidebarProps) {
                   <span className="text-xs text-gray-600">{session?.user?.email}</span>
                 )} */}
                 <span className="text-xs text-gray-600">
-                  {session?.user?.email?.length > 23
-                    ? `${session?.user?.email.slice(0, 23)}...`
+                  {session?.user?.email?.length > 18
+                    ? `${session?.user?.email.slice(0, 18)}...`
                     : session?.user?.email}
                 </span>
               </div>
