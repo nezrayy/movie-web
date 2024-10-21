@@ -1,25 +1,18 @@
 import nodemailer from "nodemailer";
 
-async function sendVerificationEmail(email: string, verificationUrl: string) {
+export const sendEmail = async ({ to, subject, html }: {to: any, subject: any, html: any}) => {
   const transporter = nodemailer.createTransport({
-    service: "gmail",  // Sesuaikan dengan service email Anda
+    service: "Gmail",
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.EMAIL_USER, // email Anda
+      pass: process.env.EMAIL_PASS, // password email Anda
     },
   });
 
-  const mailOptions = {
+  await transporter.sendMail({
     from: process.env.EMAIL_USER,
-    to: email,
-    subject: "Email Verification",
-    html: `
-      <p>Anda telah mendaftar menggunakan email ini. Klik tombol di bawah untuk verifikasi email Anda:</p>
-      <a href="${verificationUrl}" style="background-color: orange; padding: 10px; color: white; text-decoration: none;">Verifikasi Email</a>
-    `,
-  };
-
-  await transporter.sendMail(mailOptions);
-}
-
-export default sendVerificationEmail;
+    to,
+    subject,
+    html,
+  });
+};

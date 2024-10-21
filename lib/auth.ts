@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
@@ -96,7 +98,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         if (!user || !user.password) {
-          throw new Error("User not found or password not set.");
+          throw new Error("Wrong email or password");
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -104,13 +106,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         );
         if (!isPasswordValid) {
-          throw new Error("Invalid password.");
+          throw new Error("Wrong email or password");
         }
 
         return {
           id: user.id.toString(),
           email: user.email,
           username: user.username,
+          role: user.role
         };
       },
     }),

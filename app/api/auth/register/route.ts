@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from "uuid";  // Untuk membuat token unik
-import sendVerificationEmail from "@/lib/email-service";  // Anda harus membuat fungsi untuk mengirim email
+import { sendEmail } from "@/lib/email-service";  // Anda harus membuat fungsi untuk mengirim email
 
 export async function POST(request: Request) {
   try {
@@ -54,9 +54,15 @@ export async function POST(request: Request) {
     // Ambil base URL secara dinamis
     const baseUrl = process.env.BASE_URL || "http://localhost:3000";
     const verificationUrl = `${baseUrl}/api/verify-email?token=${emailToken}`;
-    
-    // Kirim email verifikasi
-    await sendVerificationEmail(email, verificationUrl);
+
+    await sendEmail({
+      to: email,
+      subject: "Email Verification",
+      html: `
+      <p>Anda telah mendaftar menggunakan email ini. Klik tombol di bawah untuk verifikasi email Anda:</p>
+      <a href="${verificationUrl}" style="background-color: orange; padding: 10px; color: white; text-decoration: none;">Verifikasi Email</a>
+      `,
+    });
 
     return NextResponse.json({ message: "Verification email sent. Please check your inbox." }, { status: 200 });
     

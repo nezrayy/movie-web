@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Eye, EyeOff } from "lucide-react";
 
 // Schema validasi dengan Zod
 const formSchema = z.object({
@@ -41,28 +42,49 @@ const LoginPage = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [wrongCredentials, setWrongCredentials] = useState("");
+  const [showPassword, setShowPassword] = useState<boolean>(false)
   const searchParams = useSearchParams();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true); // Mulai loading
 
     try {
-      signIn("credentials", data)
+      const result = await signIn("credentials", {
+        redirect: false, // Jangan redirect otomatis, kita akan tangani di page
+        email: data.email,
+        password: data.password,
+      });
+  
+      if (result?.error) {
+        setWrongCredentials("Wrong email or password");
+      } else {
+        // Redirect ke halaman home jika login berhasil
+        const session = await getSession(); // Ambil session setelah login
+        const role = session?.user?.role; // Ambil role dari session
 
-      setIsSubmitting(false); // Hentikan loading
+        // Redirect sesuai dengan role
+        if (role === "ADMIN") {
+          window.location.href = "/cms-films"; // Halaman khusus admin
+        } else {
+          window.location.href = "/"; // Redirect default jika role tidak ditemukan
+        }
+      }
+
+      setIsSubmitting(false); 
     } catch (error) {
       console.error("Login error:", error);
-      setIsSubmitting(false); // Hentikan loading jika gagal
+      setIsSubmitting(false); 
     }
   };
 
-  // useEffect(() => {
-  //   const error = searchParams.get("error");
+  useEffect(() => {
+    const error = searchParams.get("error");
 
-  //   if (error === "OAuthAccountNotLinked") {
-  //     form.setError("email", { message: "Email sudah digunakan" });
-  //   } 
-  // }, [searchParams]);
+    if (error === "OAuthAccountNotLinked") {
+      form.setError("email", { message: "Email sudah digunakan" });
+    } 
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -101,17 +123,41 @@ const LoginPage = () => {
                 <FormItem>
                   <FormLabel className="text-white">Password</FormLabel>
                   <FormControl>
+                  <div className="relative w-full">
+                    {/* Input field */}
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"} // Tampilkan teks jika showPassword true, sebaliknya tampilkan password
                       placeholder="Enter your password"
-                      {...field}
-                      className="bg-[#222d3c] text-white"
+                      {...field} // Spread field props (assuming this comes from useForm)
+                      className="bg-[#222d3c] text-white w-full pr-10" // Tambah padding kanan untuk space icon
                     />
+                    
+                    {/* Icon for showing/hiding password */}
+                    <Button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      variant="ghost"
+                      className="absolute inset-y-0 right-0 flex items-center justify-center h-full w-12 text-white"
+                    >
+                      {showPassword ? <EyeOff /> : <Eye />}
+                    </Button>
+                  </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {wrongCredentials !== "" && (
+              <p className="text-red-500 text-sm">{wrongCredentials}</p>
+            )}
+
+            <p className="text-white text-sm">
+              Forgot password?{" "}
+              <Link href="/forgot-password" className="hover:underline underline-offset-4 text-blue-500">
+                Reset here
+              </Link>
+            </p>
 
             <Button
               type="submit"
@@ -139,7 +185,7 @@ const LoginPage = () => {
 
         <p className="text-white mt-5 text-center">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="hover:underline underline-offset-4">
+          <Link href="/register" className="hover:underline underline-offset-4 text-blue-500">
             Register
           </Link>
         </p>
