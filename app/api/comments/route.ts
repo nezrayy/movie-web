@@ -3,26 +3,23 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  request: Request,
-  { params }: { params: { movieId: string } }
-) {
-  const { movieId } = params;
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const sortOrder = searchParams.get("sortOrder") || "rating";
-  const sortType = searchParams.get("sortType") || "desc";
+  const sortType = searchParams.get("sortType") === "asc" ? "asc" : "desc";
 
-  console.log(
-    "Fetching comments for movieId:",
-    movieId,
-    "with sorting:",
-    sortOrder,
-    sortType
-  );
+  console.log("Fetching all comments with sorting:", sortOrder, sortType);
 
   try {
+    const validSortColumns = ["rating", "createdAt"]; // Add more valid columns if needed
+    if (!validSortColumns.includes(sortOrder)) {
+      return NextResponse.json(
+        { message: "Invalid sort order" },
+        { status: 400 }
+      );
+    }
+
     const comments = await prisma.comment.findMany({
-      where: { movieId: parseInt(movieId, 10) },
       include: { user: true },
       orderBy: {
         [sortOrder]: sortType,

@@ -9,8 +9,8 @@ import "@smastrom/react-rating/style.css";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import { ReviewProvider, useReview } from "@/contexts/ReviewContext";
-import ReviewTable from "@/components/review-table";
+import { ReviewProvider, useReview } from "@/contexts/CommentsContext";
+import ReviewTable from "@/components/comments-table-client";
 
 interface Actor {
   id: number;
@@ -106,15 +106,21 @@ function MovieDetailContent() {
       return;
     }
 
+    if (rating === 0 || reviewText.trim() === "") {
+      setErrorMessage("Please provide a rating and a comment.");
+      return;
+    }
+
     const reviewData = {
       movieId: movie.id,
-      userId: session.user.id, // Mengambil userId dari session 
+      userId: session.user.id, // Mengambil userId dari session
       commentText: reviewText,
       rating,
     };
+    console.log("Sending reviewData:", reviewData); // Logging data sebelum dikirim
 
     try {
-      const response = await fetch("/api/post-comment", {
+      const response = await fetch(`/api/comments/movie/${movie.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -128,9 +134,14 @@ function MovieDetailContent() {
         return;
       }
 
+      // Reset form dan kosongkan pesan error setelah sukses
       setRating(0);
       setReviewText("");
-      setErrorMessage(""); // Kosongkan pesan error jika berhasil
+      setErrorMessage("");
+
+      // Update tabel review setelah review baru ditambahkan
+      // Jika ReviewTable bisa menerima fungsi `refresh`, panggil di sini
+      // Example: reviewTableRef.current.refresh();
     } catch (error) {
       setErrorMessage("An error occurred while submitting the review.");
       console.error("Error submitting comment:", error);

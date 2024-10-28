@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -30,24 +31,29 @@ const formSchema = z.object({
   genre: z.string().min(2).max(50),
 });
 
-const genresData = [
-  {
-    id: 1,
-    genre: "Romance",
-  },
-  {
-    id: 2,
-    genre: "Thriller",
-  },
-];
-
 const CMSGenre = () => {
+  const [genresData, setGenresData] = useState<Comment[]>([]); // Menggunakan interface Comment
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       genre: "",
     },
   });
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const response = await fetch("/api/genres");
+        const data = await response.json();
+        setGenresData(data);
+      } catch (error) {
+        console.error("Error fetching genres:", error);
+      }
+    };
+
+    fetchGenres();
+  }, []);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
@@ -109,7 +115,7 @@ const CMSGenre = () => {
             {genresData.map((genre, index) => (
               <TableRow key={index} className="text-white">
                 <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>{genre.genre}</TableCell>
+                <TableCell>{genre.name}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">

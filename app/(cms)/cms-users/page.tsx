@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MailCheck, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username harus minimal 2 karakter").max(50),
@@ -41,22 +42,22 @@ const formSchema = z.object({
   role: z.string().min(2, "Role harus minimal 2 karakter").max(50),
 });
 
-const usersData = [
-  {
-    id: 1,
-    username: "John",
-    role: "Writer",
-    email: "john@mail.com",
-  },
-  {
-    id: 2,
-    username: "Doe",
-    role: "Admin",
-    email: "doe@mail.com",
-  },
-];
-
 const CMSUsers = () => {
+  const [usersData, setUsersData] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/users");
+        const data = await response.json();
+        setUsersData(data);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+      }
+    };
+    fetchUsers();
+  }, []);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {

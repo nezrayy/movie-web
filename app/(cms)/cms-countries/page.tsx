@@ -22,40 +22,84 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
+  code: z.string().min(2).max(3).toUpperCase(),
 });
-const countriesData = [
-  {
-    id: 1,
-    country: "Japan",
-  },
-  {
-    id: 2,
-    country: "Indonesia",
-  },
-  {
-    id: 3,
-    country: "United States",
-  },
-  {
-    id: 4,
-    country: "England",
-  },
-];
 
 const CMSCountries = () => {
+  const [countriesData, setCountriesData] = useState([]);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       country: "",
+      code: "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  // Fetch daftar negara saat komponen dimuat
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch("/api/countries");
+        const data = await response.json();
+        setCountriesData(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
+    };
+    fetchCountries();
+  }, []);
+
+  const handleDelete = async (countryId: number) => {
+    try {
+      const response = await fetch(`/api/countries/${countryId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to delete country");
+        return;
+      }
+
+      // Perbarui state untuk menghapus negara dari daftar
+      setCountriesData((prevData) =>
+        prevData.filter((country) => country.id !== countryId)
+      );
+    } catch (error) {
+      console.error("Error deleting country:", error);
+    }
+  };
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch("/api/countries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.country,
+          code: values.code, // Gunakan code dari input
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to create country");
+        return;
+      }
+
+      const newCountry = await response.json();
+      // Tambahkan negara baru ke countriesData
+      setCountriesData((prevData) => [...prevData, newCountry]);
+
+      // Reset form
+      form.reset();
+    } catch (error) {
+      console.error("Error creating country:", error);
+    }
   }
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -80,7 +124,23 @@ const CMSCountries = () => {
               </FormItem>
             )}
           />
-
+          <FormField
+            control={form.control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Country Code</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter country code..."
+                    className="bg-transparent text-white placeholder:text-gray-400"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <button
             type="submit"
             className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
@@ -92,7 +152,7 @@ const CMSCountries = () => {
 
       {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
-        <input
+        <Input
           type="text"
           placeholder="Search country..."
           className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
@@ -111,15 +171,21 @@ const CMSCountries = () => {
           </TableHeader>
           <TableBody>
             {countriesData.map((country, index) => (
-              <TableRow key={index} className="text-white hover:bg-muted/5">
+              <TableRow
+                key={country.id}
+                className="text-white hover:bg-muted/5"
+              >
                 <TableCell className="font-medium">{index + 1}</TableCell>
-                <TableCell>{country.country}</TableCell>
+                <TableCell>{country.name}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                    <Button
+                      onClick={() => handleDelete(country.id)} // Panggil handleDelete dengan country.id
+                      className="bg-red-600 p-3 hover:bg-red-900 hover:text-gray-400"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
