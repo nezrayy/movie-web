@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -43,31 +43,6 @@ interface Actor {
   photo_url: string;
 }
 
-// Data contoh untuk aktor
-const actorsData: Actor[] = [
-  {
-    id: 1,
-    name: "Ryan Reynolds",
-    country: "Canada",
-    birthdate: new Date("1976-10-23"),
-    photo_url: "",
-  },
-  {
-    id: 2,
-    name: "Hugh Jackman",
-    country: "Australia",
-    birthdate: new Date("1968-10-12"),
-    photo_url: "",
-  },
-  {
-    id: 3,
-    name: "Channing Tatum",
-    country: "USA",
-    birthdate: new Date("1980-04-26"),
-    photo_url: "",
-  },
-];
-
 // Schema validasi form
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
@@ -79,7 +54,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 const CMSActor: React.FC = () => {
-  const [actors, setActors] = useState<Actor[]>(actorsData);
+  const [actorsData, setActorsData] = useState<Actor[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const form = useForm<FormValues>({
@@ -91,7 +66,20 @@ const CMSActor: React.FC = () => {
       image: undefined,
     },
   });
+  
+  useEffect(() => {
+    const fetchActors = async () => {
+      try {
+        const response = await fetch("/api/actors");
+        const data = await response.json();
+        setActorsData(data);
+      } catch (error) {
+        console.error("Error fetching actors:", error);
+      }
+    };
 
+    fetchActors();
+  }, []);
   const onSubmit = (values: FormValues) => {
     console.log(values);
     // Implementasi logika untuk menambahkan atau memperbarui aktor
@@ -106,23 +94,23 @@ const CMSActor: React.FC = () => {
     form.reset();
   };
 
-  const handleDelete = (id: number) => {
-    setActors(actors.filter((actor) => actor.id !== id));
-  };
+  // const handleDelete = (id: number) => {
+  //   setActors(actors.filter((actor) => actor.id !== id));
+  // };
 
-  const handleEdit = (actor: Actor) => {
-    // Konversi tipe untuk mencocokkan dengan expectasi form
-    form.reset({
-      name: actor.name,
-      country: actor.country,
-      birthdate: actor.birthdate,
-      image: undefined, // Anda mungkin perlu menangani ini secara berbeda tergantung pada kebutuhan
-    });
-  };
+  // const handleEdit = (actor: Actor) => {
+  //   // Konversi tipe untuk mencocokkan dengan expectasi form
+  //   form.reset({
+  //     name: actor.name,
+  //     country: actor.country,
+  //     birthdate: actor.birthdate,
+  //     image: undefined, // Anda mungkin perlu menangani ini secara berbeda tergantung pada kebutuhan
+  //   });
+  // };
 
-  const filteredActors = actors.filter((actor) =>
-    actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredActors = actors.filter((actor) =>
+  //   actor.name.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
@@ -250,11 +238,11 @@ const CMSActor: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredActors.map((actor, index) => (
+            {actorsData.map((actor, index) => (
               <TableRow key={actor.id} className="text-white hover:bg-muted/5">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{actor.name}</TableCell>
-                <TableCell>{actor.country}</TableCell>
+                <TableCell>{actor.country.name}</TableCell>
                 <TableCell>{actor.birthdate?.toLocaleDateString()}</TableCell>
                 <TableCell>{actor.photo_url ? "Yes" : "No"}</TableCell>
                 <TableCell>
