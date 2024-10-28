@@ -52,7 +52,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         // If the user does not exist, create a new account
-        const username = profile.name.replace(/\s+/g, "").toLowerCase() || profile.email.split("@")[0];
+        const username =
+          profile.name.replace(/\s+/g, "").toLowerCase() ||
+          profile.email.split("@")[0];
         const newUser = await prisma.user.create({
           data: {
             username: username,
@@ -83,7 +85,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       authorize: async (credentials) => {
-        if (!credentials || typeof credentials.email !== "string" || typeof credentials.password !== "string") {
+        if (
+          !credentials ||
+          typeof credentials.email !== "string" ||
+          typeof credentials.password !== "string"
+        ) {
           throw new Error("Invalid credentials");
         }
 
@@ -95,7 +101,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Wrong email or password");
         }
 
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+        const isPasswordValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
         if (!isPasswordValid) {
           throw new Error("Wrong email or password");
         }
@@ -117,10 +126,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
-    session.user.id = token.id;
-    session.user.role = token.role;
-    session.user.username = token.username;
-    return session;
+      session.user.id = token.id;
+      session.user.role = token.role;
+      session.user.username = token.username;
+      return session;
     },
     async jwt({ token, user }) {
       if (user) {
