@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db"; // Pastikan prisma sudah diinisialisasi dengan benar
-import { Prisma } from "@prisma/client"; // Menggunakan tipe dari Prisma
+import prisma from "@/lib/db"; 
+import { Prisma } from "@prisma/client"; 
 
 export async function GET(request: Request) {
   // Ambil query parameter dari URL
@@ -89,3 +89,4 @@ export async function GET(request: Request) {
   // Jika film ditemukan, kembalikan hasil pencarian
   return NextResponse.json(movies, { status: 200 });
 }
+
