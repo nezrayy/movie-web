@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,14 +24,18 @@ import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface Genre {
+  id: number;
+  name: string;
+}
+
 const formSchema = z.object({
-  country: z.string().min(2).max(50),
-  year: z.string().min(2).max(50),
   genre: z.string().min(2).max(50),
 });
 
 const CMSGenre = () => {
-  const [genresData, setGenresData] = useState<Comment[]>([]); // Menggunakan interface Comment
+  const [genresData, setGenresData] = useState<Genre[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,6 +48,7 @@ const CMSGenre = () => {
     const fetchGenres = async () => {
       try {
         const response = await fetch("/api/genres");
+        if (!response.ok) throw new Error("Failed to fetch genres");
         const data = await response.json();
         setGenresData(data);
       } catch (error) {
@@ -55,9 +59,37 @@ const CMSGenre = () => {
     fetchGenres();
   }, []);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  const filteredGenres = genresData.filter((genre) =>
+    genre.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      const response = await fetch("/api/genres", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: values.genre,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to create genre");
+        return;
+      }
+
+      const newGenre = await response.json();
+
+      // Tambahkan genre baru ke genresData
+      setGenresData((prevData) => [...prevData, newGenre]);
+
+      // Reset form
+      form.reset();
+    } catch (error) {
+      console.error("Error creating genre:", error);
+    }
   }
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -67,7 +99,7 @@ const CMSGenre = () => {
         >
           <FormField
             control={form.control}
-            name="country"
+            name="genre"
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="text-white">Genre</FormLabel>
@@ -82,7 +114,6 @@ const CMSGenre = () => {
               </FormItem>
             )}
           />
-
           <button
             type="submit"
             className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
@@ -94,10 +125,12 @@ const CMSGenre = () => {
 
       {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
-        <input
+        <Input
           type="text"
           placeholder="Search genre..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
+          className="bg-transparent text-gray-400 placeholder:text-gray-400"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
@@ -112,8 +145,8 @@ const CMSGenre = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {genresData.map((genre, index) => (
-              <TableRow key={index} className="text-white">
+            {filteredGenres.map((genre, index) => (
+              <TableRow key={genre.id} className="text-white">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>

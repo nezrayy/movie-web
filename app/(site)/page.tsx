@@ -254,7 +254,7 @@ export default function Home() {
                 Find, Review, and Enjoy.
               </h1>
               <h3 className="absolute top-96 flex items-center text-gray-500 text-lg font-light italic origin-top-right z-50">
-                {/* Deadpool and Wolverine (2024) */}
+                Deadpool and Wolverine (2024)
               </h3>
             </div>
           </div>

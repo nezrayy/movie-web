@@ -33,6 +33,7 @@ import { DatePicker } from "@/components/ui/datepicker";
 import { Pencil, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 import ImageDropzone from "@/components/image-drop-zone-sm";
+import { Country } from "@prisma/client";
 
 // Tipe data untuk aktor
 interface Actor {
@@ -55,6 +56,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 const CMSActor: React.FC = () => {
   const [actorsData, setActorsData] = useState<Actor[]>([]);
+  const [countriesData, setCountriesData] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const form = useForm<FormValues>({
@@ -66,7 +68,8 @@ const CMSActor: React.FC = () => {
       image: undefined,
     },
   });
-  
+
+  // Fetch daftar aktor
   useEffect(() => {
     const fetchActors = async () => {
       try {
@@ -80,19 +83,21 @@ const CMSActor: React.FC = () => {
 
     fetchActors();
   }, []);
-  const onSubmit = (values: FormValues) => {
-    console.log(values);
-    // Implementasi logika untuk menambahkan atau memperbarui aktor
-    const newActor: Actor = {
-      id: actors.length + 1,
-      name: values.name,
-      country: values.country,
-      birthdate: values.birthdate,
-      photo_url: values.image ? URL.createObjectURL(values.image as Blob) : "",
+
+  // Fetch daftar negara
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch("/api/countries");
+        const data = await response.json();
+        setCountriesData(data);
+      } catch (error) {
+        console.error("Error fetching countries:", error);
+      }
     };
-    setActors([...actors, newActor]);
-    form.reset();
-  };
+
+    fetchCountries();
+  }, []);
 
   // const handleDelete = (id: number) => {
   //   setActors(actors.filter((actor) => actor.id !== id));
@@ -108,9 +113,21 @@ const CMSActor: React.FC = () => {
   //   });
   // };
 
-  // const filteredActors = actors.filter((actor) =>
-  //   actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  // );
+  const filteredActors = actorsData.filter((actor) =>
+    actor.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const onSubmit = (values: FormValues) => {
+    console.log(values);
+    const newActor: Actor = {
+      id: actorsData.length + 1,
+      name: values.name,
+      country: values.country,
+      birthdate: values.birthdate,
+      photo_url: values.image ? URL.createObjectURL(values.image as Blob) : "",
+    };
+    setActorsData([...actorsData, newActor]);
+    form.reset();
+  };
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
@@ -170,11 +187,11 @@ const CMSActor: React.FC = () => {
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#21212E] text-gray-400">
-                        <SelectItem value="Indonesia">Indonesia</SelectItem>
-                        <SelectItem value="USA">USA</SelectItem>
-                        <SelectItem value="UK">UK</SelectItem>
-                        <SelectItem value="Canada">Canada</SelectItem>
-                        <SelectItem value="Australia">Australia</SelectItem>
+                        {countriesData.map((country) => (
+                          <SelectItem key={country.id} value={country.name}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
@@ -215,10 +232,10 @@ const CMSActor: React.FC = () => {
 
       {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
-        <input
+        <Input
           type="text"
           placeholder="Search actor..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
+          className="bg-transparent text-gray-400 placeholder:text-gray-400"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -238,11 +255,11 @@ const CMSActor: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {actorsData.map((actor, index) => (
+            {filteredActors.map((actor, index) => (
               <TableRow key={actor.id} className="text-white hover:bg-muted/5">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{actor.name}</TableCell>
-                <TableCell>{actor.country.name}</TableCell>
+                <TableCell>{actor.country}</TableCell>
                 <TableCell>{actor.birthdate?.toLocaleDateString()}</TableCell>
                 <TableCell>{actor.photo_url ? "Yes" : "No"}</TableCell>
                 <TableCell>

@@ -1,6 +1,6 @@
-'use client'
- 
-import { usePathname } from 'next/navigation'
+"use client";
+
+import { usePathname } from "next/navigation";
 import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
 import {
@@ -15,9 +15,10 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
@@ -57,8 +58,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/* Konten Utama */}
       <div className="flex-grow flex flex-col mb-20 lg:mb-0">{children}</div>
 
-      {/* Mobile Navigation */}
-      <MobileNav />
-    </div>
+        {/* Mobile Navigation */}
+        <MobileNav />
+      </div>
+    </NotificationProvider>
   );
 }
