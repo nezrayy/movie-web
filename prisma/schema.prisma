@@ -98,6 +98,7 @@ model VerificationToken {
 model Movie {
   id          Int       @id @default(autoincrement())
   title       String
+  alternativeTitle String?
   releaseYear Int?
   synopsis    String?
   availability String?
@@ -173,7 +174,7 @@ model Award {
 
 model Country {
   id         Int       @id @default(autoincrement())
-  name       String
+  name       String    @unique
   code       String?
   createdAt  DateTime  @default(now())
 

@@ -5,14 +5,15 @@ import {
   ChevronsLeft,
   ChevronsRight,
   UserRound,
-  LogOut
+  LogOut,
+  LogIn,
+  FolderOpen
 } from "lucide-react";
-import { useContext, createContext, useState, ReactNode, useRef, useEffect } from "react";
+import { useContext, createContext, useState, ReactNode, useRef } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react"
 import { Button } from "./ui/button";
-import useSessionStore from "@/app/hooks/useSessionStore";
 
 interface SidebarContextProps {
   expanded: boolean;
@@ -30,7 +31,7 @@ interface SidebarProps {
 export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
   const router = useRouter();
-  const { data: session } = useSession()
+  const { data: session, status } = useSession(); // Ambil status dari useSession()
 
   return (
     <aside className="h-screen outline-0">
@@ -38,8 +39,8 @@ export default function Sidebar({ children }: SidebarProps) {
         <div className="p-4 pb-4 flex justify-between items-center">
           <h1
             onClick={() => router.push("/")}
-            className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer ${expanded ? "w-32" : "w-0"
-              }`}
+            className={`overflow-hidden transition-all font-extrabold text-white text-2xl hover:cursor-pointer 
+              ${expanded ? "w-32" : "w-0"}`}
           >
             <img src="/rewatch.png" alt="" className="w-[240px]" />
           </h1>
@@ -54,34 +55,47 @@ export default function Sidebar({ children }: SidebarProps) {
           <ul className="flex-1 px-3">{children}</ul>
         </SidebarContext.Provider>
 
-        <div className="flex p-3">
-          <div className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer" onClick={() => router.push('/login')}>
-            <UserRound className="text-white" />
-          </div>
+        <div className="flex p-3 justify-between gap-2">
+          {status === "loading" ? (
+            // Tampilkan loading indicator jika status masih loading
+            <div className="text-white">Loading...</div>
+          ) : status === "authenticated" && session.user.role === 'USER' ? (
+            <div className="p-3 rounded-md bg-indigo-500">
+              <UserRound className="text-white" />
+            </div>
+          ) : status === "authenticated" && session.user.role === 'ADMIN' ? (
+            <div 
+              className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out" 
+              onClick={() => router.push('/cms-films')}
+            >
+              <FolderOpen className="text-white" />
+            </div>
+          ) : (
+            <div 
+              className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out" 
+              onClick={() => router.push('/login')}
+            >
+              <LogIn className="text-white" />
+            </div>
+          )}
 
           <div
-            className={`
-              flex justify-between items-center
-              overflow-hidden transition-all gap-x-2 ${expanded ? "w-52 ml-3" : "w-0"}
-          `}
+            className={`flex justify-between items-center overflow-hidden transition-all gap-x-2 ${expanded ? "w-52 ml-3" : "w-0"}`}
           >
-            <div className="leading-4">
-              <div>
-                {session && session?.user?.username && (
+            {status === "authenticated" && (
+              <div className="leading-4 max-w-[120px]">
+                {session?.user?.username && (
                   <h4 className="font-semibold text-white">{session?.user?.username}</h4>
                 )}
-                {/* {session && session?.user?.email && (
-                  <span className="text-xs text-gray-600">{session?.user?.email}</span>
-                )} */}
-                <span className="text-xs text-gray-600">
-                  {session?.user?.email?.length > 18
-                    ? `${session?.user?.email.slice(0, 18)}...`
-                    : session?.user?.email}
-                </span>
+                {session?.user?.email && (
+                  <span className="text-xs text-gray-600 truncate block w-full overflow-hidden text-ellipsis">
+                    {session?.user?.email}
+                  </span>
+                )}
               </div>
-            </div>
-            {session && (
-              <div>
+            )}
+            {status === "authenticated" && (
+              <div className="ml-5">
                 <Button variant="destructive" onClick={() => signOut()}>
                   <LogOut />
                 </Button>
@@ -184,6 +198,7 @@ export function SidebarInputItem({
   const handleIconClick = () => {
     // Expand the sidebar if not expanded
     if (!context?.expanded) {
+      // @ts-ignore
       context.setExpanded(true);
     }
     // Focus the input

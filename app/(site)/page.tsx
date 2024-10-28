@@ -410,6 +410,7 @@ export default function Home() {
                                 : ""
                             }`}
                           >
+                            {/* @ts-ignore */}
                             {movieGenre.genre.name} {/* Mengakses nama genre */}
                           </p>
                         ))

@@ -1,7 +1,7 @@
 "use client"
 
 import ImageDropzone from "@/components/image-drop-zone"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Availability, Country, Genre } from "@/types/type"
+import { ActorSearch } from "@/components/actor-search"
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -37,12 +39,18 @@ const formSchema = z.object({
     .regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
   country: z.string().min(1, "Country is required"),
   synopsis: z.string().min(10, "Synopsis must be at least 10 characters long"),
-  availability: z.string().optional(),
+  availabilities: z
+    .array(z.string())
+    .min(1, "At least one availability must be selected")
+    .max(4, "You can select up to 4 availabilities"),
   genres: z
     .array(z.string())
     .min(1, "At least one genre must be selected")
-    .max(5, "You can select up to 5 genres"),
-  actors: z.string().optional(),
+    .max(7, "You can select up to 7 genres"),
+  actors: z
+    .array(z.string())
+    .min(1, "At least one actor must be selected")
+    .max(9, "You can select up to 9 actors"),
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL")
@@ -50,47 +58,23 @@ const formSchema = z.object({
   award: z.string().optional(),
 });
 
-const items = [
-  {
-    id: "romance",
-    label: "Romance",
-  },
-  {
-    id: "scifi",
-    label: "Sci-Fi",
-  },
-  {
-    id: "adventure",
-    label: "Adventure",
-  },
-  {
-    id: "action",
-    label: "Action",
-  },
-  {
-    id: "family",
-    label: "Family",
-  },
-  {
-    id: "comedy",
-    label: "Comedy",
-  },
-] as const
-
-const ActorCard = ({ actorName }: { actorName: string }) => {
-  return (
-    <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
-      <div className="flex space-x-2">
-        <div className="w-12 h-16 bg-gray-400 rounded"></div>
-        <span className="text-gray-700">{actorName}</span>
-      </div>
-      <button className="text-red-500 font-semibold p-0 leading-none">x</button>
-    </div>
-  )
-}
+// const ActorCard = ({ actorName }: { actorName: string }) => {
+//   return (
+//     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
+//       <div className="flex space-x-2">
+//         <div className="w-12 h-16 bg-gray-400 rounded"></div>
+//         <span className="text-gray-700">{actorName}</span>
+//       </div>
+//       <button className="text-red-500 font-semibold p-0 leading-none">x</button>
+//     </div>
+//   )
+// }
 
 const CMSDramaInputPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [genres, setGenres] = useState<Genre[]>([])
+  const [availabilities, setAvailabilities] = useState<Availability[]>([])
+  const [countries, setCountries] = useState<Country[]>([])
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,9 +84,9 @@ const CMSDramaInputPage = () => {
       year: "",
       country: "",
       synopsis: "",
-      availability: "",
+      availabilities: [],
       genres: [],
-      actors: "",
+      actors: [],
       trailerLink: "",
       award: "",
     },
@@ -113,26 +97,41 @@ const CMSDramaInputPage = () => {
       alert("Please upload an image.");
       return;
     }
-
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('title', 'Movie Title'); // example additional data
-
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (response.ok) {
-      console.log('Data upload successfully');
-    } else {
-      console.error('Failed to upload image.');
-    }
   }
 
   const handleImageUpload = (file: File) => {
     setImageFile(file);
   };
+
+  const fetchGenres = async () => {
+    const response = await fetch("/api/get-genres");
+    const genres = await response.json();
+    return genres;
+  }
+
+  const fetchAvailabilities = async () => {
+    const response = await fetch("/api/get-availabilities");
+    const availabilities = await response.json();
+    return availabilities;
+  }
+
+  const fetchCountries = async () => {
+    const response = await fetch("/api/get-countries");
+    const countries = await response.json();
+    return countries;
+  }
+
+  useEffect(() => {
+    fetchGenres().then((genres) => {
+      setGenres(genres);
+    });
+    fetchAvailabilities().then((availabilities) => {
+      setAvailabilities(availabilities);
+    });
+    fetchCountries().then((countries) => {
+      setCountries(countries);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen p-8 flex justify-center">
@@ -184,7 +183,7 @@ const CMSDramaInputPage = () => {
                   name="alternativeTitle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">Alternative title</FormLabel>
+                      <FormLabel className="text-white">Alternative title (Optional)</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Alternative title"
@@ -234,15 +233,11 @@ const CMSDramaInputPage = () => {
                             <SelectValue placeholder="Country" />
                           </SelectTrigger>
                           <SelectContent className="bg-[#0C0D11] text-white">
-                            <SelectItem value="japan">Japan</SelectItem>
-                            <SelectItem value="korea">Korea</SelectItem>
-                            <SelectItem value="china">China</SelectItem>
-                            <SelectItem value="thailand">Thailand</SelectItem>
-                            <SelectItem value="philippines">
-                              Philippines
-                            </SelectItem>
-                            <SelectItem value="india">India</SelectItem>
-                            <SelectItem value="indonesia">Indonesia</SelectItem>
+                            {countries.map((item) => (
+                              <SelectItem key={item.id} value={item.name}>
+                                {item.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -272,7 +267,7 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              <div className="col-span-2">
+              {/* <div className="col-span-2">
                 <FormField
                   control={form.control}
                   name="availability"
@@ -290,6 +285,54 @@ const CMSDramaInputPage = () => {
                     </FormItem>
                   )}
                 />
+              </div> */}
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="availabilities"
+                  render={() => (
+                    <FormItem>
+                      <div className="mb-4">
+                        <FormLabel className="text-white">Availabilities</FormLabel>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto"> {/* Batasan tinggi dan scroll */}
+                        {availabilities.map((item) => (
+                          <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="availabilities"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={item.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0 text-white"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      className="border-white"
+                                      checked={field.value?.includes(item.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, item.id.toString()])
+                                          : field.onChange(
+                                              field.value?.filter((value) => value !== item.id.toString())
+                                            );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    {item.name}
+                                  </FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <div className="col-span-2">
@@ -301,40 +344,40 @@ const CMSDramaInputPage = () => {
                       <div className="mb-4">
                         <FormLabel className="text-white">Genre</FormLabel>
                       </div>
-                      {items.map((item) => (
-                        <FormField
-                          key={item.id}
-                          control={form.control}
-                          name="genres"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={item.id}
-                                className="flex flex-row items-start space-x-3 space-y-0 text-white"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    className="border-white"
-                                    checked={field.value?.includes(item.id)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, item.id])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== item.id
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {item.label}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
+                      <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto"> {/* Batasan tinggi dan scroll */}
+                        {genres.map((item) => (
+                          <FormField
+                            key={item.id}
+                            control={form.control}
+                            name="genres"
+                            render={({ field }) => {
+                              return (
+                                <FormItem
+                                  key={item.id}
+                                  className="flex flex-row items-start space-x-3 space-y-0 text-white"
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      className="border-white"
+                                      checked={field.value?.includes(item.id.toString())}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, item.id.toString()])
+                                          : field.onChange(
+                                              field.value?.filter((value) => value !== item.id.toString())
+                                            );
+                                      }}
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">
+                                    {item.name}
+                                  </FormLabel>
+                                </FormItem>
+                              );
+                            }}
+                          />
+                        ))}
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -349,21 +392,12 @@ const CMSDramaInputPage = () => {
                     <FormItem>
                       <FormLabel className="text-white">Add Actors (Up to 9)</FormLabel>
                       <FormControl>
-                        <Input
-                          placeholder="Search for actor names"
-                          className="bg-transparent text-white placeholder:text-gray-400"
-                          {...field}
-                        />
+                        <ActorSearch control={form.control} field={field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-4">
-                  <ActorCard actorName="Actor 1" />
-                  <ActorCard actorName="Actor 2" />
-                </div>
               </div>
 
               <div className="col-span-1">

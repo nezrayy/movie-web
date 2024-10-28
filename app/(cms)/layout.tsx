@@ -2,9 +2,7 @@
  
 import { usePathname } from 'next/navigation'
 import MobileNav from "@/components/mobile-nav";
-import Sidebar, { SidebarItem } from "@/components/cms-sidebar";
-import { Accordion, AccordionItem } from "@/components/ui/accordion";
-import getClientSession from "next-auth";
+import Sidebar, { SidebarItem } from "@/components/sidebar";
 import {
   Clapperboard,
   Earth,
@@ -18,13 +16,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default async function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
       {/* Sidebar untuk Desktop */}
-      <div className="sticky lg:top-0 lg:h-screen hidden lg:block z-50">
+      <div className="lg:top-0 fixed lg:h-screen hidden lg:block z-50">
         <Sidebar>
           <Link href="/cms-actors">
             <SidebarItem icon={<Sparkles />} text="Actors" active={pathname === "/cms-actors"} />
@@ -57,7 +55,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
       </div>
 
       {/* Konten Utama */}
-      <div className="flex-grow flex flex-col mb-20 lg:mb-0">{children}</div>
+      <div className="flex-grow flex flex-col pl-72 mb-20 lg:mb-0">{children}</div>
 
       {/* Mobile Navigation */}
       <MobileNav />
