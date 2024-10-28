@@ -4,13 +4,26 @@ import { NextResponse } from "next/server";
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
-    const { name, code } = await request.json();
+  const { name, code } = await request.json();
 
-    try {
+  try {
+    const existingCountry = await prisma.country.findFirst({
+      where: {
+        name,
+      },
+    });
+
+    // If country exists, return an error response
+    if (existingCountry) {
+      return NextResponse.json(
+        { message: "Country already exists" },
+        { status: 400 }
+      );
+    }
     const newCountry = await prisma.country.create({
       data: {
         name,
-        code
+        code,
       },
     });
     return NextResponse.json(newCountry, { status: 201 });

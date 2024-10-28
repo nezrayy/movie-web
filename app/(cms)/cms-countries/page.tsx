@@ -23,6 +23,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -31,6 +38,10 @@ const formSchema = z.object({
 
 const CMSCountries = () => {
   const [countriesData, setCountriesData] = useState([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogMessage, setDialogMessage] = useState("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -85,21 +96,30 @@ const CMSCountries = () => {
       });
 
       if (!response.ok) {
-        console.error("Failed to create country");
+        // Jika negara sudah ada, tampilkan pesan kesalahan
+        if (response.status === 400) {
+          setDialogMessage("Country already exists");
+        } else {
+          setDialogMessage("Failed to create country");
+        }
+        setDialogOpen(true);
         return;
       }
 
       const newCountry = await response.json();
-      // Tambahkan negara baru ke countriesData
-      setCountriesData((prevData) => [...prevData, newCountry]);
-
-      // Reset form
-      form.reset();
+      setDialogMessage("Country added successfully!");
+      setDialogOpen(true);
+      form.reset(); // Reset form setelah berhasil
     } catch (error) {
       console.error("Error creating country:", error);
+      setDialogMessage("Internal server error");
+      setDialogOpen(true);
     }
   }
 
+  const filteredCountries = countriesData.filter((country) =>
+    country.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -155,7 +175,9 @@ const CMSCountries = () => {
         <Input
           type="text"
           placeholder="Search country..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
+          className="bg-transparent text-gray-400 placeholder:text-gray-400"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
 
@@ -170,7 +192,7 @@ const CMSCountries = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {countriesData.map((country, index) => (
+            {filteredCountries.map((country, index) => (
               <TableRow
                 key={country.id}
                 className="text-white hover:bg-muted/5"
@@ -195,6 +217,25 @@ const CMSCountries = () => {
           </TableBody>
         </Table>
       </div>
+      {/* Dialog untuk menampilkan pesan */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-[#14141c] w-96 border-gray-700">
+          <DialogHeader className="text-white">
+            <DialogTitle>Notification</DialogTitle>
+            <DialogDescription className="text-gray-400">
+              {dialogMessage}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              className="bg-red-600 hover:bg-red-800 w-16"
+              onClick={() => setDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
