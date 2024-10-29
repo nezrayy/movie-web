@@ -78,6 +78,11 @@ export async function GET(request: Request) {
           genre: true, // Meng-include tabel Genre
         },
       },
+      actors: {
+        include: {
+          actor: true, // Meng-include tabel Actor
+        }
+      }
     },
   });
 
