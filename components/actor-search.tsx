@@ -6,7 +6,7 @@ import { Input } from "./ui/input";
 export const ActorSearch = ({ control, field }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [actors, setActors] = useState([]); // Menyimpan hasil pencarian aktor
-  const [selectedActors, setSelectedActors] = useState([]); // Aktor yang dipilih
+  const [selectedActors, setSelectedActors] = useState([]); // Menyimpan ID aktor yang dipilih
 
   // Fetch aktor dari backend saat user mengetik
   const fetchActors = async (term) => {
@@ -25,18 +25,19 @@ export const ActorSearch = ({ control, field }) => {
   }, [searchTerm]);
 
   // Fungsi untuk menambahkan aktor yang dipilih
-  const addActor = (actorName) => {
-    if (selectedActors.length < 9 && !selectedActors.includes(actorName)) {
-      setSelectedActors([...selectedActors, actorName]);
-      field.onChange([...field.value, actorName]); // Tambahkan aktor ke field form
+  const addActor = (actor) => {
+    if (selectedActors.length < 9 && !selectedActors.find((a) => a.id === actor.id)) {
+      const updatedActors = [...selectedActors, { id: actor.id, name: actor.name }];
+      setSelectedActors(updatedActors);
+      field.onChange(updatedActors.map((a) => a.id)); // Hanya simpan ID aktor ke field form
     }
   };
 
   // Fungsi untuk menghapus aktor yang dipilih
-  const removeActor = (actorName) => {
-    const updatedActors = selectedActors.filter((name) => name !== actorName);
+  const removeActor = (actorId) => {
+    const updatedActors = selectedActors.filter((a) => a.id !== actorId);
     setSelectedActors(updatedActors);
-    field.onChange(updatedActors); // Update nilai field form
+    field.onChange(updatedActors.map((a) => a.id)); // Update nilai field form dengan ID yang tersisa
   };
 
   return (
@@ -55,7 +56,7 @@ export const ActorSearch = ({ control, field }) => {
           {actors.map((actor) => (
             <li
               key={actor.id}
-              onClick={() => addActor(actor.name)}
+              onClick={() => addActor(actor)}
               className="cursor-pointer hover:bg-gray-200 p-1"
             >
               {actor.name}
@@ -66,11 +67,11 @@ export const ActorSearch = ({ control, field }) => {
 
       {/* Aktor yang sudah dipilih */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 mt-4">
-        {selectedActors.map((actorName) => (
+        {selectedActors.map((actor) => (
           <ActorCard
-            key={actorName}
-            actorName={actorName}
-            onRemove={() => removeActor(actorName)}
+            key={actor.id}
+            actor={actor}
+            onRemove={() => removeActor(actor.id)}
           />
         ))}
       </div>
@@ -78,12 +79,12 @@ export const ActorSearch = ({ control, field }) => {
   );
 };
 
-const ActorCard = ({ actorName, onRemove }) => {
+const ActorCard = ({ actor, onRemove }) => {
   return (
     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
       <div className="flex space-x-2">
         <div className="w-12 h-16 bg-gray-400 rounded"></div>
-        <span className="text-gray-700">{actorName}</span>
+        <span className="text-gray-700">{actor.name}</span>
       </div>
       <button className="text-red-500 font-semibold p-0 leading-none" onClick={onRemove}>
         x
