@@ -1,21 +1,20 @@
 "use client"
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Pencil, Trash2 } from "lucide-react"
+import { DataTable } from "@/components/ui/data-table"
+import { columns } from "./columns";
+import { useEffect, useState } from "react"
  
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -23,22 +22,7 @@ const formSchema = z.object({
   award: z.string().min(2).max(50),
 })
 
-const awardsData = [
-  {
-    id: 1,
-    country: "Japan",
-    year: '2024',
-    award: "Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award",
-  },
-  {
-    id: 2,
-    country: "Japan",
-    year: '2022',
-    award: "Japanese Spring Drama Award",
-  },
-]
-
-const CMSDrama = () => {
+const CMSAwards = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -47,10 +31,23 @@ const CMSDrama = () => {
       award: "",
     },
   })
- 
+
+  const [awards, setAwards] = useState([])
+
+  const fetchAwards = async () => {
+    const res = await fetch("/api/awards")
+    const data = await res.json()
+    setAwards(data)
+  }
+
+  
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
   }
+  
+  useEffect(() => {
+    fetchAwards()
+  }, [])
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -118,51 +115,9 @@ const CMSDrama = () => {
         </form>
       </Form>
 
-      {/* Filter Section */}
-      <div className="w-full sm:w-1/6 mb-4 ml-auto">
-        <input
-          type="text"
-          placeholder="Search awards..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
-        />
-      </div>
-
-      {/* Table Section */}
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Year</TableHead>
-              <TableHead>Award</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {awardsData.map((award, index) => (
-              <TableRow key={index} className="text-white">
-                <TableCell className="font-medium">{index+1}</TableCell>
-                <TableCell>{award.country}</TableCell>
-                <TableCell>{award.year}</TableCell>
-                <TableCell>{award.award}</TableCell>
-                <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable columns={columns} data={awards} filter="name" />
     </div>
   )
 }
 
-export default CMSDrama
+export default CMSAwards
