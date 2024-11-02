@@ -9,6 +9,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
 import {
   Form,
   FormControl,
@@ -71,6 +72,7 @@ const CMSDramaUpdatePage = () => {
   const params = useParams<{ movieId: string }>(); 
   const movieId = params.movieId;
   const router = useRouter()
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -153,6 +155,10 @@ const CMSDramaUpdatePage = () => {
       console.error("Upload Error", error);
     } finally {
       setIsLoading(false);
+      toast({
+        variant: "success",
+        description: "Movie updated successfully",
+      })
       router.push("/cms-films")
     }
   }

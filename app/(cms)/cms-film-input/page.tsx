@@ -1,6 +1,7 @@
 "use client"
 
 import ImageDropzone from "@/components/image-drop-zone"
+import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -66,6 +67,7 @@ const CMSDramaInputPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const { data: session } = useSession();
   const router = useRouter()
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -133,6 +135,10 @@ const CMSDramaInputPage = () => {
       console.error('Upload Error', error);
     } finally {
       setIsLoading(false)
+      toast({
+        variant: "success",
+        description: "New movie has been added",
+      })
       router.push("/cms-films")
     }
   }
