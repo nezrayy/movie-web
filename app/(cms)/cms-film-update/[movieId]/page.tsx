@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -134,7 +135,6 @@ const CMSDramaUpdatePage = () => {
       }
   
       // Kirim data ke API backend
-      console.log("Payload:", payload);
       const response = await fetch(`/api/movies/${movieId}/update`, {
         method: "PUT",
         headers: {
@@ -217,7 +217,6 @@ const CMSDramaUpdatePage = () => {
             trailerLink: movieDetails.linkTrailer ?? "",
             award: movieDetails.award?.id?.toString() ?? "",
           });
-          console.log("MOVIE DETAILS", movieDetails)
         }
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
@@ -252,6 +251,7 @@ const CMSDramaUpdatePage = () => {
                         }}
                       />
                     </FormControl>
+                    <FormDescription className="text-destructive">Please re-upload or update the movie poster</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
