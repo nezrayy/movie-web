@@ -41,7 +41,13 @@ interface Actor {
   name: string;
   country: string;
   birthdate: Date;
-  photo_url: string;
+  photoUrl: string;
+}
+
+interface DatePickerProps {
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  endYear?: number; // Optional endYear prop
 }
 
 // Schema validasi form
@@ -116,17 +122,34 @@ const CMSActor: React.FC = () => {
   const filteredActors = actorsData.filter((actor) =>
     actor.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const onSubmit = (values: FormValues) => {
-    console.log(values);
-    const newActor: Actor = {
-      id: actorsData.length + 1,
-      name: values.name,
-      country: values.country,
-      birthdate: values.birthdate,
-      photo_url: values.image ? URL.createObjectURL(values.image as Blob) : "",
-    };
-    setActorsData([...actorsData, newActor]);
-    form.reset();
+
+  const onSubmit = async (values: FormValues) => {
+    const selectedCountry = countriesData.find(
+      (country) => country.name === values.country
+    );
+    const formData = new FormData();
+
+    formData.append("name", values.name);
+    formData.append("birthdate", new Date(values.birthdate.setUTCHours(0, 0, 0, 0)).toISOString()); // Set to UTC
+    formData.append(
+      "countryId",
+      selectedCountry ? selectedCountry.id.toString() : ""
+    );
+    if (values.image) {
+      formData.append("image", values.image);
+    }
+
+    try {
+      const response = await fetch("/api/actors", {
+        method: "POST",
+        body: formData,
+      });
+      const newActor = await response.json();
+      setActorsData((prev) => [...prev, newActor]);
+      form.reset();
+    } catch (error) {
+      console.error("Error creating actor:", error);
+    }
   };
 
   return (
@@ -136,96 +159,101 @@ const CMSActor: React.FC = () => {
           onSubmit={form.handleSubmit(onSubmit)}
           className="w-full flex space-x-4"
         >
-          {/* Left Column */}
-          <div className="w-full mb-6 sm:w-1/4 space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Actor Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter actor name..."
-                      className="bg-transparent text-white placeholder:text-gray-400"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="w-full mb-6 sm:flex sm:items-start sm:space-y-0">
+            {/* Left Column - Form Fields */}
+            <div className="w-full sm:w-1/4 space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Actor Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter actor name..."
+                        className="bg-transparent text-white placeholder:text-gray-400"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Controller
-              name="birthdate"
-              control={form.control}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Birthdate</FormLabel>
-                  <FormControl>
-                    <DatePicker
-                      selected={field.value}
-                      onChange={(date: Date) => field.onChange(date)}
-                      placeholderText="Select birthdate"
-                      className="bg-transparent text-white placeholder:text-gray-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="birthdate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Birthdate</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        date={field.value ? new Date(field.value) : undefined}
+                        setDate={(date) => date && field.onChange(date)}
+                        endYear={2024}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="country"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Country</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
-                        <SelectValue placeholder="Select country" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#21212E] text-gray-400">
-                        {countriesData.map((country) => (
-                          <SelectItem key={country.id} value={country.name}>
-                            {country.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="country"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Country</FormLabel>
+                    <FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
+                          <SelectValue placeholder="Select country" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#21212E] text-gray-400">
+                          {countriesData.map((country) => (
+                            <SelectItem key={country.id} value={country.name}>
+                              {country.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <Button
-              type="submit"
-              className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
-            >
-              Submit
-            </Button>
-          </div>
+              <Button
+                type="submit"
+                className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+              >
+                Submit
+              </Button>
+            </div>
 
-          {/* Right Column - Upload Image */}
-          <div className="w-full sm:w-1/3 space-y-4">
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="text-white">Upload Image</FormLabel>
-                  <FormControl>
-                    <ImageDropzone
-                      value={field.value}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Right Column - Upload Image */}
+            <div className="w-full sm:w-1/4 ml-0">
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <div className="pt-8">
+                        <ImageDropzone
+                          value={field.value}
+                          onChange={field.onChange}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </div>
         </form>
       </Form>
@@ -260,8 +288,18 @@ const CMSActor: React.FC = () => {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{actor.name}</TableCell>
                 <TableCell>{actor.country}</TableCell>
-                <TableCell>{actor.birthdate?.toLocaleDateString()}</TableCell>
-                <TableCell>{actor.photo_url ? "Yes" : "No"}</TableCell>
+                <TableCell>
+                  {actor.birthdate
+                    ? new Date(actor.birthdate).toLocaleDateString()
+                    : "N/A"}
+                </TableCell>
+                <TableCell>
+                  <img
+                    src={actor.photoUrl || "/actor-default.png"}
+                    alt="Actor"
+                    className="w-16 h-20 object-cover rounded"
+                  />
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button

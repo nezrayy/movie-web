@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNotification } from "@/contexts/NotificationContext";
 
 interface Genre {
   id: number;
@@ -36,6 +37,9 @@ const formSchema = z.object({
 const CMSGenre = () => {
   const [genresData, setGenresData] = useState<Genre[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  // Gunakan context notification
+  const { showNotification } = useNotification();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,6 +57,7 @@ const CMSGenre = () => {
         setGenresData(data);
       } catch (error) {
         console.error("Error fetching genres:", error);
+        showNotification("Error fetching genres.");
       }
     };
 
@@ -62,6 +67,26 @@ const CMSGenre = () => {
   const filteredGenres = genresData.filter((genre) =>
     genre.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleDelete = async (genreId: number) => {
+    try {
+      const response = await fetch(`/api/genres/${genreId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to delete country");
+        return;
+      }
+
+      // Perbarui state untuk menghapus negara dari daftar
+      setGenresData((prevData) =>
+        prevData.filter((genre) => genre.id !== genreId)
+      );
+    } catch (error) {
+      console.error("Error deleting genre:", error);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
@@ -74,19 +99,20 @@ const CMSGenre = () => {
       });
 
       if (!response.ok) {
-        console.error("Failed to create genre");
+        showNotification("Failed to create genre. It may already exist.");
         return;
       }
 
       const newGenre = await response.json();
-
       // Tambahkan genre baru ke genresData
       setGenresData((prevData) => [...prevData, newGenre]);
+      showNotification("Genre added successfully!");
 
       // Reset form
       form.reset();
     } catch (error) {
       console.error("Error creating genre:", error);
+      showNotification("An error occurred while creating genre.");
     }
   }
 
@@ -154,7 +180,10 @@ const CMSGenre = () => {
                     <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                    <Button
+                      onClick={() => handleDelete(genre.id)}
+                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

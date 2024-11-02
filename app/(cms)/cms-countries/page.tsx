@@ -30,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useNotification } from "@/contexts/NotificationContext";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -37,10 +38,9 @@ const formSchema = z.object({
 });
 
 const CMSCountries = () => {
-  const [countriesData, setCountriesData] = useState([]);
+  const [countriesData, setCountriesData] = useState<Country[]>([]); // Tentukan tipe array Country[]
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogMessage, setDialogMessage] = useState("");
+  const { showNotification } = useNotification();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,38 +84,31 @@ const CMSCountries = () => {
     }
   };
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       const response = await fetch("/api/countries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: values.country,
-          code: values.code, // Gunakan code dari input
-        }),
+        body: JSON.stringify(values),
       });
 
-      if (!response.ok) {
-        // Jika negara sudah ada, tampilkan pesan kesalahan
-        if (response.status === 400) {
-          setDialogMessage("Country already exists");
-        } else {
-          setDialogMessage("Failed to create country");
-        }
-        setDialogOpen(true);
+      if (response.status === 400) {
+        showNotification("Country already exists.");
         return;
+      }
+      if (!response.ok) {
+        throw new Error("Failed to create country");
       }
 
       const newCountry = await response.json();
-      setDialogMessage("Country added successfully!");
-      setDialogOpen(true);
-      form.reset(); // Reset form setelah berhasil
+        setCountriesData((prevData) => [...prevData, newCountry]);
+      showNotification("Country added successfully!");
+      form.reset();
     } catch (error) {
       console.error("Error creating country:", error);
-      setDialogMessage("Internal server error");
-      setDialogOpen(true);
+      showNotification("An error occurred while creating country.");
     }
-  }
+  };
 
   const filteredCountries = countriesData.filter((country) =>
     country.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -188,6 +181,7 @@ const CMSCountries = () => {
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16">#</TableHead>
               <TableHead>Country</TableHead>
+              <TableHead>Code</TableHead>
               <TableHead className="w-36 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -199,6 +193,7 @@ const CMSCountries = () => {
               >
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{country.name}</TableCell>
+                <TableCell>{country.code}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
@@ -217,25 +212,6 @@ const CMSCountries = () => {
           </TableBody>
         </Table>
       </div>
-      {/* Dialog untuk menampilkan pesan */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="bg-[#14141c] w-96 border-gray-700">
-          <DialogHeader className="text-white">
-            <DialogTitle>Notification</DialogTitle>
-            <DialogDescription className="text-gray-400">
-              {dialogMessage}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end">
-            <Button
-              className="bg-red-600 hover:bg-red-800 w-16"
-              onClick={() => setDialogOpen(false)}
-            >
-              Close
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

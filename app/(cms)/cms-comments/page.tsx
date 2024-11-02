@@ -70,7 +70,7 @@ const CMSComments = () => {
     if (selectAll) {
       setSelectedComments([]); // Deselect all
     } else {
-      const allIds = commentsData.map((comment) => comment.id);
+      const allIds = filteredComments.map((comment) => comment.id);
       setSelectedComments(allIds); // Select all
     }
     setSelectAll(!selectAll);

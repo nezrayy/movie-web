@@ -7,12 +7,12 @@ import {
   UserRound,
   LogOut,
   LogIn,
-  FolderOpen
+  FolderOpen,
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode, useRef } from "react";
 import { Input } from "./ui/input";
 import { useRouter } from "next/navigation";
-import { useSession, signOut } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "./ui/button";
 
 interface SidebarContextProps {
@@ -59,33 +59,51 @@ export default function Sidebar({ children }: SidebarProps) {
           {status === "loading" ? (
             // Tampilkan loading indicator jika status masih loading
             <div className="text-white">Loading...</div>
-          ) : status === "authenticated" && session.user.role === 'USER' ? (
+          ) : status === "authenticated" && session.user.role === "USER" ? (
             <div className="p-3 rounded-md bg-indigo-500">
               <UserRound className="text-white" />
             </div>
-          ) : status === "authenticated" && session.user.role === 'ADMIN' ? (
-            <div 
-              className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out" 
-              onClick={() => router.push('/cms-films')}
+          ) : status === "authenticated" && session.user.role === "ADMIN" ? (
+            <div
+              className="relative group p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out"
+              onClick={() => router.push("/cms-films")}
             >
               <FolderOpen className="text-white" />
+
+              {/* Tooltip */}
+              {!expanded && (
+                <div
+                  className="
+        absolute left-full -translate-y-1/2 top-1/2 rounded-md px-2 py-1 ml-8
+        bg-white text-[#0C0D11] text-md font-medium
+        invisible opacity-0 -translate-x-3 transition-all
+        group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+      "
+                >
+                  CMS
+                </div>
+              )}
             </div>
           ) : (
-            <div 
-              className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out" 
-              onClick={() => router.push('/login')}
+            <div
+              className="p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out"
+              onClick={() => router.push("/login")}
             >
               <LogIn className="text-white" />
             </div>
           )}
 
           <div
-            className={`flex justify-between items-center overflow-hidden transition-all gap-x-2 ${expanded ? "w-52 ml-3" : "w-0"}`}
+            className={`flex justify-between items-center overflow-hidden transition-all gap-x-2 ${
+              expanded ? "w-52 ml-3" : "w-0"
+            }`}
           >
             {status === "authenticated" && (
               <div className="leading-4 max-w-[120px]">
                 {session?.user?.username && (
-                  <h4 className="font-semibold text-white">{session?.user?.username}</h4>
+                  <h4 className="font-semibold text-white">
+                    {session?.user?.username}
+                  </h4>
                 )}
                 {session?.user?.email && (
                   <span className="text-xs text-gray-600 truncate block w-full overflow-hidden text-ellipsis">
@@ -132,23 +150,24 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
           relative flex items-center py-4 px-4 my-1 mt-2 mb-2
           font-medium rounded-md cursor-pointer
           transition-colors group
-          ${active
-            ? "bg-[#21212E] text-white"
-            : "hover:bg-[#21212E] text-white"
+          ${
+            active ? "bg-[#21212E] text-white" : "hover:bg-[#21212E] text-white"
           }
       `}
       >
         {icon}
         <span
-          className={`text-xl overflow-hidden transition-all ${expanded ? "w-30 ml-3" : "w-0"
-            }`}
+          className={`text-xl overflow-hidden transition-all ${
+            expanded ? "w-30 ml-3" : "w-0"
+          }`}
         >
           {text}
         </span>
         {alert && (
           <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"
-              }`}
+            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
+              expanded ? "" : "top-2"
+            }`}
           />
         )}
         {!expanded && (
@@ -214,8 +233,9 @@ export function SidebarInputItem({
   return (
     <div className="my-2 relative group">
       <div
-        className={`relative flex items-center font-medium rounded-md transition-all ${expanded ? "w-full" : "px-0 w-0"
-          }`}
+        className={`relative flex items-center font-medium rounded-md transition-all ${
+          expanded ? "w-full" : "px-0 w-0"
+        }`}
       >
         {expanded ? (
           <Input
@@ -229,10 +249,11 @@ export function SidebarInputItem({
         ) : (
           <div
             onClick={handleIconClick} // When icon is clicked, expand and focus
-            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${active
+            className={`relative flex items-center py-4 px-4 font-medium rounded-md cursor-pointer transition-colors ${
+              active
                 ? "bg-gradient-to-tr from-indigo-200 to-indigo-100 text-indigo-800"
                 : "hover:bg-[#21212E] text-white"
-              }`}
+            }`}
           >
             <div className="icon overflow-hidden transition-all">{icon}</div>
           </div>
@@ -240,8 +261,9 @@ export function SidebarInputItem({
 
         {alert && (
           <div
-            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${expanded ? "" : "top-2"
-              }`}
+            className={`absolute right-2 w-2 h-2 rounded bg-indigo-400 ${
+              expanded ? "" : "top-2"
+            }`}
           />
         )}
       </div>
