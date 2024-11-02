@@ -28,39 +28,59 @@ export async function DELETE(
   }
 }
 
-// export async function PATCH(
-//   request: Request,
-//   { params }: { params: { countryId: string } }
-// ) {
-//   const { countryId } = params;
+export async function PUT(
+  request: Request,
+  { params }: { params: { countryId: string } }
+) {
+  const countryId = parseInt(params.countryId, 10);
 
-//   try {
-//     const existingCountry = await prisma.comment.findUnique({
-//       where: { id: parseInt(countryId, 10) },
-//     });
+  if (isNaN(countryId)) {
+    return NextResponse.json({ message: "Invalid country ID" }, { status: 400 });
+  }
 
-//     if (!existingCountry) {
-//       return NextResponse.json(
-//         { message: "Country not found" },
-//         { status: 404 }
-//       );
-//     }
+  try {
+    const body = await request.json();
+    const { name, code } = body;
 
-//     const newStatus =
-//       existingComment.status === "APPROVE" ? "UNAPPROVE" : "APPROVE";
+    const existingCountryByName = await prisma.country.findFirst({
+      where: {
+        name,
+        NOT: { id: countryId },
+      },
+    });
 
-//     // Update status di database
-//     const updatedComment = await prisma.comment.update({
-//       where: { id: parseInt(countryId, 10) },
-//       data: { status: newStatus },
-//     });
+    const existingCountryByCode = await prisma.country.findFirst({
+      where: {
+        code,
+        NOT: { id: countryId },
+      },
+    });
 
-//     return NextResponse.json(updatedComment, { status: 200 });
-//   } catch (error) {
-//     console.error("Error toggling comment status:", error);
-//     return NextResponse.json(
-//       { message: "Failed to toggle comment status", error: error.message },
-//       { status: 500 }
-//     );
-//   }
-// }
+    if (existingCountryByName) {
+      return NextResponse.json(
+        { message: "Country name already exists" },
+        { status: 400 }
+      );
+    }
+
+    if (existingCountryByCode) {
+      return NextResponse.json(
+        { message: "Country code already exists" },
+        { status: 400 }
+      );
+    }
+
+    const updatedCountry = await prisma.country.update({
+      where: { id: countryId },
+      data: { name, code },
+    });
+
+    return NextResponse.json(updatedCountry, { status: 200 });
+  } catch (error) {
+    console.error("Error updating country:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}

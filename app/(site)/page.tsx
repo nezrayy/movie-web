@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FilterSortProvider } from "../../contexts/FilterSortContext";
 import {
   Pagination,
   PaginationContent,
@@ -25,10 +24,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { RotateCcwIcon } from "lucide-react";
 import { Rating } from "@smastrom/react-rating";
 import "@smastrom/react-rating/style.css";
 import { useFilterSort } from "../../contexts/FilterSortContext";
 import { Availability } from "@prisma/client";
+import { Button } from "@/components/ui/button";
 
 interface Genre {
   id: number;
@@ -103,7 +104,7 @@ export default function Home() {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch("/api/get-genres"); // Pastikan API ini sudah ada
+      const response = await fetch("/api/get-genres");
       const data = await response.json();
       setGenres(data);
     } catch (error) {
@@ -113,12 +114,19 @@ export default function Home() {
 
   const fetchAvailabilities = async () => {
     try {
-      const response = await fetch("/api/get-availabilities"); // Pastikan API ini sudah ada
+      const response = await fetch("/api/get-availabilities");
       const data = await response.json();
       setAvailabilities(data);
     } catch (error) {
       console.error("Error fetching availabilities:", error);
     }
+  };
+
+  const resetFilters = () => {
+    setYearFilter("");
+    setCategoryFilter("");
+    setAvailabilityFilter("");
+    setSortBy("year_desc");
   };
 
   useEffect(() => {
@@ -133,7 +141,9 @@ export default function Home() {
   const isValidImageUrl = (url: string) => {
     // Cek apakah URL dimulai dengan http:// atau https://
     // return url.startsWith("http://") || url.startsWith("https://");
-    return url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
+    return (
+      url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
+    );
   };
 
   const renderPaginationItems = () => {
@@ -267,10 +277,11 @@ export default function Home() {
               >
                 <AccordionTrigger>Filter & Sort</AccordionTrigger>
                 <AccordionContent>
-                  <div className="flex flex-col md:flex-row justify-between">
+                  <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
                     {/* Left Section: Filtered by and Selects */}
-                    <div className="flex flex-col md:flex-row md:items-center md:space-x-4 md:space-y-0 space-y-2 mt-2">
+                    <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:space-x-4">
                       <p className="text-white">Filtered by:</p>
+
                       <Select onValueChange={(value) => setYearFilter(value)}>
                         <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Year" />
@@ -286,10 +297,11 @@ export default function Home() {
                           <SelectItem value="2020_2024">2020 - 2024</SelectItem>
                         </SelectContent>
                       </Select>
+
                       <Select
                         onValueChange={(value) => setCategoryFilter(value)}
                       >
-                        <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Genre" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
@@ -302,10 +314,11 @@ export default function Home() {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
+
                       <Select
                         onValueChange={(value) => setAvailabilityFilter(value)}
                       >
-                        <SelectTrigger className="w-32 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Availability" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
@@ -321,29 +334,20 @@ export default function Home() {
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                      {/* <Select>
-                        <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
-                          <SelectValue placeholder="Award" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#21212E] text-gray-400">
-                          <SelectItem value="oscar">Oscar</SelectItem>
-                          <SelectItem value="grammy">Grammy</SelectItem>
-                        </SelectContent>
-                      </Select> */}
-                      {/* <Select>
-                        <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#21212E] hover:bg-[#15151d] text-gray-400">
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="popular">Popular</SelectItem>
-                        </SelectContent>
-                      </Select> */}
+
+                      {/* Reset Button */}
+                      <Button
+                        onClick={resetFilters}
+                        className="bg-[#21212E] text-gray-400 hover:bg-[#1c1c26]"
+                      >
+                        <RotateCcwIcon className="w-4 h-4 inline" />
+                      </Button>
                     </div>
 
                     {/* Right Section: Sorted by */}
-                    <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-2 md:space-y-0 mt-2">
+                    <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 mt-2 md:mt-0">
                       <p className="text-white">Sorted by:</p>
+
                       <Select onValueChange={(value) => setSortBy(value)}>
                         <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Sort by..." />
@@ -379,7 +383,11 @@ export default function Home() {
                     <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
                       <a href={`./movie/${card.id}`}>
                         <img
-                          src={isValidImageUrl(card.posterUrl) ? card.posterUrl : '/placeholder-image.jpg'}
+                          src={
+                            isValidImageUrl(card.posterUrl)
+                              ? card.posterUrl
+                              : "/placeholder-image.jpg"
+                          }
                           alt=""
                           className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
                         />

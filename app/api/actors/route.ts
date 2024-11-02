@@ -16,7 +16,6 @@ export async function GET(req: Request) {
           // mode: "insensitive", // Pastikan Prisma mendukung ini, atau bisa diabaikan jika tidak
         },
       },
-      take: 10, // Batasi hasil pencarian
     });
 
     return NextResponse.json(actors, { status: 200 });

@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useEditFormContext } from "@/contexts/EditFormContext";
+import SheetEditForm from "@/components/sheet-edit-form";
 
 interface Genre {
   id: number;
@@ -37,9 +39,8 @@ const formSchema = z.object({
 const CMSGenre = () => {
   const [genresData, setGenresData] = useState<Genre[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
-
-  // Gunakan context notification
   const { showNotification } = useNotification();
+  const { openEditForm } = useEditFormContext();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,6 +68,10 @@ const CMSGenre = () => {
   const filteredGenres = genresData.filter((genre) =>
     genre.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleEdit = (genre: Genre) => {
+    openEditForm("genre", genre);
+  };
 
   const handleDelete = async (genreId: number) => {
     try {
@@ -177,7 +182,10 @@ const CMSGenre = () => {
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
-                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                    <Button
+                      onClick={() => handleEdit(genre)}
+                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
@@ -192,6 +200,7 @@ const CMSGenre = () => {
             ))}
           </TableBody>
         </Table>
+        <SheetEditForm />
       </div>
     </div>
   );

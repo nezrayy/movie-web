@@ -25,8 +25,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Country } from "@prisma/client";
 import { useNotification } from "@/contexts/NotificationContext";
-import { useEditFormContext } from "@/contexts/EditFormContext";
-import SheetEditForm from "@/components/sheet-edit-form";
+import { useSheet } from "@/contexts/EditFormContext";
 
 const formSchema = z.object({
   country: z.string().min(2).max(50),
@@ -37,7 +36,7 @@ const CMSCountries = () => {
   const [countriesData, setCountriesData] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { showNotification } = useNotification();
-  const { openEditForm } = useEditFormContext();
+  const { openSheet } = useSheet();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,7 +81,7 @@ const CMSCountries = () => {
   };
 
   const handleEdit = (country: Country) => {
-    openEditForm("country", country);
+    openSheet("Country", country);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -215,7 +214,6 @@ const CMSCountries = () => {
             ))}
           </TableBody>
         </Table>
-        <SheetEditForm />
       </div>
     </div>
   );

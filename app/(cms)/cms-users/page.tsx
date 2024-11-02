@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import "@smastrom/react-rating/style.css";
 import { MailCheck, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useNotification } from "@/contexts/NotificationContext";
 
 interface User {
   id: number;
@@ -37,6 +38,7 @@ const formSchema = z.object({
 const CMSUsers = () => {
   const [usersData, setUsersData] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -63,6 +65,25 @@ const CMSUsers = () => {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
   }
+
+  const handleDelete = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to delete user");
+        showNotification("Failed to delete user.");
+        return;
+      }
+
+      setUsersData((prevData) => prevData.filter((user) => user.id !== userId));
+      showNotification("User deleted succesfully.");
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
 
   const filteredUsers = usersData.filter((user) =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
@@ -110,7 +131,10 @@ const CMSUsers = () => {
                     <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
+                    <Button
+                      onClick={() => handleDelete(user.id)} // Panggil handleDelete dengan country.id
+                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

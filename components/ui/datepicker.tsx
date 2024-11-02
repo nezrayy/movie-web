@@ -8,14 +8,14 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger
+  PopoverTrigger,
 } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from "@/components/ui/select";
 
 interface DatePickerProps {
@@ -45,7 +45,7 @@ export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
     if (year) {
       return eachMonthOfInterval({
         start: startOfYear(new Date(year, 0, 1)),
-        end: endOfYear(new Date(year, 0, 1))
+        end: endOfYear(new Date(year, 0, 1)),
       });
     }
     return [];
@@ -81,7 +81,7 @@ export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
   };
 
   return (
-    <Popover>
+    <Popover onInteractOutside={(event) => event.preventDefault()}>
       <PopoverTrigger asChild className="bg-[#14141c]">
         <Button
           variant={"outline"}
@@ -94,8 +94,12 @@ export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
           {date ? format(date, "PPP") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-[#14141c] text-gray-400" align="start">
+      <PopoverContent
+        className="w-auto p-0 bg-[#14141c] text-gray-400 z-[1050] pointer-events-auto"
+        align="start"
+      >
         <div className="flex justify-between p-2 space-x-1">
+          {/* Select Month and Year */}
           <Select onValueChange={handleMonthChange} value={month.toString()}>
             <SelectTrigger className="w-[120px] bg-[#14141c] text-gray-400">
               <SelectValue placeholder="Month" />

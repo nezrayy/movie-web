@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationDialog from "@/components/notification";
+import { EditFormProvider } from "@/contexts/EditFormContext";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -93,10 +94,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Konten Utama */}
       <div className="flex-grow flex flex-col mb-20 lg:mb-0">
-        <NotificationProvider>
-          {children}
-          <NotificationDialog />
-        </NotificationProvider>
+        <EditFormProvider>
+          <NotificationProvider>
+            {children}
+            <NotificationDialog />
+          </NotificationProvider>
+        </EditFormProvider>
       </div>
 
       {/* Mobile Navigation */}

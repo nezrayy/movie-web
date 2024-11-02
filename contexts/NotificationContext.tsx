@@ -1,38 +1,39 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState } from "react";
 
-// Interface untuk nilai konteks
 interface NotificationContextType {
   message: string;
   open: boolean;
-  showNotification: (message: string) => void;
+  type?: "default" | "success" | "error";
+  showNotification: (message: string, type?: "default" | "success" | "error") => void;
   hideNotification: () => void;
 }
 
-// Inisialisasi nilai default konteks
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
-export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const [message, setMessage] = useState("");
-  const [open, setOpen] = useState(false);
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [message, setMessage] = useState<string>("");
+  const [open, setOpen] = useState<boolean>(false);
+  const [type, setType] = useState<"default" | "success" | "error">("default");
 
-  const showNotification = (message: string) => {
-    setMessage(message);
+  const showNotification = (msg: string, notificationType: "default" | "success" | "error" = "default") => {
+    setMessage(msg);
+    setType(notificationType);
     setOpen(true);
   };
 
   const hideNotification = () => {
     setOpen(false);
     setMessage("");
+    setType("default");
   };
 
   return (
-    <NotificationContext.Provider value={{ message, open, showNotification, hideNotification }}>
+    <NotificationContext.Provider value={{ message, open, type, showNotification, hideNotification }}>
       {children}
     </NotificationContext.Provider>
   );
 };
 
-// Custom hook untuk menggunakan konteks
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (!context) {

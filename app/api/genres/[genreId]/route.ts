@@ -3,28 +3,47 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function PATCH(
+export async function PUT(
   request: Request,
   { params }: { params: { genreId: string } }
 ) {
-  const { genreId } = params;
+  const genreId = parseInt(params.genreId, 10);
+
+  if (isNaN(genreId)) {
+    return NextResponse.json({ message: "Invalid genre ID" }, { status: 400 });
+  }
 
   try {
-    const existingGenre = await prisma.genre.findUnique({
-      where: { id: parseInt(genreId, 10) },
+    const body = await request.json();
+    const { name } = body;
+
+    const existinggenreByName = await prisma.genre.findFirst({
+      where: {
+        name,
+        NOT: { id: genreId },
+      },
     });
 
-    if (!existingGenre) {
-      return NextResponse.json({ message: "Genre not found" }, { status: 404 });
+    if (existinggenreByName) {
+      return NextResponse.json(
+        { message: "genre name already exists" },
+        { status: 400 }
+      );
     }
-    const { name } = await request.json();
 
-    const updatedGenre = await prisma.genre.update({
-      where: { id: parseInt(genreId, 10) },
+    const updatedgenre = await prisma.genre.update({
+      where: { id: genreId },
       data: { name },
     });
-    return NextResponse.json(updatedGenre, { status: 200 });
-  } catch (error) {}
+
+    return NextResponse.json(updatedgenre, { status: 200 });
+  } catch (error) {
+    console.error("Error updating genre:", error);
+    return NextResponse.json(
+      { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(

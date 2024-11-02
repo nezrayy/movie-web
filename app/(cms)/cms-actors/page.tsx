@@ -34,8 +34,9 @@ import { Pencil, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 import ImageDropzone from "@/components/image-drop-zone-sm";
 import { Country } from "@prisma/client";
+import { useNotification } from "@/contexts/NotificationContext";
+import SheetEditActor from "@/components/sheet-edit-actor-form";
 
-// Tipe data untuk aktor
 interface Actor {
   id: number;
   name: string;
@@ -64,6 +65,9 @@ const CMSActor: React.FC = () => {
   const [actorsData, setActorsData] = useState<Actor[]>([]);
   const [countriesData, setCountriesData] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const { showNotification } = useNotification();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -105,19 +109,39 @@ const CMSActor: React.FC = () => {
     fetchCountries();
   }, []);
 
-  // const handleDelete = (id: number) => {
-  //   setActors(actors.filter((actor) => actor.id !== id));
-  // };
+  const handleEdit = (actor: Actor) => {
+    setSelectedActor(actor);
+    setIsEditOpen(true);
+  };
 
-  // const handleEdit = (actor: Actor) => {
-  //   // Konversi tipe untuk mencocokkan dengan expectasi form
-  //   form.reset({
-  //     name: actor.name,
-  //     country: actor.country,
-  //     birthdate: actor.birthdate,
-  //     image: undefined, // Anda mungkin perlu menangani ini secara berbeda tergantung pada kebutuhan
-  //   });
-  // };
+  const handleDelete = async (actorId: number) => {
+    try {
+      const response = await fetch(`/api/actors/${actorId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        showNotification("Failed to delete actor.");
+        return;
+      }
+
+      setActorsData((prevData) =>
+        prevData.filter((actor) => actor.id !== actorId)
+      );
+      showNotification("Actor deleted succesfully.");
+    } catch (error) {
+      console.error("Error deleting actor:", error);
+    }
+  };
+
+  const handleSave = (updatedActor: Actor) => {
+    setActorsData((prevActors) =>
+      prevActors.map((actor) =>
+        actor.id === updatedActor.id ? updatedActor : actor
+      )
+    );
+    showNotification("Actor updated successfully!");
+  };
 
   const filteredActors = actorsData.filter((actor) =>
     actor.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -130,7 +154,10 @@ const CMSActor: React.FC = () => {
     const formData = new FormData();
 
     formData.append("name", values.name);
-    formData.append("birthdate", new Date(values.birthdate.setUTCHours(0, 0, 0, 0)).toISOString()); // Set to UTC
+    formData.append(
+      "birthdate",
+      new Date(values.birthdate.setUTCHours(0, 0, 0, 0)).toISOString()
+    );
     formData.append(
       "countryId",
       selectedCountry ? selectedCountry.id.toString() : ""
@@ -144,11 +171,22 @@ const CMSActor: React.FC = () => {
         method: "POST",
         body: formData,
       });
+
+      if (response.status === 400) {
+        showNotification("Actor already exists or invalid data.");
+        return;
+      }
+      if (!response.ok) {
+        throw new Error("Failed to create actor");
+      }
+
       const newActor = await response.json();
       setActorsData((prev) => [...prev, newActor]);
+      showNotification("Actor added successfully!");
       form.reset();
     } catch (error) {
       console.error("Error creating actor:", error);
+      showNotification("An error occurred while creating actor.");
     }
   };
 
@@ -303,8 +341,8 @@ const CMSActor: React.FC = () => {
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button
-                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
                       onClick={() => handleEdit(actor)}
+                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -320,6 +358,12 @@ const CMSActor: React.FC = () => {
             ))}
           </TableBody>
         </Table>
+        <SheetEditActor
+          isOpen={isEditOpen}
+          onClose={() => setIsEditOpen(false)}
+          actorData={selectedActor}
+          onSave={handleSave}
+        />
       </div>
     </div>
   );

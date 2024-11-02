@@ -176,7 +176,6 @@ const CMSComments = () => {
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="overflow-x-auto">
         <Table className="min-w-full">
           <TableHeader>
