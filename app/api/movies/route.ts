@@ -82,6 +82,11 @@ export async function GET(request: Request) {
         include: {
           actor: true, // Meng-include tabel Actor
         }
+      },
+      availabilities: {
+        include: {
+          availability: true, // Meng-include tabel Availability
+        }
       }
     },
   });

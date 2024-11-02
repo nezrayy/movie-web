@@ -18,6 +18,7 @@ export type Film = {
   releaseYear: number;
   actors: { actor: { id: number; name: string } }[]; // Menyimpan relasi actor dalam array objek
   genres: { genre: { id: number; name: string } }[]; // Menyimpan relasi genre dalam array objek
+  availabilities: { availability: { id: number; name: string } }[]; 
   synopsis: string;
   status: "APPROVE" | "UNAPPROVE";
 };
@@ -88,6 +89,13 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
     header: "Genres",
     cell: ({ row }) => {
       return row.original.genres.map((g) => g.genre.name).join(", ");
+    },
+  },
+  {
+    accessorKey: "availabilities",
+    header: "Availabilities",
+    cell: ({ row }) => {
+      return row.original.availabilities.map((a) => a.availability.name).join(", ");
     },
   },
   {

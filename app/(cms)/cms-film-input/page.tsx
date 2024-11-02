@@ -21,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Availability, Country, Genre } from "@/types/type"
 import { ActorSearch } from "@/components/actor-search"
 import { useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -65,6 +65,7 @@ const CMSDramaInputPage = () => {
   const [countries, setCountries] = useState<Country[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { data: session } = useSession();
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,42 +84,6 @@ const CMSDramaInputPage = () => {
   })
  
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // try {
-    //   const file = values.image;
-  
-    //   // Baca file dan konversi ke base64
-    //   const reader = new FileReader();
-    //   reader.readAsDataURL(file);
-  
-    //   reader.onload = async () => {
-    //     const base64String = reader.result;
-  
-    //     // Kirim file base64 ke API backend
-    //     const response = await fetch('/api/movies/upload', {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({
-    //         image: base64String,
-    //         fileName: file.name,
-    //       }),
-    //     });
-  
-    //     if (!response.ok) {
-    //       throw new Error('Something went wrong while uploading the image.');
-    //     }
-  
-    //     const responseData = await response.json();
-    //     console.log('Upload Image Response', responseData);
-    //   };
-  
-    //   reader.onerror = (error) => {
-    //     console.error('Error reading file:', error);
-    //   };
-    // } catch (error) {
-    //   console.error('Upload Error', error);
-    // }
     setIsLoading(true)
     console.log("VALUES", values)
     try {
@@ -168,7 +133,7 @@ const CMSDramaInputPage = () => {
       console.error('Upload Error', error);
     } finally {
       setIsLoading(false)
-      redirect('/cms-films')
+      router.push("/cms-films")
     }
   }
 
