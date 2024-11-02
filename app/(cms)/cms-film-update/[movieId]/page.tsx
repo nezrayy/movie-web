@@ -463,13 +463,7 @@ const CMSDramaUpdatePage = () => {
                       <FormItem>
                         <FormLabel className="text-white">Add Actors (Up to 9)</FormLabel>
                         <FormControl>
-                          {/* <ActorSearch control={form.control} field={field} defaultValue={
-                            // @ts-ignore
-                            movieDetails.actors
-                            // @ts-ignore
-                              ? movieDetails.actors.map((a) => ({ id: a.actor.id, name: a.actor.name }))
-                              : []
-                          } /> */}
+                          <ActorSearch control={form.control} field={field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

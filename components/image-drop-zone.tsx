@@ -3,7 +3,7 @@
 import { useDropzone } from "react-dropzone";
 
 interface ImageDropzoneProps {
-  value?: File | null;
+  value?: File | string | null;
   onChange: (file: File | null) => void;
 }
 
@@ -30,7 +30,7 @@ const ImageDropzone: React.FC<ImageDropzoneProps> = ({ value, onChange }) => {
       <input {...getInputProps()} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
       {value ? (
         <img
-          src={URL.createObjectURL(value)}
+          src={typeof value === "string" ? value : URL.createObjectURL(value)}
           alt="Preview"
           className="absolute inset-0 w-full h-full object-cover"
         />

@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 export type Film = {
   id: number;
@@ -120,6 +121,7 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
     id: "actions",
     cell: ({ row }) => {
       const film = row.original;
+      const router = useRouter();
 
       return (
         <DropdownMenu>
@@ -144,7 +146,12 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
               {film.status === "APPROVE" ? "Unapprove film" : "Approve film"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="hover:cursor-pointer">Edit</DropdownMenuItem>
+            <DropdownMenuItem 
+              className="hover:cursor-pointer"
+              onClick={() => router.push(`/cms-film-update/${film.id}`)}
+            >
+              Edit
+            </DropdownMenuItem>
             <DropdownMenuItem className="hover:cursor-pointer">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
