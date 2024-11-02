@@ -1,9 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
- 
-import { Button } from "@/components/ui/button"
+import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +9,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
-// This type is used to define the shape of our data.
 export type Film = {
   id: number;
   title: string;
@@ -21,10 +19,35 @@ export type Film = {
   actors: { actor: { id: number; name: string } }[]; // Menyimpan relasi actor dalam array objek
   genres: { genre: { id: number; name: string } }[]; // Menyimpan relasi genre dalam array objek
   synopsis: string;
-  status: "approve" | "unapprove";
+  status: "APPROVE" | "UNAPPROVE";
 };
 
-export const columns: ColumnDef<Film>[] = [
+const updateStatus = async (
+  id: number,
+  status: "APPROVE" | "UNAPPROVE",
+  onStatusUpdate: () => void
+) => {
+  try {
+    const res = await fetch(`/api/movies/${id}/update-status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to update status");
+    }
+
+    // Memicu callback untuk memperbarui data film di halaman
+    onStatusUpdate();
+  } catch (error) {
+    console.error("Error updating movie status:", error);
+  }
+};
+
+export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => {
@@ -36,7 +59,7 @@ export const columns: ColumnDef<Film>[] = [
           Title
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
@@ -50,14 +73,13 @@ export const columns: ColumnDef<Film>[] = [
           Release Year
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      )
+      );
     },
   },
   {
     accessorKey: "actors",
     header: "Actors",
     cell: ({ row }) => {
-      // Map untuk mengambil nama aktor dari relasi
       return row.original.actors.map((a) => a.actor.name).join(", ");
     },
   },
@@ -65,7 +87,6 @@ export const columns: ColumnDef<Film>[] = [
     accessorKey: "genres",
     header: "Genres",
     cell: ({ row }) => {
-      // Map untuk mengambil nama genre dari relasi
       return row.original.genres.map((g) => g.genre.name).join(", ");
     },
   },
@@ -75,13 +96,23 @@ export const columns: ColumnDef<Film>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const film = row.original
- 
+      const film = row.original;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -93,20 +124,23 @@ export const columns: ColumnDef<Film>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(film.title.toString())}
+              onClick={() =>
+                updateStatus(
+                  film.id,
+                  film.status === "APPROVE" ? "UNAPPROVE" : "APPROVE",
+                  onStatusUpdate
+                )
+              }
+              className="hover:cursor-pointer"
             >
-              Approve FIlm
+              {film.status === "APPROVE" ? "Unapprove film" : "Approve film"}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              Delete
-            </DropdownMenuItem>
+            <DropdownMenuItem className="hover:cursor-pointer">Edit</DropdownMenuItem>
+            <DropdownMenuItem className="hover:cursor-pointer">Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
 ];
