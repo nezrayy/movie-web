@@ -3,10 +3,16 @@
 import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
 
-export const ActorSearch = ({ control, field }) => {
+export const ActorSearch = ({ control, field, defaultValues = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [actors, setActors] = useState([]); // Menyimpan hasil pencarian aktor
   const [selectedActors, setSelectedActors] = useState([]); // Menyimpan ID aktor yang dipilih
+
+  // Set nilai awal selectedActors dari defaultValues saat komponen mount
+  useEffect(() => {
+    setSelectedActors(defaultValues);
+    field.onChange(defaultValues.map((a) => a.id));
+  }, []); // Hanya dijalankan satu kali saat komponen mount
 
   // Fetch aktor dari backend saat user mengetik
   const fetchActors = async (term) => {
@@ -17,10 +23,10 @@ export const ActorSearch = ({ control, field }) => {
 
   // Lakukan pencarian setiap kali nilai searchTerm berubah
   useEffect(() => {
-    if (searchTerm.length > 2) { // Fetch jika lebih dari 2 karakter
+    if (searchTerm.length > 2) {
       fetchActors(searchTerm);
     } else {
-      setActors([]); // Kosongkan jika pencarian terlalu pendek
+      setActors([]);
     }
   }, [searchTerm]);
 
@@ -29,7 +35,7 @@ export const ActorSearch = ({ control, field }) => {
     if (selectedActors.length < 9 && !selectedActors.find((a) => a.id === actor.id)) {
       const updatedActors = [...selectedActors, { id: actor.id, name: actor.name }];
       setSelectedActors(updatedActors);
-      field.onChange(updatedActors.map((a) => a.id)); // Hanya simpan ID aktor ke field form
+      field.onChange(updatedActors.map((a) => a.id));
     }
   };
 
@@ -37,7 +43,7 @@ export const ActorSearch = ({ control, field }) => {
   const removeActor = (actorId) => {
     const updatedActors = selectedActors.filter((a) => a.id !== actorId);
     setSelectedActors(updatedActors);
-    field.onChange(updatedActors.map((a) => a.id)); // Update nilai field form dengan ID yang tersisa
+    field.onChange(updatedActors.map((a) => a.id));
   };
 
   return (

@@ -59,15 +59,6 @@ export async function PUT(req: any) {
       posterUrl = `/uploads/${fileName}`;
     }
 
-    // Cek apakah id yang digunakan untuk relasi ada
-    const country = await prisma.country.findUnique({ where: { id: parseInt(countryId) } });
-    if (!country) {
-      return new Response(JSON.stringify({ error: 'Invalid `countryId`.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
     // Update data film menggunakan Prisma
     const updatedMovie = await prisma.movie.update({
       where: {
@@ -81,29 +72,23 @@ export async function PUT(req: any) {
         posterUrl, // Poster hanya diperbarui jika ada
         linkTrailer,
         country: { connect: { id: parseInt(countryId) } },
-        genres: genres?.length > 0 ? {
-          set: [], // Hapus relasi lama
-          create: genres.map((genreId: any) => ({
+        genres: {
+          deleteMany: {}, // Hapus relasi lama
+          create: genres.map((genreId: number) => ({
             genre: { connect: { id: parseInt(genreId) } },
           })),
-        } : {
-          set: [], // Hapus relasi lama jika genres tidak disediakan
         },
-        actors: actors?.length > 0 ? {
-          set: [], // Hapus relasi lama
-          create: actors.map((actorId: any) => ({
+        actors: {
+          deleteMany: {}, // Hapus relasi lama
+          create: actors.map((actorId: number) => ({
             actor: { connect: { id: parseInt(actorId) } },
           })),
-        } : {
-          set: [], // Hapus relasi lama jika actors tidak disediakan
         },
-        availabilities: availabilities?.length > 0 ? {
-          set: [], // Hapus relasi lama
-          create: availabilities.map((availabilityId: any) => ({
+        availabilities: {
+          deleteMany: {}, // Hapus relasi lama
+          create: availabilities.map((availabilityId: number) => ({
             availability: { connect: { id: parseInt(availabilityId) } },
           })),
-        } : {
-          set: [], // Hapus relasi lama jika availabilities tidak disediakan
         },
       },
     });

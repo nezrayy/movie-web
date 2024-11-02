@@ -21,7 +21,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Availability, Country, Genre } from "@/types/type"
 import { ActorSearch } from "@/components/actor-search"
 import { useSession } from "next-auth/react"
-import { redirect, useParams } from "next/navigation"
+import { redirect, useParams, useRouter } from "next/navigation"
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -29,9 +29,10 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const formSchema = z.object({
   image: z
     .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
+    .optional()
+    .refine((file) => !file || file.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
     .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
+      (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
       "Only .jpg, .jpeg, .png and .webp formats are supported."
     ),
   title: z.string().min(1, "Title is required"),
@@ -68,6 +69,7 @@ const CMSDramaUpdatePage = () => {
   const { data: session } = useSession();
   const params = useParams<{ movieId: string }>(); 
   const movieId = params.movieId;
+  const router = useRouter()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,55 +90,70 @@ const CMSDramaUpdatePage = () => {
   const { reset } = form;
  
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const file = values.image;
+      let base64String = null;
+      let fileName = null;
   
-      // Baca file dan konversi ke base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      if (values.image) {
+        const file = values.image;
   
-      reader.onload = async () => {
-        const base64String = reader.result;
+        // Baca file dan konversi ke base64 hanya jika ada file baru
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
   
-        // Kirim data ke API backend
-        const response = await fetch(`/api/movies/${movieId}/update`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            image: base64String,
-            fileName: file.name,
-            title: values.title,
-            alternativeTitle: values.alternativeTitle,
-            releaseYear: values.year,
-            synopsis: values.synopsis,
-            linkTrailer: values.trailerLink,
-            createdById: session?.user.id, // Pastikan ini adalah ID user
-            countryId: values.country, // Ambil ID negara dari nama negara
-            genres: values.genres, // Ambil array ID genres dari nama genres
-            actors: values.actors, // Ambil array ID actors dari nama actors
-            availabilities: values.availabilities, // Ini seharusnya ID availabilities jika sudah valid
-          }),
+        await new Promise((resolve, reject) => {
+          reader.onload = () => {
+            base64String = reader.result;
+            fileName = file.name;
+            resolve(null);
+          };
+          reader.onerror = reject;
         });
+      }
   
-        if (!response.ok) {
-          throw new Error('Something went wrong while uploading the image and saving movie data.');
-        }
-  
-        const responseData = await response.json();
-        console.log('Upload Movie Response', responseData);
+      // Persiapkan payload data untuk dikirim ke backend
+      const payload: any = {
+        id: movieId, // Mengirim id dari movie
+        title: values.title,
+        alternativeTitle: values.alternativeTitle,
+        releaseYear: values.year,
+        synopsis: values.synopsis,
+        linkTrailer: values.trailerLink,
+        createdById: session?.user.id,
+        countryId: values.country,
+        genres: values.genres,
+        actors: values.actors,
+        availabilities: values.availabilities,
       };
   
-      reader.onerror = (error) => {
-        console.error('Error reading file:', error);
-      };
+      // Tambahkan field image jika ada file baru
+      if (base64String && fileName) {
+        payload.image = base64String;
+        payload.fileName = fileName;
+      }
+  
+      // Kirim data ke API backend
+      console.log("Payload:", payload);
+      const response = await fetch(`/api/movies/${movieId}/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Something went wrong while uploading the image and saving movie data.");
+      }
+  
+      const responseData = await response.json();
+      console.log("Upload Movie Response", responseData);
     } catch (error) {
-      console.error('Upload Error', error);
+      console.error("Upload Error", error);
     } finally {
-      setIsLoading(false)
-      redirect('/cms-films')
+      setIsLoading(false);
+      router.push("/cms-films")
     }
   }
 
@@ -463,7 +480,11 @@ const CMSDramaUpdatePage = () => {
                       <FormItem>
                         <FormLabel className="text-white">Add Actors (Up to 9)</FormLabel>
                         <FormControl>
-                          <ActorSearch control={form.control} field={field} />
+                          <ActorSearch 
+                            control={form.control} 
+                            field={field} 
+                            defaultValues={movieDetails.actors ? movieDetails.actors.map((a) => ({ id: a.actor?.id, name: a.actor?.name })) : []} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
