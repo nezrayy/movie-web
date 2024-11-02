@@ -93,7 +93,7 @@ export default function Home() {
         availability: availabilityFilter || "",
       });
 
-      const response = await fetch(`/api/get-movies?${queryParams}`);
+      const response = await fetch(`/api/movies?${queryParams}`);
       const data = await response.json();
       setMovies(data);
     } catch (error) {

@@ -10,7 +10,7 @@ export const ActorSearch = ({ control, field }) => {
 
   // Fetch aktor dari backend saat user mengetik
   const fetchActors = async (term) => {
-    const response = await fetch(`/api/get-actors?search=${term}`);
+    const response = await fetch(`/api/actors?search=${term}`);
     const data = await response.json();
     setActors(data);
   };

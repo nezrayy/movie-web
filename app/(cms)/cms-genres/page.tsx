@@ -23,8 +23,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-
-// Import context notification
 import { useNotification } from "@/contexts/NotificationContext";
 
 interface Genre {
@@ -59,7 +57,7 @@ const CMSGenre = () => {
         setGenresData(data);
       } catch (error) {
         console.error("Error fetching genres:", error);
-        showNotification("Error fetching genres.", "error");
+        showNotification("Error fetching genres.");
       }
     };
 

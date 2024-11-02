@@ -20,6 +20,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Availability, Country, Genre } from "@/types/type"
 import { ActorSearch } from "@/components/actor-search"
+import axios from 'axios';
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -53,22 +54,9 @@ const formSchema = z.object({
     .max(9, "You can select up to 9 actors"),
   trailerLink: z
     .string()
-    .url("Trailer link must be a valid URL")
-    .optional(),
+    .url("Trailer link must be a valid URL"),
   award: z.string().optional(),
 });
-
-// const ActorCard = ({ actorName }: { actorName: string }) => {
-//   return (
-//     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
-//       <div className="flex space-x-2">
-//         <div className="w-12 h-16 bg-gray-400 rounded"></div>
-//         <span className="text-gray-700">{actorName}</span>
-//       </div>
-//       <button className="text-red-500 font-semibold p-0 leading-none">x</button>
-//     </div>
-//   )
-// }
 
 const CMSDramaInputPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -93,11 +81,9 @@ const CMSDramaInputPage = () => {
   })
  
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!imageFile) {
-      alert("Please upload an image.");
-      return;
-    }
+    console.log(values)
   }
+  
 
   const handleImageUpload = (file: File) => {
     setImageFile(file);
@@ -134,7 +120,7 @@ const CMSDramaInputPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 flex justify-center">
+    <div className="flex flex-col w-full h-full p-8 justify-center items-center">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -142,19 +128,25 @@ const CMSDramaInputPage = () => {
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col items-center space-y-4">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="text-white">Upload Image</FormLabel>
-                    <FormControl>
-                      <ImageDropzone value={field.value} onChange={field.onChange} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel className="text-white">Upload Image</FormLabel>
+                  <FormControl>
+                    <ImageDropzone
+                      value={field.value}
+                      onChange={(file) => {
+                        field.onChange(file); // Update field di form
+                        handleImageUpload(file); // Simpan di state
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
               <Button type="submit" className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block">Submit</Button>
             </div>
 
@@ -267,25 +259,6 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              {/* <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="availability"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Availability</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Availability"
-                          className="bg-transparent text-white placeholder:text-gray-400"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div> */}
               <div className="col-span-2">
                 <FormField
                   control={form.control}
@@ -295,7 +268,7 @@ const CMSDramaInputPage = () => {
                       <div className="mb-4">
                         <FormLabel className="text-white">Availabilities</FormLabel>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto"> {/* Batasan tinggi dan scroll */}
+                      <div className="grid grid-cols-2 gap-4">
                         {availabilities.map((item) => (
                           <FormField
                             key={item.id}
@@ -344,7 +317,7 @@ const CMSDramaInputPage = () => {
                       <div className="mb-4">
                         <FormLabel className="text-white">Genre</FormLabel>
                       </div>
-                      <div className="grid grid-cols-2 gap-4 max-h-[300px] overflow-y-auto"> {/* Batasan tinggi dan scroll */}
+                      <div className="grid grid-cols-2 gap-4">
                         {genres.map((item) => (
                           <FormField
                             key={item.id}

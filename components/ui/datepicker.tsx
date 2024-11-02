@@ -1,95 +1,138 @@
-"use client";
-import { useState, useEffect } from "react";
+import * as React from "react";
+import { format, startOfYear, endOfYear, eachMonthOfInterval } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "./calendar";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
-interface Props {
-  initialDate?: Date;
-  onError?: (error: "required" | "invalid" | null) => void; // New prop for error handling
+interface DatePickerProps {
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  endYear?: number;
 }
 
-export function DatePicker({ initialDate, onError }: Props) {
-  const [date, setDate] = useState<Date | undefined>(initialDate);
-  const [stringDate, setStringDate] = useState(
-    initialDate ? format(initialDate, "PPP") : ""
+export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
+  const [month, setMonth] = React.useState<number>(
+    date ? date.getMonth() : new Date().getMonth()
   );
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [year, setYear] = React.useState<number>(
+    date ? date.getFullYear() : new Date().getFullYear()
+  );
 
-  const handleDateChange = (inputDate: string) => {
-    if (!inputDate) {
-      setErrorMessage("Birthdate is required");
-      onError && onError("required");
-      return;
+  const years = React.useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const finalEndYear = endYear ?? currentYear; // Use endYear prop or fallback to current year
+    return Array.from(
+      { length: finalEndYear - 1950 + 1 },
+      (_, i) => finalEndYear - i
+    );
+  }, [endYear]);
+
+  const months = React.useMemo(() => {
+    if (year) {
+      return eachMonthOfInterval({
+        start: startOfYear(new Date(year, 0, 1)),
+        end: endOfYear(new Date(year, 0, 1))
+      });
     }
+    return [];
+  }, [year]);
 
-    const parsedDate = new Date(inputDate);
-    if (parsedDate.toString() === "Invalid Date") {
-      setErrorMessage("Invalid Date");
-      onError && onError("invalid");
+  React.useEffect(() => {
+    if (date) {
+      setMonth(date.getMonth());
+      setYear(date.getFullYear());
+    }
+  }, [date]);
+
+  const handleYearChange = (selectedYear: string) => {
+    const newYear = parseInt(selectedYear, 10);
+    setYear(newYear);
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setFullYear(newYear);
+      setDate(newDate);
+    }
+  };
+
+  const handleMonthChange = (selectedMonth: string) => {
+    const newMonth = parseInt(selectedMonth, 10);
+    setMonth(newMonth);
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setMonth(newMonth);
+      setDate(newDate);
     } else {
-      setErrorMessage("");
-      setDate(parsedDate);
-      setStringDate(format(parsedDate, "PPP"));
-      onError && onError(null); // Clear error if valid
+      setDate(new Date(year, newMonth, 1));
     }
   };
 
   return (
-    <Popover key={date?.getDate()}>
-      <div className="relative w-full">
-        <Input
-          type="string"
-          value={stringDate}
-          className="bg-transparent placeholder:text-gray-400 text-gray-400"
-          placeholder="Enter birthdate..."
-          onFocus={() => {
-            if (date) setStringDate(format(date, "MM/dd/yyyy"));
-          }}
-          onChange={(e) => setStringDate(e.target.value)}
-          onBlur={(e) => handleDateChange(e.target.value)} // Handle validation on blur
-        />
-        <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "bg-transparent text-gray-500",
-              "font-normal absolute right-0 translate-y-[-50%] top-[50%] rounded-l-none",
-              !date && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="w-4 h-4" />
-          </Button>
-        </PopoverTrigger>
-      </div>
-      <PopoverContent align="end" className="w-auto p-0">
+    <Popover>
+      <PopoverTrigger asChild className="bg-[#14141c]">
+        <Button
+          variant={"outline"}
+          className={cn(
+            "w-full justify-start text-left font-normal text-gray-400",
+            !date && "text-muted-foreground text-gray-400"
+          )}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4 text-gray-400" />
+          {date ? format(date, "PPP") : <span>Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 bg-[#14141c] text-gray-400" align="start">
+        <div className="flex justify-between p-2 space-x-1">
+          <Select onValueChange={handleMonthChange} value={month.toString()}>
+            <SelectTrigger className="w-[120px] bg-[#14141c] text-gray-400">
+              <SelectValue placeholder="Month" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#14141c] text-gray-400">
+              {months.map((m, index) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {format(m, "MMMM")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={handleYearChange} value={year.toString()}>
+            <SelectTrigger className="w-[120px] bg-[#14141c] text-gray-400">
+              <SelectValue placeholder="Year" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#14141c] text-gray-400">
+              {years.map((y) => (
+                <SelectItem key={y} value={y.toString()}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Calendar
-          className="bg-[#14141E] text-gray-500"
           mode="single"
-          captionLayout="dropdown-buttons"
           selected={date}
-          defaultMonth={date}
-          onSelect={(selectedDate) => {
-            if (!selectedDate) return;
-            setDate(selectedDate);
-            setStringDate(format(selectedDate, "PPP"));
-            setErrorMessage("");
-            onError && onError(null); // Clear error on valid selection
+          onSelect={setDate}
+          month={new Date(year, month)}
+          onMonthChange={(newMonth) => {
+            setMonth(newMonth.getMonth());
+            setYear(newMonth.getFullYear());
           }}
-          fromYear={1960}
-          toYear={2030}
+          initialFocus
         />
       </PopoverContent>
     </Popover>
   );
 }
-
-export default DatePicker;

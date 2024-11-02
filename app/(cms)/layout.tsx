@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
       {/* Sidebar untuk Desktop */}
-      <div className="lg:top-0 fixed lg:h-screen hidden lg:block z-50">
+      <div className="lg:top-0 sticky lg:h-screen hidden lg:block z-50">
         <Sidebar>
           <Link href="/cms-actors">
             <SidebarItem
@@ -92,12 +92,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Konten Utama */}
-      <div className="flex-grow flex flex-col pl-72 mb-20 lg:mb-0">
+      <div className="flex-grow flex flex-col mb-20 lg:mb-0">
         <NotificationProvider>
           {children}
           <NotificationDialog />
         </NotificationProvider>
       </div>
+
       {/* Mobile Navigation */}
       <MobileNav />
     </div>

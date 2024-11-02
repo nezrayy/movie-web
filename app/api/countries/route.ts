@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       },
     });
 
-    // If country exists, return an error response
     if (existingCountry) {
       return NextResponse.json(
         { message: "Country already exists" },

@@ -1,49 +1,4 @@
-"use client"
-
-// import React, { useCallback, useState } from 'react';
-// import { useDropzone } from 'react-dropzone';
-
-// const ImageDropzone: React.FC<{ onImageUpload: (file: File) => void }> = ({ onImageUpload }) => {
-//   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-//   const onDrop = useCallback((acceptedFiles: File[]) => {
-//     const file = acceptedFiles[0];
-//     setImagePreview(URL.createObjectURL(file));
-//     onImageUpload(file); // Pass the file to the parent component
-//   }, [onImageUpload]);
-
-//   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-//     onDrop,
-//     accept: { 'image/*': [] },
-//   });
-
-//   return (
-//     <div
-//       {...getRootProps()}
-//       className={`w-full max-w-xs bg-gray-300 rounded overflow-hidden cursor-pointer relative ${
-//         isDragActive ? 'bg-gray-400' : ''
-//       }`}
-//       style={{ paddingBottom: '150%' }} // 2:3 Aspect Ratio
-//     >
-//       <input {...getInputProps()} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-//       {imagePreview ? (
-//         <img
-//           src={imagePreview}
-//           alt="Preview"
-//           className="absolute inset-0 w-full h-full object-cover"
-//         />
-//       ) : (
-//         <div className="absolute inset-0 flex items-center justify-center">
-//           <p className="text-gray-700">
-//             {isDragActive ? 'Drop the files here ...' : 'Drag & drop an image, or click to select one'}
-//           </p>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ImageDropzone;
+"use client";
 
 import { useDropzone } from "react-dropzone";
 
@@ -61,29 +16,35 @@ const ImageDropzone: React.FC<ImageDropzoneProps> = ({ value, onChange }) => {
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 'image/*': [] },
+    accept: { "image/*": [] },
   });
 
   return (
     <div
       {...getRootProps()}
-      className={`w-40 bg-gray-300 rounded overflow-hidden cursor-pointer relative ${
-        isDragActive ? "bg-gray-400" : ""
+      className={`w-full max-w-[200px] bg-gray-100 rounded-lg overflow-hidden cursor-pointer relative shadow-md mx-auto ${
+        isDragActive ? "bg-gray-200" : ""
       }`}
-      style={{ paddingBottom: "66%" }}
+      style={{ aspectRatio: "3 / 4" }}
     >
-      <input {...getInputProps()} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+      <input
+        {...getInputProps()}
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+      />
       {value ? (
         <img
           src={URL.createObjectURL(value)}
           alt="Preview"
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover rounded-lg"
         />
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <p className="text-gray-700">
-            {isDragActive ? "Drop the files here ..." : "Drag & drop an image, or click to select one"}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+          <p className="text-gray-500 text-sm font-medium">
+            {isDragActive
+              ? "Drop the image here ..."
+              : "Drag & drop an image, or click to select one"}
           </p>
+          <span className="mt-2 text-xs text-gray-400">Recommended 3:4 ratio</span>
         </div>
       )}
     </div>

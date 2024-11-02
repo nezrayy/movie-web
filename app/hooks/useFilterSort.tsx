@@ -37,7 +37,7 @@ export const useFilterSort = () => {
 
   const fetchMovies = async () => {
     try {
-      const response = await fetch(`/api/get-movies?sort=${sortBy}&year=${yearFilter}&category=${categoryFilter}`);
+      const response = await fetch(`/api/movies?sort=${sortBy}&year=${yearFilter}&category=${categoryFilter}`);
       const data = await response.json();
       setMovies(data);
     } catch (error) {
