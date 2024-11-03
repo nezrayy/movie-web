@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import { useNotification } from "@/contexts/NotificationContext";
+import { fetchUserByEmail } from "@/lib/get-user-by-email";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -47,54 +48,6 @@ const LoginPage = () => {
   const searchParams = useSearchParams();
   const { showNotification } = useNotification();
 
-  // const onSubmit = async (data: FormData) => {
-  //   setIsSubmitting(true);
-
-  //   try {
-  //     const result = await signIn("credentials", {
-  //       redirect: false,
-  //       email: data.email,
-  //       password: data.password,
-  //     });
-
-  //     if (result?.error) {
-  //       if (result?.error === "SUSPENDED") {
-  //         setWrongCredentials("Your account has been suspended.");
-  //       }
-  //       setWrongCredentials("Wrong email or password");
-  //     }
-
-  //     // if (!session) {
-  //     //   setWrongCredentials("Session not found. Please try again.");
-  //     //   showNotification("Session not found. Please try again.");
-  //     //   setIsSubmitting(false);
-  //     //   return;
-  //     // }
-
-  //     // const status = session.user?.status;
-  //     const session = await getSession();
-  //     const role = session.user?.role;
-
-  //     if (status === "SUSPENDED") {
-  //       setWrongCredentials("Your account has been suspended.");
-  //       showNotification("Your account has been suspended.");
-  //       setIsSubmitting(false);
-  //       return;
-  //     }
-
-  //     if (role === "ADMIN") {
-  //       window.location.href = "/cms-films";
-  //     } else {
-  //       window.location.href = "/";
-  //     }
-
-  //     setIsSubmitting(false);
-  //   } catch (error) {
-  //     console.error("Login error:", error);
-  //     setWrongCredentials("An error occurred during login. Please try again.");
-  //     setIsSubmitting(false);
-  //   }
-  // };
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
 
@@ -105,12 +58,23 @@ const LoginPage = () => {
         password: data.password,
       });
 
-      if (result?.error) {
-        if (result.error === "SUSPENDED_ACCOUNT") {
+      const user = await fetchUserByEmail(data.email)
+      if (user) {
+        if (user.status === "SUSPENDED") {
           setWrongCredentials("Your account has been suspended.");
-        } else {
-          setWrongCredentials("Wrong email or password");
+          setIsSubmitting(false);
+          return;
         }
+      }
+
+      if (!user) {
+        setWrongCredentials("User not found");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (result?.error) {
+        setWrongCredentials("Wrong email or password");
         setIsSubmitting(false);
         return;
       }
