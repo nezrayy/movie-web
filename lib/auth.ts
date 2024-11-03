@@ -15,13 +15,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true, // Allow linking multiple accounts with the same email
       async profile(profile) {
-        // Check if the user already exists based on email
         let user = await prisma.user.findUnique({
           where: { email: profile.email },
         });
 
         if (user) {
-          // If the user exists, check if the Google account is already linked
+          // Periksa status user
+          if (user.status === "SUSPENDED") {
+            throw new Error("Your account is suspended");
+          }
+
           const existingAccount = await prisma.account.findFirst({
             where: {
               provider: "google",
@@ -31,7 +34,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (!existingAccount) {
-            // If the account does not exist yet, link the Google account
             await prisma.account.create({
               data: {
                 provider: "google",
@@ -42,7 +44,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             });
           }
 
-          // Return the existing user
           return {
             id: user.id.toString(),
             email: user.email,
@@ -51,7 +52,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         }
 
-        // If the user does not exist, create a new account
+        // Jika user baru, buat akun baru
         const username =
           profile.name.replace(/\s+/g, "").toLowerCase() ||
           profile.email.split("@")[0];
@@ -101,6 +102,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Wrong email or password");
         }
 
+        if (user.status === "SUSPENDED") {
+          throw new Error(
+            "Your account has been suspended. Contact admin for more info."
+          );
+        }
+
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
@@ -113,7 +120,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id.toString(),
           email: user.email,
           username: user.username,
-          role: user.role
+          role: user.role,
+          status: user.status, // Pastikan status dikembalikan
         };
       },
     }),
@@ -125,10 +133,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
   },
   callbacks: {
+    async signIn({ user }) {
+      if (user.status === "SUSPENDED") {
+        return false;
+      }
+      return true;
+    },
     async session({ session, token }) {
+      const user = await prisma.user.findUnique({
+        where: { id: parseInt(token.id, 10) },
+      });
+
+      if (!user || user.status === "SUSPENDED") {
+        return null;
+      }
+
       session.user.id = token.id;
       session.user.role = token.role;
       session.user.username = token.username;
+      session.user.status = user.status;
       return session;
     },
     async jwt({ token, user }) {
@@ -136,6 +159,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.id = user.id;
         token.role = user.role;
         token.username = user.username;
+        token.status = user.status;
       }
       return token;
     },

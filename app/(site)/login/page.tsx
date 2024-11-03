@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { getSession, signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react";
 import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+import { useNotification } from "@/contexts/NotificationContext";
 
-// Schema validasi dengan Zod
 const formSchema = z.object({
   email: z.string().email({
     message: "Please enter a valid email address.",
@@ -43,47 +43,104 @@ const LoginPage = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wrongCredentials, setWrongCredentials] = useState("");
-  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const searchParams = useSearchParams();
+  const { showNotification } = useNotification();
 
+  // const onSubmit = async (data: FormData) => {
+  //   setIsSubmitting(true);
+
+  //   try {
+  //     const result = await signIn("credentials", {
+  //       redirect: false,
+  //       email: data.email,
+  //       password: data.password,
+  //     });
+
+  //     if (result?.error) {
+  //       if (result?.error === "SUSPENDED") {
+  //         setWrongCredentials("Your account has been suspended.");
+  //       }
+  //       setWrongCredentials("Wrong email or password");
+  //     }
+
+  //     // if (!session) {
+  //     //   setWrongCredentials("Session not found. Please try again.");
+  //     //   showNotification("Session not found. Please try again.");
+  //     //   setIsSubmitting(false);
+  //     //   return;
+  //     // }
+
+  //     // const status = session.user?.status;
+  //     const session = await getSession();
+  //     const role = session.user?.role;
+
+  //     if (status === "SUSPENDED") {
+  //       setWrongCredentials("Your account has been suspended.");
+  //       showNotification("Your account has been suspended.");
+  //       setIsSubmitting(false);
+  //       return;
+  //     }
+
+  //     if (role === "ADMIN") {
+  //       window.location.href = "/cms-films";
+  //     } else {
+  //       window.location.href = "/";
+  //     }
+
+  //     setIsSubmitting(false);
+  //   } catch (error) {
+  //     console.error("Login error:", error);
+  //     setWrongCredentials("An error occurred during login. Please try again.");
+  //     setIsSubmitting(false);
+  //   }
+  // };
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true); // Mulai loading
+    setIsSubmitting(true);
 
     try {
       const result = await signIn("credentials", {
-        redirect: false, // Jangan redirect otomatis, kita akan tangani di page
+        redirect: false,
         email: data.email,
         password: data.password,
       });
-  
-      if (result?.error) {
-        setWrongCredentials("Wrong email or password");
-      } else {
-        // Redirect ke halaman home jika login berhasil
-        const session = await getSession(); // Ambil session setelah login
-        const role = session?.user?.role; // Ambil role dari session
 
-        // Redirect sesuai dengan role
-        if (role === "ADMIN") {
-          window.location.href = "/cms-films"; // Halaman khusus admin
+      if (result?.error) {
+        if (result.error === "SUSPENDED_ACCOUNT") {
+          setWrongCredentials("Your account has been suspended.");
         } else {
-          window.location.href = "/"; // Redirect default jika role tidak ditemukan
+          setWrongCredentials("Wrong email or password");
         }
+        setIsSubmitting(false);
+        return;
       }
 
-      setIsSubmitting(false); 
-    } catch (error) {
+      const session = await getSession();
+      if (session?.user?.status === "SUSPENDED") {
+        setWrongCredentials("Your account has been suspended.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const role = session?.user?.role;
+      if (role === "ADMIN") {
+        window.location.href = "/cms-films";
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error: any) {
       console.error("Login error:", error);
-      setIsSubmitting(false); 
+      setWrongCredentials("An error occurred during login. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   useEffect(() => {
     const error = searchParams.get("error");
-
     if (error === "OAuthAccountNotLinked") {
-      form.setError("email", { message: "Email sudah digunakan" });
-    } 
+      form.setError("email", { message: "Email already in use." });
+    }
   }, [searchParams]);
 
   return (
@@ -115,7 +172,6 @@ const LoginPage = () => {
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="password"
@@ -123,50 +179,46 @@ const LoginPage = () => {
                 <FormItem>
                   <FormLabel className="text-white">Password</FormLabel>
                   <FormControl>
-                  <div className="relative w-full">
-                    {/* Input field */}
-                    <Input
-                      type={showPassword ? "text" : "password"} // Tampilkan teks jika showPassword true, sebaliknya tampilkan password
-                      placeholder="Enter your password"
-                      {...field} // Spread field props (assuming this comes from useForm)
-                      className="bg-[#222d3c] text-white w-full pr-10" // Tambah padding kanan untuk space icon
-                    />
-                    
-                    {/* Icon for showing/hiding password */}
-                    <Button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      variant="ghost"
-                      className="absolute inset-y-0 right-0 flex items-center justify-center h-full w-12 text-white"
-                    >
-                      {showPassword ? <EyeOff /> : <Eye />}
-                    </Button>
-                  </div>
+                    <div className="relative w-full">
+                      <Input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        {...field}
+                        className="bg-[#222d3c] text-white w-full pr-10"
+                      />
+                      <Button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        variant="ghost"
+                        className="absolute inset-y-0 right-0 flex items-center justify-center h-full w-12 text-white"
+                      >
+                        {showPassword ? <EyeOff /> : <Eye />}
+                      </Button>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {wrongCredentials !== "" && (
+            {wrongCredentials && (
               <p className="text-red-500 text-sm">{wrongCredentials}</p>
             )}
-
             <p className="text-white text-sm">
               Forgot password?{" "}
-              <Link href="/forgot-password" className="hover:underline underline-offset-4 text-blue-500">
+              <Link
+                href="/forgot-password"
+                className="hover:underline underline-offset-4 text-blue-500"
+              >
                 Reset here
               </Link>
             </p>
-
             <Button
               type="submit"
               className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
-              disabled={isSubmitting} // Matikan tombol saat loading
+              disabled={isSubmitting}
             >
               {isSubmitting ? "Loading..." : "Sign in"}
             </Button>
-
             <Button
               type="button"
               className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center justify-center"
@@ -182,10 +234,12 @@ const LoginPage = () => {
             </Button>
           </form>
         </Form>
-
         <p className="text-white mt-5 text-center">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="hover:underline underline-offset-4 text-blue-500">
+          <Link
+            href="/register"
+            className="hover:underline underline-offset-4 text-blue-500"
+          >
             Register
           </Link>
         </p>

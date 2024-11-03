@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation";
 import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarInputItem, SidebarItem } from "@/components/sidebar";
 import { FilterSortProvider } from "../../contexts/FilterSortContext"; // Pastikan path benar
-import { Medal, MonitorPlay, Search, UserRound, Users } from "lucide-react";
+import { Medal, MonitorPlay, Search, Users } from "lucide-react";
 import Link from "next/link";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -38,13 +39,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </Link>
         </Sidebar>
       </div>
-
-      <FilterSortProvider>
-        {/* Konten Utama */}
-        <div className="flex-grow flex flex-col mb-20 lg:mb-0">{children}</div>
-      {/* Mobile Navigation */}
-      <MobileNav />
-      </FilterSortProvider>
+      <NotificationProvider>
+        <FilterSortProvider>
+          {/* Konten Utama */}
+          <div className="flex-grow flex flex-col mb-20 lg:mb-0">
+            {children}
+          </div>
+          {/* Mobile Navigation */}
+          <MobileNav />
+        </FilterSortProvider>
+      </NotificationProvider>
     </div>
   );
 }

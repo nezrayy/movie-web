@@ -82,13 +82,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               active={pathname === "/cms-users"}
             />
           </Link>
-          <Link href="/cms-header">
-            <SidebarItem
-              icon={<Image />}
-              text="Header"
-              active={pathname === "/cms-header"}
-            />
-          </Link>
         </Sidebar>
       </div>
 

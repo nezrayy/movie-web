@@ -17,12 +17,14 @@ import "@smastrom/react-rating/style.css";
 import { MailCheck, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
+import EditUserSheet from "@/components/sheet-edit-user-form";
 
 interface User {
   id: number;
   username: string;
   email: string;
   role: string;
+  status: string;
 }
 
 const formSchema = z.object({
@@ -39,6 +41,8 @@ const CMSUsers = () => {
   const [usersData, setUsersData] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { showNotification } = useNotification();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -62,9 +66,10 @@ const CMSUsers = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-  }
+  const handleEdit = (user: User) => {
+    setSelectedUser(user);
+    setIsEditOpen(true);
+  };
 
   const handleDelete = async (userId: number) => {
     try {
@@ -113,6 +118,7 @@ const CMSUsers = () => {
               <TableHead>Username</TableHead>
               <TableHead>Email</TableHead>
               <TableHead className="w-36">Role</TableHead>
+              <TableHead className="w-36">Status</TableHead>
               <TableHead className="w-40 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -123,12 +129,16 @@ const CMSUsers = () => {
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
+                <TableCell>{user.status}</TableCell>
                 <TableCell>
                   <div className="flex flex-row justify-center gap-4">
                     <Button className="bg-green-700 p-3 hover:bg-green-800 hover:text-gray-400">
                       <MailCheck className="h-4 w-4" />
                     </Button>
-                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
+                    <Button
+                      onClick={() => handleEdit(user)}
+                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button
@@ -143,6 +153,26 @@ const CMSUsers = () => {
             ))}
           </TableBody>
         </Table>
+        {selectedUser && (
+          <EditUserSheet
+            isOpen={isEditOpen}
+            onClose={() => setIsEditOpen(false)}
+            userId={selectedUser.id}
+            initialData={{
+              role: selectedUser.role,
+              status: selectedUser.status,
+            }}
+            onSave={(updatedUser) => {
+              // Fungsi yang menangani logika setelah user diperbarui
+              setUsersData((prevData) =>
+                prevData.map((user) =>
+                  user.id === updatedUser.id ? updatedUser : user
+                )
+              );
+              showNotification("User updated successfully!");
+            }}
+          />
+        )}
       </div>
     </div>
   );

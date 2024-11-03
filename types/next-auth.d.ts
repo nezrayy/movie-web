@@ -7,6 +7,7 @@ declare module "next-auth" {
       role: string;
       username: string; // Pastikan menambahkan properti username
       email: string;
+      status: string;
     };
   }
 

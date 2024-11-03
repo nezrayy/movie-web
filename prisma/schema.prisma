@@ -13,6 +13,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
 enum Role {
   ADMIN
   WRITER
@@ -30,6 +34,7 @@ model User {
   email     String?   @unique
   password  String?
   role      Role     @default(USER)
+  status    AccountStatus @default(ACTIVE)
   emailVerified DateTime?
   resetPasswordToken   String?  
   resetPasswordExpiry  DateTime? 
