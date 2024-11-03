@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
+import Image from "next/image";
 
 export const ActorSearch = ({ control, field, defaultValues = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -33,7 +34,7 @@ export const ActorSearch = ({ control, field, defaultValues = [] }) => {
   // Fungsi untuk menambahkan aktor yang dipilih
   const addActor = (actor) => {
     if (selectedActors.length < 9 && !selectedActors.find((a) => a.id === actor.id)) {
-      const updatedActors = [...selectedActors, { id: actor.id, name: actor.name }];
+      const updatedActors = [...selectedActors, { id: actor.id, name: actor.name, photoUrl: actor.photoUrl }];
       setSelectedActors(updatedActors);
       field.onChange(updatedActors.map((a) => a.id));
     }
@@ -86,10 +87,22 @@ export const ActorSearch = ({ control, field, defaultValues = [] }) => {
 };
 
 const ActorCard = ({ actor, onRemove }) => {
+  console.log("ACTOR:", actor)
   return (
     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
       <div className="flex space-x-2">
-        <div className="w-12 h-16 bg-gray-400 rounded"></div>
+        {actor.photoUrl ? (
+          <div className="w-12 h-16 bg-gray-400 rounded relative">
+            <Image
+              src={actor.photoUrl}
+              alt={actor.name}
+              fill
+              className="rounded"
+            />
+          </div>
+        ) : (
+          <div className="w-12 h-16 bg-gray-400 rounded"></div>
+        )}
         <span className="text-gray-700">{actor.name}</span>
       </div>
       <button className="text-red-500 font-semibold p-0 leading-none" onClick={onRemove}>
