@@ -164,6 +164,10 @@ const CMSAwards = () => {
     getAwardId(); 
   }, [searchParams]);
 
+  const handleUpdate = () => {
+    fetchAwards(); // Ambil ulang data film setelah update status
+  };
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -293,7 +297,7 @@ const CMSAwards = () => {
         </form>
       </Form>
 
-      <DataTable columns={columns} data={awards} filter="name" />
+      <DataTable columns={columns(handleUpdate)} data={awards} filter="name" />
     </div>
   )
 }

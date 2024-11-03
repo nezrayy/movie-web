@@ -76,3 +76,28 @@ export async function PUT(
     });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
+
+  try {
+    // Hapus award berdasarkan ID yang diterima
+    await prisma.award.delete({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    return new NextResponse(null, {
+      status: 204,
+    });
+  } catch (error) {
+    console.error("Error deleting award:", error);
+    return new NextResponse("Something went wrong while deleting award.", {
+      status: 500,
+    });
+  }
+}

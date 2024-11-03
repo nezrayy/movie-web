@@ -22,7 +22,28 @@ export type Award = {
   country: { id: number; name: string };
 };
 
-export const columns: ColumnDef<Award>[] = [
+// Function to fetch delete awards
+export const deleteAward = async (
+  id: number,
+  onStatusUpdate: () => void
+) => {
+  try {
+    const res = await fetch(`/api/awards/${id}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to delete award");
+    }
+
+    // Trigger callback to update awards data on the page
+    onStatusUpdate();
+  } catch (error) {
+    console.error("Error deleting award:", error);
+  }
+};
+
+export const columns = (onStatusUpdate: () => void): ColumnDef<Award>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => {
@@ -84,7 +105,10 @@ export const columns: ColumnDef<Award>[] = [
             >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem
+              className="hover:cursor-pointer"
+              onClick={() => deleteAward(award.id, onStatusUpdate)}
+            >
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
