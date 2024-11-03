@@ -49,6 +49,26 @@ const updateStatus = async (
   }
 };
 
+const deleteMovie = async (
+  id: number,
+  onStatusUpdate: () => void
+) => {
+  try {
+    const res = await fetch(`/api/movies/${id}/delete`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to delete movie");
+    }
+
+    // Memicu callback untuk memperbarui data film di halaman
+    onStatusUpdate();
+  } catch (error) {
+    console.error("Error deleting movie:", error);
+  }
+}
+
 export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
   {
     accessorKey: "title",
@@ -152,7 +172,12 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
             >
               Edit
             </DropdownMenuItem>
-            <DropdownMenuItem className="hover:cursor-pointer">Delete</DropdownMenuItem>
+            <DropdownMenuItem 
+              className="hover:cursor-pointer"
+              onClick={() => deleteMovie(film.id, onStatusUpdate)}
+            >
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

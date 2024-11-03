@@ -11,7 +11,9 @@ export async function GET(request: Request) {
   const availabilityFilter = searchParams.get("availability") || ""; // Filter availability
 
   // Prepare where clause untuk filtering
-  const where: Prisma.MovieWhereInput = {};
+  const where: Prisma.MovieWhereInput = {
+    isDeleted: false, 
+  };
 
   // Filter berdasarkan tahun
   if (yearFilter) {

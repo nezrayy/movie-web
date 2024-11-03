@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Country } from "@/types/type"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Movie } from "@prisma/client"
+import { useToast } from "@/hooks/use-toast"
  
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -47,6 +48,7 @@ const CMSAwards = () => {
   const [countries, setCountries] = useState<Country[]>([])
   const [movies, setMovies] = useState<Movie[]>([])
   const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
 
   const fetchAwards = async () => {
     const res = await fetch("/api/awards")
@@ -76,8 +78,18 @@ const CMSAwards = () => {
           "Content-Type": "application/json",
         },
       })
+      if (response.ok) {
+        form.reset()
+        toast({
+          variant: "success",
+          description: "Award created successfully",
+        })
+      }
     } catch (error) {
-      console.error("Error creating award:", error);
+      toast({
+        variant: "destructive",
+        description: "Failed to create award",
+      })
     } finally {
       setLoading(false)
       fetchAwards()

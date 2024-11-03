@@ -105,6 +105,7 @@ model Movie {
   posterUrl   String?
   rating      Float?   
   linkTrailer String?
+  isDeleted   Boolean   @default(false)
   status      Status    @default(UNAPPROVE)
   createdBy   User      @relation("CreatedMovies", fields: [createdById], references: [id])
   createdById Int

@@ -103,6 +103,7 @@
 
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -124,6 +125,7 @@ export async function GET(request: Request) {
   try {
     // Bangun filter berdasarkan query params
     const filters: any = {
+      isDeleted: false,
       OR: [
         {
           title: {
