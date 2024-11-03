@@ -45,7 +45,7 @@ const formSchema = z.object({
   availabilities: z
     .array(z.string())
     .min(1, "At least one availability must be selected")
-    .max(4, "You can select up to 4 availabilities"),
+    .max(5, "You can select up to 5 availabilities"),
   genres: z
     .array(z.string())
     .min(1, "At least one genre must be selected")
@@ -53,7 +53,7 @@ const formSchema = z.object({
   actors: z
     .array(z.number())
     .min(1, "At least one actor must be selected")
-    .max(9, "You can select up to 9 actors"),
+    .max(7, "You can select up to 7 actors"),
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL"),
