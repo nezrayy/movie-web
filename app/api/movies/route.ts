@@ -9,11 +9,16 @@ export async function GET(request: Request) {
   const yearFilter = searchParams.get("year") || ""; // Tahun default (kosong untuk tidak ada filter)
   const genreFilter = searchParams.get("genre") || ""; // Genre default (kosong untuk tidak ada filter)
   const availabilityFilter = searchParams.get("availability") || ""; // Filter availability
+  const origin = searchParams.get("origin") || ""; 
 
   // Prepare where clause untuk filtering
   const where: Prisma.MovieWhereInput = {
     isDeleted: false, 
   };
+
+  if (origin === "home") {
+    where.status = "APPROVE";
+  }
 
   // Filter berdasarkan tahun
   if (yearFilter) {

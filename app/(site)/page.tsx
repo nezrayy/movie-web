@@ -92,6 +92,7 @@ export default function Home() {
         year: yearFilter || "",
         genre: categoryFilter || "",
         availability: availabilityFilter || "",
+        origin: "home"
       });
 
       const response = await fetch(`/api/movies?${queryParams}`);
@@ -139,12 +140,23 @@ export default function Home() {
   }, []);
 
   const isValidImageUrl = (url: string) => {
-    // Cek apakah URL dimulai dengan http:// atau https://
-    // return url.startsWith("http://") || url.startsWith("https://");
-    return (
-      url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
-    );
-  };
+    try {
+      // Cek apakah URL adalah path lokal (dimulai dengan "/")
+      if (url.startsWith("/")) {
+        // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+        const path = url.toLowerCase();
+        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+      } else {
+        // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+        const parsedUrl = new URL(url);
+        const path = parsedUrl.pathname.toLowerCase();
+        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+      }
+    } catch (error) {
+      // Jika URL tidak valid
+      return false;
+    }
+  }; 
 
   const renderPaginationItems = () => {
     const paginationItems = [];

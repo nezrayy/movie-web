@@ -126,6 +126,7 @@ export async function GET(request: Request) {
     // Bangun filter berdasarkan query params
     const filters: any = {
       isDeleted: false,
+      status: 'APPROVE',
       OR: [
         {
           title: {

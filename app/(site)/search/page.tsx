@@ -113,18 +113,23 @@ const SearchPage = () => {
   };
 
   const isValidImageUrl = (url: string) => {
-    // Buat objek URL untuk memisahkan path dan query
     try {
-      const parsedUrl = new URL(url);
-      // Ambil path-nya saja tanpa query
-      const path = parsedUrl.pathname.toLowerCase();
-      // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
-      return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+      // Cek apakah URL adalah path lokal (dimulai dengan "/")
+      if (url.startsWith("/")) {
+        // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+        const path = url.toLowerCase();
+        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+      } else {
+        // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+        const parsedUrl = new URL(url);
+        const path = parsedUrl.pathname.toLowerCase();
+        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+      }
     } catch (error) {
       // Jika URL tidak valid
       return false;
     }
-  };
+  };  
 
   return (
     <div className="flex flex-col items-center w-full max-w-screen-xl mx-auto p-4 mt-4">
