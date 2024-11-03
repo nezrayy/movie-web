@@ -55,7 +55,7 @@ const formSchema = z.object({
   actors: z
     .array(z.number())
     .min(1, "At least one actor must be selected")
-    .max(7, "You can select up to 7 actors"),
+    .max(9, "You can select up to 9 actors"),
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL"),
@@ -387,7 +387,7 @@ const CMSDramaUpdatePage = () => {
                     render={() => (
                       <FormItem>
                         <div className="mb-4">
-                          <FormLabel className="text-white">Availabilities</FormLabel>
+                          <FormLabel className="text-white">Availabilities (Up to 5)</FormLabel>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           {availabilities.map((item) => (
@@ -436,7 +436,7 @@ const CMSDramaUpdatePage = () => {
                     render={() => (
                       <FormItem>
                         <div className="mb-4">
-                          <FormLabel className="text-white">Genre</FormLabel>
+                          <FormLabel className="text-white">Genres (Up to 7)</FormLabel>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           {genres.map((item) => (
@@ -499,7 +499,7 @@ const CMSDramaUpdatePage = () => {
                   />
                 </div>
 
-                <div className="col-span-1">
+                <div className="col-span-2">
                   <FormField
                     control={form.control}
                     name="trailerLink"
@@ -512,40 +512,6 @@ const CMSDramaUpdatePage = () => {
                             className="bg-transparent text-white placeholder:text-gray-400"
                             {...field}
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="col-span-1">
-                  <FormField
-                    control={form.control}
-                    name="award"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-white">Award</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
-                              <SelectValue placeholder="Award" />
-                            </SelectTrigger>
-                            <SelectContent className="bg-[#0C0D11] text-white">
-                              <SelectItem value="japan-award">Japan Award</SelectItem>
-                              <SelectItem value="korea-award">Korea Award</SelectItem>
-                              <SelectItem value="china-award">China Award</SelectItem>
-                              <SelectItem value="thailand-award">Thailand Award</SelectItem>
-                              <SelectItem value="philippines-award">
-                                Philippines Award
-                              </SelectItem>
-                              <SelectItem value="india-award">India Award</SelectItem>
-                              <SelectItem value="indonesia-award">Indonesia Award</SelectItem>
-                            </SelectContent>
-                          </Select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>

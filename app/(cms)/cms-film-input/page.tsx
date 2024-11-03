@@ -53,7 +53,7 @@ const formSchema = z.object({
   actors: z
     .array(z.number())
     .min(1, "At least one actor must be selected")
-    .max(7, "You can select up to 7 actors"),
+    .max(9, "You can select up to 9 actors"),
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL"),
@@ -323,7 +323,7 @@ const CMSDramaInputPage = () => {
                   render={() => (
                     <FormItem>
                       <div className="mb-4">
-                        <FormLabel className="text-white">Availabilities</FormLabel>
+                        <FormLabel className="text-white">Availabilities (Up to 5)</FormLabel>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         {availabilities.map((item) => (
@@ -372,7 +372,7 @@ const CMSDramaInputPage = () => {
                   render={() => (
                     <FormItem>
                       <div className="mb-4">
-                        <FormLabel className="text-white">Genre</FormLabel>
+                        <FormLabel className="text-white">Genres (Up to 7)</FormLabel>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         {genres.map((item) => (
