@@ -57,7 +57,6 @@ const formSchema = z.object({
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL"),
-  award: z.string().optional(),
 });
 
 const CMSDramaInputPage = () => {
@@ -81,7 +80,6 @@ const CMSDramaInputPage = () => {
       genres: [],
       actors: [],
       trailerLink: "",
-      award: "",
     },
   })
  
@@ -432,7 +430,7 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <FormField
                   control={form.control}
                   name="trailerLink"
@@ -452,7 +450,7 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              <div className="col-span-1">
+              {/* <div className="col-span-1">
                 <FormField
                   control={form.control}
                   name="award"
@@ -484,7 +482,7 @@ const CMSDramaInputPage = () => {
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> */}
             </div>
             <Button 
               type="submit" 
