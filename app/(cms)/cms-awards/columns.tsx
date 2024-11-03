@@ -9,9 +9,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation";
 
 // This type is used to define the shape of our data.
 export type Award = {
@@ -19,7 +19,7 @@ export type Award = {
   name: string;
   description: string;
   awardYear: number;
-  country: { id: number; name: string }; // Menyimpan relasi Country sebagai objek
+  country: { id: number; name: string };
 };
 
 export const columns: ColumnDef<Award>[] = [
@@ -65,7 +65,8 @@ export const columns: ColumnDef<Award>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const film = row.original
+      const award = row.original
+      const router = useRouter()
  
       return (
         <DropdownMenu>
@@ -77,13 +78,10 @@ export const columns: ColumnDef<Award>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(film.name.toString())}
+            <DropdownMenuItem 
+              className="hover:cursor-pointer"
+              onClick={() => router.push(`/cms-awards?edit=${award.id}`)}
             >
-              Approve FIlm
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem>

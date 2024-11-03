@@ -21,6 +21,7 @@ import { Country } from "@/types/type"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Movie } from "@prisma/client"
 import { useToast } from "@/hooks/use-toast"
+import { useSearchParams } from "next/navigation"
  
 const formSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -47,8 +48,10 @@ const CMSAwards = () => {
   const [awards, setAwards] = useState([])
   const [countries, setCountries] = useState<Country[]>([])
   const [movies, setMovies] = useState<Movie[]>([])
+  const [awardId, setAwardId] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
+  const searchParams = useSearchParams()
 
   const fetchAwards = async () => {
     const res = await fetch("/api/awards")
@@ -71,19 +74,39 @@ const CMSAwards = () => {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setLoading(true)
-      const response = await fetch("/api/awards", {
-        method: "POST",
-        body: JSON.stringify(values),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-      if (response.ok) {
-        form.reset()
-        toast({
-          variant: "success",
-          description: "Award created successfully",
+      if (!awardId) {
+        const response = await fetch("/api/awards", {
+          method: "POST",
+          body: JSON.stringify(values),
+          headers: {
+            "Content-Type": "application/json",
+          },
         })
+        if (response.ok) {
+          form.reset()
+          toast({
+            variant: "success",
+            description: "Award created successfully",
+          })
+        }
+      }
+
+      if (awardId) {
+        console.log("VALUES YANG DIKIRIM", values);
+        const response = await fetch(`/api/awards/${awardId}`, {
+          method: "PUT",
+          body: JSON.stringify(values),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        if (response.ok) {
+          form.reset()
+          toast({
+            variant: "success",
+            description: "Award updated successfully",
+          })
+        }
       }
     } catch (error) {
       toast({
@@ -95,16 +118,52 @@ const CMSAwards = () => {
       fetchAwards()
     }
   }
+
+  const getAwardId = () => {
+    const awardId = searchParams.get("edit") || "";
+    if (awardId) {
+      console.log("AWARD ID YANG MAU DIEDIT", awardId);
+      setAwardId(parseInt(awardId));
+    }
+  }
+
+  const fetchEditAwards = async (id: number) => {
+    try {
+      const res = await fetch(`/api/awards/${id}`);
+      const data = await res.json();
+  
+      // Set nilai form yang diperoleh dari data
+      form.setValue('name', data.name || '');
+      form.setValue('year', data.awardYear ? data.awardYear.toString() : '');
+      form.setValue('country', data.countryId ? data.countryId.toString() : '');
+      form.setValue('description', data.description || '');
+      form.setValue('movie', data.movieId ? data.movieId.toString() : '');
+    } catch (error) {
+      console.error('Failed to fetch award details:', error);
+    }
+  };
+  
   
   useEffect(() => {
-    fetchAwards()
+    fetchAwards();
     fetchCountries().then((countries) => {
       setCountries(countries);
     });
     fetchMovies().then((movies) => {
       setMovies(movies);
     });
-  }, [])
+  }, []);
+  
+  useEffect(() => {
+    if (awardId !== null) {
+      fetchEditAwards(awardId);
+    }
+  }, [awardId]);  
+
+  useEffect(() => {
+    getAwardId(); 
+  }, [searchParams]);
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -229,7 +288,7 @@ const CMSAwards = () => {
             className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
             disabled={loading}
           >
-            Submit
+            {awardId ? "Update award" : "Create award"}
           </button>
         </form>
       </Form>
