@@ -1,4 +1,3 @@
-// export { auth as middleware } from "@/lib/auth"
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
@@ -20,9 +19,20 @@ const adminPaths = [
 export async function middleware(req: NextRequest) {
   // Ambil token JWT untuk mendapatkan role pengguna
   const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  
+
   // Dapatkan URL path dari request
   const { pathname } = req.nextUrl;
+
+  // Cek apakah path API diakses
+  if (pathname.startsWith('/api')) {
+    const origin = req.headers.get('origin');
+    const referer = req.headers.get('referer');
+
+    // Pastikan hanya permintaan dari localhost:3000 yang diizinkan
+    if (!origin?.includes('localhost:3000') && !referer?.includes('localhost:3000')) {
+      return new NextResponse('Access denied', { status: 403 });
+    }
+  }
 
   // Cek apakah path ada dalam daftar path admin
   const isAdminPath = adminPaths.some((path) => pathname.startsWith(path));
@@ -49,9 +59,10 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Aktifkan middleware hanya untuk halaman admin
+// Aktifkan middleware hanya untuk path /api/* dan halaman admin
 export const config = {
   matcher: [
+    '/api/:path*',
     '/cms-actors/:path*',
     '/cms-awards/:path*',
     '/cms-comments/:path*',
@@ -65,4 +76,3 @@ export const config = {
     '/register', 
   ],
 };
-
