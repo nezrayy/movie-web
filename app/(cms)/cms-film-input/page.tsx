@@ -1,6 +1,7 @@
 "use client"
 
 import ImageDropzone from "@/components/image-drop-zone"
+import { useToast } from "@/hooks/use-toast"
 import { useEffect, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -20,7 +21,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox"
 import { Availability, Country, Genre } from "@/types/type"
 import { ActorSearch } from "@/components/actor-search"
-import axios from 'axios';
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 const MAX_FILE_SIZE = 5000000;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
@@ -49,20 +51,22 @@ const formSchema = z.object({
     .min(1, "At least one genre must be selected")
     .max(7, "You can select up to 7 genres"),
   actors: z
-    .array(z.string())
+    .array(z.number())
     .min(1, "At least one actor must be selected")
     .max(9, "You can select up to 9 actors"),
   trailerLink: z
     .string()
     .url("Trailer link must be a valid URL"),
-  award: z.string().optional(),
 });
 
 const CMSDramaInputPage = () => {
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [genres, setGenres] = useState<Genre[]>([])
   const [availabilities, setAvailabilities] = useState<Availability[]>([])
   const [countries, setCountries] = useState<Country[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const { data: session } = useSession();
+  const router = useRouter()
+  const { toast } = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -76,18 +80,66 @@ const CMSDramaInputPage = () => {
       genres: [],
       actors: [],
       trailerLink: "",
-      award: "",
     },
   })
  
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-  }
+    setIsLoading(true)
+    console.log("VALUES", values)
+    try {
+      const file = values.image;
   
-
-  const handleImageUpload = (file: File) => {
-    setImageFile(file);
-  };
+      // Baca file dan konversi ke base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+  
+      reader.onload = async () => {
+        const base64String = reader.result;
+  
+        // Kirim data ke API backend
+        const response = await fetch('/api/movies/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: base64String,
+            fileName: file.name,
+            title: values.title,
+            alternativeTitle: values.alternativeTitle,
+            releaseYear: values.year,
+            synopsis: values.synopsis,
+            linkTrailer: values.trailerLink,
+            createdById: session?.user.id, // Pastikan ini adalah ID user
+            countryId: values.country, // Ambil ID negara dari nama negara
+            genres: values.genres, // Ambil array ID genres dari nama genres
+            actors: values.actors, // Ambil array ID actors dari nama actors
+            availabilities: values.availabilities, // Ini seharusnya ID availabilities jika sudah valid
+          }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Something went wrong while uploading the image and saving movie data.');
+        }
+  
+        const responseData = await response.json();
+        console.log('Upload Movie Response', responseData);
+      };
+  
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+      };
+    } catch (error) {
+      console.error('Upload Error', error);
+    } finally {
+      setIsLoading(false)
+      toast({
+        variant: "success",
+        description: "New movie has been added",
+      })
+      router.push("/cms-films")
+    }
+  }
 
   const fetchGenres = async () => {
     const response = await fetch("/api/get-genres");
@@ -139,7 +191,6 @@ const CMSDramaInputPage = () => {
                       value={field.value}
                       onChange={(file) => {
                         field.onChange(file); // Update field di form
-                        handleImageUpload(file); // Simpan di state
                       }}
                     />
                   </FormControl>
@@ -147,7 +198,13 @@ const CMSDramaInputPage = () => {
                 </FormItem>
               )}
             />
-              <Button type="submit" className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block">Submit</Button>
+              <Button 
+                type="submit" 
+                className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block"
+                disabled={isLoading}
+              >
+                Submit
+              </Button>
             </div>
 
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
@@ -226,7 +283,7 @@ const CMSDramaInputPage = () => {
                           </SelectTrigger>
                           <SelectContent className="bg-[#0C0D11] text-white">
                             {countries.map((item) => (
-                              <SelectItem key={item.id} value={item.name}>
+                              <SelectItem key={item.id} value={item.id.toString()}>
                                 {item.name}
                               </SelectItem>
                             ))}
@@ -373,7 +430,7 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              <div className="col-span-1">
+              <div className="col-span-2">
                 <FormField
                   control={form.control}
                   name="trailerLink"
@@ -393,7 +450,7 @@ const CMSDramaInputPage = () => {
                 />
               </div>
 
-              <div className="col-span-1">
+              {/* <div className="col-span-1">
                 <FormField
                   control={form.control}
                   name="award"
@@ -425,9 +482,15 @@ const CMSDramaInputPage = () => {
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> */}
             </div>
-            <Button type="submit" className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden">Submit</Button>
+            <Button 
+              type="submit" 
+              className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden"
+              disabled={isLoading}
+            >
+              Submit
+            </Button>
           </div>
         </form>
       </Form>

@@ -113,9 +113,17 @@ const SearchPage = () => {
   };
 
   const isValidImageUrl = (url: string) => {
-    // Cek apakah URL dimulai dengan http:// atau https://
-    // return url.startsWith("http://") || url.startsWith("https://");
-    return url.endsWith(".jpg") || url.endsWith(".png") || url.endsWith(".jpeg")
+    // Buat objek URL untuk memisahkan path dan query
+    try {
+      const parsedUrl = new URL(url);
+      // Ambil path-nya saja tanpa query
+      const path = parsedUrl.pathname.toLowerCase();
+      // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+      return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+    } catch (error) {
+      // Jika URL tidak valid
+      return false;
+    }
   };
 
   return (

@@ -1,10 +1,8 @@
 "use client"
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
@@ -15,55 +13,174 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Pencil, Trash2 } from "lucide-react"
+import { DataTable } from "@/components/ui/data-table"
+import { columns } from "./columns";
+import { useEffect, useState } from "react"
+import { Textarea } from "@/components/ui/textarea"
+import { Country } from "@/types/type"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Movie } from "@prisma/client"
+import { useToast } from "@/hooks/use-toast"
+import { useSearchParams } from "next/navigation"
  
 const formSchema = z.object({
-  country: z.string().min(2).max(50),
-  year: z.string().min(2).max(50),
-  award: z.string().min(2).max(50),
+  name: z.string().min(1, "Name is required"),
+  year: z
+    .string()
+    .regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
+  country: z.string().min(1, "Country is required"),
+  description: z.string().min(10, "Description must be at least 10 characters long"),
+  movie: z.string().min(1, "Movie is required"),
 })
 
-const awardsData = [
-  {
-    id: 1,
-    country: "Japan",
-    year: '2024',
-    award: "Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award Japanese Spring Drama Award",
-  },
-  {
-    id: 2,
-    country: "Japan",
-    year: '2022',
-    award: "Japanese Spring Drama Award",
-  },
-]
-
-const CMSDrama = () => {
+const CMSAwards = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       country: "",
       year: "",
-      award: "",
+      name: "",
+      description: "",
+      movie: "",
     },
   })
- 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+
+  const [awards, setAwards] = useState([])
+  const [countries, setCountries] = useState<Country[]>([])
+  const [movies, setMovies] = useState<Movie[]>([])
+  const [awardId, setAwardId] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
+  const { toast } = useToast()
+  const searchParams = useSearchParams()
+
+  const fetchAwards = async () => {
+    const res = await fetch("/api/awards")
+    const data = await res.json()
+    setAwards(data)
   }
+
+  const fetchCountries = async () => {
+    const response = await fetch("/api/get-countries");
+    const countries = await response.json();
+    return countries;
+  }
+
+  const fetchMovies = async () => {
+    const response = await fetch("/api/movies");
+    const movies = await response.json();
+    return movies;
+  }
+  
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    try {
+      setLoading(true)
+      if (!awardId) {
+        const response = await fetch("/api/awards", {
+          method: "POST",
+          body: JSON.stringify(values),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        if (response.ok) {
+          form.reset()
+          toast({
+            variant: "success",
+            description: "Award created successfully",
+          })
+        }
+      }
+
+      if (awardId) {
+        console.log("VALUES YANG DIKIRIM", values);
+        const response = await fetch(`/api/awards/${awardId}`, {
+          method: "PUT",
+          body: JSON.stringify(values),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        if (response.ok) {
+          form.reset()
+          toast({
+            variant: "success",
+            description: "Award updated successfully",
+          })
+        }
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Failed to create award",
+      })
+    } finally {
+      setLoading(false)
+      fetchAwards()
+    }
+  }
+
+  const getAwardId = () => {
+    const awardId = searchParams.get("edit") || "";
+    if (awardId) {
+      console.log("AWARD ID YANG MAU DIEDIT", awardId);
+      setAwardId(parseInt(awardId));
+    }
+  }
+
+  const fetchEditAwards = async (id: number) => {
+    try {
+      const res = await fetch(`/api/awards/${id}`);
+      const data = await res.json();
+  
+      // Set nilai form yang diperoleh dari data
+      form.setValue('name', data.name || '');
+      form.setValue('year', data.awardYear ? data.awardYear.toString() : '');
+      form.setValue('country', data.countryId ? data.countryId.toString() : '');
+      form.setValue('description', data.description || '');
+      form.setValue('movie', data.movieId ? data.movieId.toString() : '');
+    } catch (error) {
+      console.error('Failed to fetch award details:', error);
+    }
+  };
+  
+  
+  useEffect(() => {
+    fetchAwards();
+    fetchCountries().then((countries) => {
+      setCountries(countries);
+    });
+    fetchMovies().then((movies) => {
+      setMovies(movies);
+    });
+  }, []);
+  
+  useEffect(() => {
+    if (awardId !== null) {
+      fetchEditAwards(awardId);
+    }
+  }, [awardId]);  
+
+  useEffect(() => {
+    getAwardId(); 
+  }, [searchParams]);
+
+  const handleUpdate = () => {
+    fetchAwards(); // Ambil ulang data film setelah update status
+  };
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="w-full sm:w-1/4 mb-6 space-y-4">
-          <FormField
+        <FormField
             control={form.control}
-            name="country"
+            name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Country</FormLabel>
+                <FormLabel className="text-white">Name</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder="Enter Country..."
+                    placeholder="Enter Name of Award..."
                     className="bg-transparent text-white placeholder:text-gray-400"
                     {...field}
                   />
@@ -72,7 +189,7 @@ const CMSDrama = () => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="year"
@@ -93,13 +210,41 @@ const CMSDrama = () => {
 
           <FormField
             control={form.control}
-            name="award"
+            name="country"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-white">Award</FormLabel>
+                <FormLabel className="text-white">Country</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter Award..."
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
+                      <SelectValue placeholder="Country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0C0D11] text-white">
+                      {countries.map((item) => (
+                        <SelectItem key={item.id} value={item.id.toString()}>
+                          {item.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Describe the award..."
                     className="bg-transparent text-white placeholder:text-gray-400"
                     {...field}
                   />
@@ -109,60 +254,52 @@ const CMSDrama = () => {
             )}
           />
 
+          <FormField
+            control={form.control}
+            name="movie"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white">Movie</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
+                      <SelectValue placeholder="Movie" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0C0D11] text-white">
+                      {movies
+                        .sort((a, b) => a.title.localeCompare(b.title))
+                        .map((item) => (
+                          <SelectItem key={item.id} value={item.id.toString()}>
+                            {item.title}
+                          </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormDescription>
+                  Select movie for this award
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <button
             type="submit"
             className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
+            disabled={loading}
           >
-            Submit
+            {awardId ? "Update award" : "Create award"}
           </button>
         </form>
       </Form>
 
-      {/* Filter Section */}
-      <div className="w-full sm:w-1/6 mb-4 ml-auto">
-        <input
-          type="text"
-          placeholder="Search awards..."
-          className="border border-gray-300 rounded px-3 py-2 text-white focus:outline-none focus:ring focus:border-blue-300 w-full"
-        />
-      </div>
-
-      {/* Table Section */}
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>#</TableHead>
-              <TableHead>Country</TableHead>
-              <TableHead>Year</TableHead>
-              <TableHead>Award</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {awardsData.map((award, index) => (
-              <TableRow key={index} className="text-white">
-                <TableCell className="font-medium">{index+1}</TableCell>
-                <TableCell>{award.country}</TableCell>
-                <TableCell>{award.year}</TableCell>
-                <TableCell>{award.award}</TableCell>
-                <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable columns={columns(handleUpdate)} data={awards} filter="name" />
     </div>
   )
 }
 
-export default CMSDrama
+export default CMSAwards
