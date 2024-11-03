@@ -10,16 +10,24 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-
-import { Search, MonitorPlay, Medal, Users, UserRound } from 'lucide-react';
+import { Search, MonitorPlay, Medal, Users, UserRound, LogIn, LogOut } from 'lucide-react';
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, CSSProperties } from 'react';
+import { signOut, useSession } from "next-auth/react";
+import PuffLoader from "react-spinners/ClipLoader";
+
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "white",
+};
 
 const MobileNav: React.FC = () => {
   const [query, setQuery] = useState('');
   const router = useRouter();
+  const { data: session, status } = useSession();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -63,9 +71,26 @@ const MobileNav: React.FC = () => {
       <div className="flex flex-col items-center">
         <Users className="text-white w-6 h-6" />
       </div>
-      <div className="flex flex-col items-center bg-indigo-500 p-2 rounded-md">
-        <UserRound className="text-white w-6 h-6" />
-      </div>
+      {status === "authenticated" ? (
+        <div className="flex flex-col items-center bg-destructive p-2 rounded-md">
+          <LogOut className="text-white w-6 h-6" onClick={() => signOut()} />
+        </div>
+      ) : status === "unauthenticated" ? (
+        <div className="flex flex-col items-center bg-indigo-500 p-2 rounded-md">
+          <LogIn className="text-white w-6 h-6" onClick={() => router.push("/login")} />
+        </div>
+      ) : status === "loading" && (
+        <div className="flex flex-col items-center bg-indigo-500 p-2 rounded-md">
+          <PuffLoader
+            color="#ffffff"
+            loading={status === "loading"}
+            cssOverride={override}
+            size={20}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      )}
     </div>
   );
 };
