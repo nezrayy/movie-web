@@ -13,6 +13,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -21,11 +28,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Country } from "@prisma/client";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useEditFormContext } from "@/contexts/EditFormContext";
+import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 import SheetEditForm from "@/components/sheet-edit-form";
 
 const formSchema = z.object({
@@ -37,7 +45,15 @@ const CMSCountries = () => {
   const [countriesData, setCountriesData] = useState<Country[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { showNotification } = useNotification();
-  const { openEditForm } = useEditFormContext();
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // State untuk refresh data
+  const { openEditForm, closeEditForm, isOpen } = useEditFormContext();
+  const {
+    currentPage,
+    itemsPerPage,
+    setCurrentPage,
+    totalItems,
+    setTotalItems,
+  } = usePaginationContext();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -53,12 +69,26 @@ const CMSCountries = () => {
         const response = await fetch("/api/countries");
         const data = await response.json();
         setCountriesData(data);
+        setTotalItems(data.length);
       } catch (error) {
         console.error("Error fetching countries:", error);
       }
     };
+
     fetchCountries();
-  }, []);
+  }, [refreshTrigger, setTotalItems]); // Tambahkan refreshTrigger sebagai dependency
+
+  // Handle ketika dialog ditutup
+  useEffect(() => {
+    if (!isOpen && refreshTrigger) {
+      window.location.reload();
+    }
+  }, [isOpen, refreshTrigger]);
+
+  useEffect(() => {
+    // Reset current page to 1 whenever searchTerm changes
+    setCurrentPage(1);
+  }, [searchTerm, setCurrentPage]);
 
   const handleDelete = async (countryId: number) => {
     try {
@@ -75,14 +105,10 @@ const CMSCountries = () => {
       setCountriesData((prevData) =>
         prevData.filter((country) => country.id !== countryId)
       );
-      showNotification("Country deleted succesfully.");
+      showNotification("Country deleted successfully.");
     } catch (error) {
       console.error("Error deleting country:", error);
     }
-  };
-
-  const handleEdit = (country: Country) => {
-    openEditForm("country", country);
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -90,18 +116,25 @@ const CMSCountries = () => {
       const response = await fetch("/api/countries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          name: values.country,
+          code: values.code,
+        }),
       });
 
+      console.log("Response status:", response.status); // Tambahkan ini untuk debugging
+      const responseData = await response.json();
+      console.log("Response data:", responseData); // Debug respons lengkap
+
       if (response.status === 400) {
-        showNotification("Country already exists.");
+        showNotification(responseData.message || "Country already exists.");
         return;
       }
       if (!response.ok) {
         throw new Error("Failed to create country");
       }
 
-      const newCountry = await response.json();
+      const newCountry = responseData;
       setCountriesData((prevData) => [...prevData, newCountry]);
       showNotification("Country added successfully!");
       form.reset();
@@ -111,9 +144,27 @@ const CMSCountries = () => {
     }
   };
 
-  const filteredCountries = countriesData.filter((country) =>
-    country.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleEdit = (country: Country) => {
+    openEditForm("country", country);
+  };
+
+  const filteredCountries = countriesData
+    .filter((country) =>
+      country.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
       <Form {...form}>
@@ -164,7 +215,6 @@ const CMSCountries = () => {
         </form>
       </Form>
 
-      {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
         <Input
           type="text"
@@ -176,7 +226,7 @@ const CMSCountries = () => {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -192,30 +242,63 @@ const CMSCountries = () => {
                 key={country.id}
                 className="text-white hover:bg-muted/5"
               >
-                <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableCell className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </TableCell>
                 <TableCell>{country.name}</TableCell>
                 <TableCell>{country.code}</TableCell>
                 <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button
-                      onClick={() => handleEdit(country)}
-                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(country.id)} // Panggil handleDelete dengan country.id
-                      className="bg-red-600 p-3 hover:bg-red-900 hover:text-gray-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex justify-center">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleEdit(country)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleDelete(country.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <SheetEditForm />
+        <SheetEditForm onClose={() => window.location.reload()} />
+      </div>
+
+      {/* Pagination Buttons */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("prev")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("next")}
+          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

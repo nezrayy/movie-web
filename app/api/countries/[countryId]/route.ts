@@ -8,15 +8,15 @@ export async function DELETE(
   { params }: { params: { countryId: string } }
 ) {
   const { countryId } = params;
-  console.log("Deleting country with ID:", params.countryId); // Debugging
+  console.log("Deleting country with ID:", params.countryId);
 
   try {
     await prisma.country.delete({
-      where: { id: parseInt(countryId, 10) }, // Hapus komentar berdasarkan countryId
+      where: { id: parseInt(countryId, 10) },
     });
 
     return NextResponse.json(
-      { message: "Country deleted successfully" },
+      { message: "country deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
@@ -27,6 +27,7 @@ export async function DELETE(
     );
   }
 }
+
 
 export async function PUT(
   request: Request,
@@ -49,23 +50,9 @@ export async function PUT(
       },
     });
 
-    const existingCountryByCode = await prisma.country.findFirst({
-      where: {
-        code,
-        NOT: { id: countryId },
-      },
-    });
-
     if (existingCountryByName) {
       return NextResponse.json(
-        { message: "Country name already exists" },
-        { status: 400 }
-      );
-    }
-
-    if (existingCountryByCode) {
-      return NextResponse.json(
-        { message: "Country code already exists" },
+        { message: "country name already exists" },
         { status: 400 }
       );
     }
@@ -82,5 +69,39 @@ export async function PUT(
       { message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
+  }
+}
+
+export async function GET(
+  request: Request,
+  context: { params: { id: string } } // Tambahkan context untuk mendapatkan parameter id
+) {
+  const { id } = context.params;
+
+  try {
+    // Pastikan `id` di-cast ke Number
+    const country = await prisma.country.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    if (!country) {
+      return new NextResponse("Award not found", {
+        status: 404,
+      });
+    }
+
+    return new NextResponse(JSON.stringify(country), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching country:", error);
+    return new NextResponse("Something went wrong while fetching awards.", {
+      status: 500,
+    });
   }
 }

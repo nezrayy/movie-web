@@ -95,6 +95,9 @@ export default function Home() {
       });
 
       const response = await fetch(`/api/movies?${queryParams}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
       setMovies(data);
     } catch (error) {
@@ -104,7 +107,7 @@ export default function Home() {
 
   const fetchGenres = async () => {
     try {
-      const response = await fetch("/api/get-genres");
+      const response = await fetch("/api/genres");
       const data = await response.json();
       setGenres(data);
     } catch (error) {
@@ -335,7 +338,6 @@ export default function Home() {
                         </SelectContent>
                       </Select>
 
-                      {/* Reset Button */}
                       <Button
                         onClick={resetFilters}
                         className="bg-[#21212E] text-gray-400 hover:bg-[#1c1c26]"
@@ -344,7 +346,6 @@ export default function Home() {
                       </Button>
                     </div>
 
-                    {/* Right Section: Sorted by */}
                     <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4 mt-2 md:mt-0">
                       <p className="text-white">Sorted by:</p>
 
@@ -396,7 +397,7 @@ export default function Home() {
                           <div className="pt-60">
                             <Rating
                               style={{ maxWidth: 80 }}
-                              value={card.rating}
+                              value={Math.round(card.rating)}
                             />
                           </div>
                         </div>

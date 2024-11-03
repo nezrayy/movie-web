@@ -90,3 +90,14 @@ body,
   pointer-events: none;
 }
 
+.actor-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.actor-item {
+  flex-shrink: 0;
+  width: 120px; /* Sesuaikan dengan kebutuhan */
+}

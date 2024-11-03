@@ -9,10 +9,12 @@ import "@smastrom/react-rating/style.css";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
-import { ReviewProvider, useReview } from "@/contexts/CommentsContext";
+import { ReviewProvider } from "@/contexts/CommentsContext";
 import ReviewTable from "@/components/comments-table-client";
+import { Star } from "lucide-react";
 
 interface Actor {
+  photoUrl: string;
   id: number;
   name: string;
 }
@@ -69,7 +71,10 @@ function MovieDetailContent() {
       }
 
       const data = await response.json();
-      setMovie(data);
+      if (data) {
+        console.log("DATA MOVIE:", data);
+        setMovie(data);
+      }
     } catch (error) {
       console.error("Error fetching movie detail:", error);
     }
@@ -195,16 +200,46 @@ function MovieDetailContent() {
 
             {/* Content Container */}
             <div className="flex-1 flex flex-col pl-2">
-              {/* Title */}
               <div className="text-white text-2xl md:text-6xl font-bold mb-4">
                 {movie.title} ({movie.releaseYear})
               </div>
-              {/* Description */}
-              <div className="text-white font-light mt-2 mb-4">
+              <div className="text-white font-light mt-2 mb-2">
                 {movie.synopsis}
               </div>
+              {/* <h3 className="text-white text-lg font-semibold">Genre</h3> */}
+              <div className="genre-container flex flex-wrap gap-2 mt-4">
+                {movie.genres.map(({ genre }) => (
+                  <Badge
+                    key={genre.id}
+                    className="bg-[#21212e] hover:bg-[#191923] text-white text-sm font-normal rounded-md shadow-md"
+                  >
+                    {genre.name}
+                  </Badge>
+                ))}
+              </div>
+              <div className="text-white text-lg font-semibold mb-4 pt-4">
+                <div className="flex items-center justify-start gap-2 w-16 p-2 rounded-md">
+                  <p className="font-light text-lg">{movie.rating}</p>
+                  <Star className="text-yellow-500 w-5" />
+                </div>
+              </div>
+              <div className="actor-container justify-center bg-[#1C1C28] rounded-lg shadow-md p-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+                  {movie.actors.map(({ actor }) => (
+                    <div key={actor.id} className="flex flex-col items-center">
+                      <img
+                        src={actor.photoUrl || "/actor-default.png"}
+                        alt={actor.name}
+                        className="w-30 h-36 object-cover rounded-md mb-2"
+                      />
+                      <p className="text-gray-300 text-sm font-medium text-center">
+                        {actor.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-              {/* Review Table */}
               <ReviewTable movieId={movieId} />
 
               {/* Add review */}

@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       where: {
         movieId: parseInt(movieId, 10), // Convert movieId to integer
         userId: parseInt(userId, 10), // Convert userId to integer
-        status: "APPROVE"
+        status: "APPROVE",
       },
     });
 
@@ -73,17 +73,20 @@ export async function POST(request: Request) {
       where: {
         movieId: parseInt(movieId, 10), // Convert movieId to integer
         userId: parseInt(userId, 10), // Convert userId to integer
-        status: "UNAPPROVE"
+        status: "UNAPPROVE",
       },
     });
-    
+
     if (unapprovedComment) {
       return NextResponse.json(
-        { message: "You have already commented on this movie. Wait until admin approve your comment." },
+        {
+          message:
+            "You have already commented on this movie. Wait until admin approve your comment.",
+        },
         { status: 400 }
       );
     }
-    
+
     const newComment = await prisma.comment.create({
       data: {
         commentText,
@@ -103,6 +106,58 @@ export async function POST(request: Request) {
     console.log("Error creating comment:", error);
     return NextResponse.json(
       { message: "Internal Server Error", error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(
+  request: Request,
+  { params }: { params: { movieId: string } }
+) {
+  const { movieId } = params;
+
+  try {
+    // Ambil semua komentar yang disetujui untuk film tersebut
+    const approvedComments = await prisma.comment.findMany({
+      where: {
+        movieId: parseInt(movieId, 10),
+        status: "APPROVE",
+      },
+      select: {
+        rating: true,
+      },
+    });
+
+    const totalRating = approvedComments.reduce(
+      (sum, comment) => sum + comment.rating,
+      0
+    );
+    const averageRating =
+      approvedComments.length > 0 ? totalRating / approvedComments.length : 0;
+
+    // Perbarui field rating di tabel Movie
+    await prisma.movie.update({
+      where: {
+        id: parseInt(movieId, 10),
+      },
+      data: {
+        rating: averageRating,
+      },
+    });
+    // Di dalam fungsi PATCH di backend
+    console.log("PATCH request received for movieId:", movieId);
+    console.log("Total approved comments:", approvedComments.length);
+    console.log("Calculated average rating:", averageRating);
+
+    return NextResponse.json(
+      { message: "Movie rating updated successfully", averageRating },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error updating movie rating:", error);
+    return NextResponse.json(
+      { message: "Failed to update movie rating", error: error.message },
       { status: 500 }
     );
   }

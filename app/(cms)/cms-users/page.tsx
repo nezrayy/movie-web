@@ -8,16 +8,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import "@smastrom/react-rating/style.css";
-import { MailCheck, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
 import EditUserSheet from "@/components/sheet-edit-user-form";
+import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 
 interface User {
   id: number;
@@ -43,6 +51,24 @@ const CMSUsers = () => {
   const { showNotification } = useNotification();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const {
+    currentPage,
+    itemsPerPage,
+    setCurrentPage,
+    totalItems,
+    setTotalItems,
+  } = usePaginationContext();
+
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -50,12 +76,13 @@ const CMSUsers = () => {
         const response = await fetch("/api/users");
         const data = await response.json();
         setUsersData(data);
+        setTotalItems(data.length);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
     fetchUsers();
-  }, []);
+  }, [setTotalItems]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -90,6 +117,11 @@ const CMSUsers = () => {
     }
   };
 
+  useEffect(() => {
+    // Reset current page to 1 whenever searchTerm changes
+    setCurrentPage(1);
+  }, [searchTerm, setCurrentPage]);
+
   const filteredUsers = usersData.filter((user) =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -110,7 +142,7 @@ const CMSUsers = () => {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto outline outline-1 rounded-md text-white">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
@@ -125,29 +157,39 @@ const CMSUsers = () => {
           <TableBody>
             {filteredUsers.map((user, index) => (
               <TableRow key={user.id} className="text-white">
-                <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableCell className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </TableCell>
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
                 <TableCell>{user.status}</TableCell>
                 <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button className="bg-green-700 p-3 hover:bg-green-800 hover:text-gray-400">
-                      <MailCheck className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleEdit(user)}
-                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(user.id)} // Panggil handleDelete dengan country.id
-                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex justify-center">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleEdit(user)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleDelete(user.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -156,7 +198,10 @@ const CMSUsers = () => {
         {selectedUser && (
           <EditUserSheet
             isOpen={isEditOpen}
-            onClose={() => setIsEditOpen(false)}
+            onClose={() => {
+              setIsEditOpen(false);
+              window.location.reload(); // Refresh halaman setelah dialog ditutup
+            }}
             userId={selectedUser.id}
             initialData={{
               role: selectedUser.role,
@@ -173,6 +218,25 @@ const CMSUsers = () => {
             }}
           />
         )}
+      </div>
+      {/* Pagination Buttons */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("prev")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("next")}
+          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

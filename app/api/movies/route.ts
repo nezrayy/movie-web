@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/db"; 
-import { Prisma } from "@prisma/client"; 
+import prisma from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   // Ambil query parameter dari URL
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   // Prepare where clause untuk filtering
   const where: Prisma.MovieWhereInput = {
-    isDeleted: false, 
+    isDeleted: false,
   };
 
   // Filter berdasarkan tahun
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
       orderBy.releaseYear = "desc";
       break;
     default:
-      orderBy.releaseYear = "desc";      // Default sorting
+      orderBy.releaseYear = "desc"; // Default sorting
       break;
   }
 
@@ -83,13 +83,13 @@ export async function GET(request: Request) {
       actors: {
         include: {
           actor: true, // Meng-include tabel Actor
-        }
+        },
       },
       availabilities: {
         include: {
           availability: true, // Meng-include tabel Availability
-        }
-      }
+        },
+      },
     },
   });
 
@@ -101,4 +101,3 @@ export async function GET(request: Request) {
   // Jika film ditemukan, kembalikan hasil pencarian
   return NextResponse.json(movies, { status: 200 });
 }
-

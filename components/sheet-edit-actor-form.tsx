@@ -121,7 +121,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
       const updatedActor = await response.json();
       showNotification("Actor updated successfully!");
       onSave(updatedActor);
-      onClose();
+      if (onClose) onClose();
     } catch (error) {
       console.error("Error updating actor:", error);
       showNotification("An error occurred while updating actor.");
