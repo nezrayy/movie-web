@@ -30,6 +30,10 @@ import {
 } from "@/components/ui/select";
 import { useNotification } from "@/contexts/NotificationContext";
 
+interface SheetEditFormProps {
+  onClose?: () => void;
+}
+
 const formSchema = z.object({
   role: z.enum(["ADMIN", "WRITER", "USER"]),
   status: z.enum(["ACTIVE", "SUSPENDED"]),
@@ -88,7 +92,7 @@ const EditUserSheet: React.FC<EditUserSheetProps> = ({
       console.log("Updated user data:", updatedUser); // Debug data yang diterima
       showNotification("User updated successfully!");
       onSave(updatedUser);
-      onClose();
+      if (onClose) onClose();
     } catch (error) {
       console.error("Error updating user:", error);
       showNotification("An error occurred while updating the user.");

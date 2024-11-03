@@ -20,7 +20,10 @@ export async function GET(request: Request) {
     }
 
     const comments = await prisma.comment.findMany({
-      include: { user: true },
+      include: {
+        user: true,
+        movie: true, // Include movie data
+      },
       orderBy: {
         [sortOrder]: sortType,
       },

@@ -8,7 +8,7 @@ interface EditFormContextProps {
   entityType: EntityTypes | null;
   entityData: any;
   openEditForm: (type: EntityTypes, data: any) => void;
-  closeEditForm: () => void;
+  closeEditForm: (callback?: () => void) => void;
 }
 
 const EditFormContext = createContext<EditFormContextProps | undefined>(undefined);
@@ -24,10 +24,11 @@ export const EditFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setIsOpen(true);
   };
 
-  const closeEditForm = () => {
+  const closeEditForm = (callback?: () => void) => {
     setIsOpen(false);
     setEntityType(null);
     setEntityData(null);
+    if (callback) callback(); // Panggil callback jika ada
   };
 
   return (

@@ -22,6 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -30,12 +37,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/datepicker";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import "react-datepicker/dist/react-datepicker.css";
 import ImageDropzone from "@/components/image-drop-zone-sm";
 import { Country } from "@prisma/client";
 import { useNotification } from "@/contexts/NotificationContext";
 import SheetEditActor from "@/components/sheet-edit-actor-form";
+import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 
 interface Actor {
   id: number;
@@ -68,6 +76,13 @@ const CMSActor: React.FC = () => {
   const { showNotification } = useNotification();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedActor, setSelectedActor] = useState<Actor | null>(null);
+  const {
+    currentPage,
+    itemsPerPage,
+    setCurrentPage,
+    totalItems,
+    setTotalItems,
+  } = usePaginationContext();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,13 +101,27 @@ const CMSActor: React.FC = () => {
         const response = await fetch("/api/actors");
         const data = await response.json();
         setActorsData(data);
+        setTotalItems(data.length);
       } catch (error) {
         console.error("Error fetching actors:", error);
       }
     };
 
     fetchActors();
-  }, []);
+  }, [setTotalItems]);
+
+  useEffect(() => {
+    setTotalItems(
+      actorsData.filter((actor) =>
+        actor.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ).length
+    );
+  }, [actorsData, searchTerm, setTotalItems]);
+
+  useEffect(() => {
+    // Reset current page to 1 whenever searchTerm changes
+    setCurrentPage(1);
+  }, [searchTerm, setCurrentPage]);
 
   // Fetch daftar negara
   useEffect(() => {
@@ -143,9 +172,22 @@ const CMSActor: React.FC = () => {
     showNotification("Actor updated successfully!");
   };
 
-  const filteredActors = actorsData.filter((actor) =>
-    actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredActors = actorsData
+    .filter((actor) =>
+      actor.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   const onSubmit = async (values: FormValues) => {
     const selectedCountry = countriesData.find(
@@ -308,7 +350,7 @@ const CMSActor: React.FC = () => {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto outline outline-1 rounded-md text-white">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -323,7 +365,9 @@ const CMSActor: React.FC = () => {
           <TableBody>
             {filteredActors.map((actor, index) => (
               <TableRow key={actor.id} className="text-white hover:bg-muted/5">
-                <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableCell className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </TableCell>{" "}
                 <TableCell>{actor.name}</TableCell>
                 <TableCell>{actor.country}</TableCell>
                 <TableCell>
@@ -339,20 +383,31 @@ const CMSActor: React.FC = () => {
                   />
                 </TableCell>
                 <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button
-                      onClick={() => handleEdit(actor)}
-                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
-                      onClick={() => handleDelete(actor.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex justify-center">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleEdit(actor)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleDelete(actor.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
@@ -360,10 +415,32 @@ const CMSActor: React.FC = () => {
         </Table>
         <SheetEditActor
           isOpen={isEditOpen}
-          onClose={() => setIsEditOpen(false)}
+          onClose={() => {
+            setIsEditOpen(false);
+            window.location.reload(); // Refresh halaman setelah dialog ditutup
+          }}
           actorData={selectedActor}
           onSave={handleSave}
         />
+      </div>
+      {/* Pagination Buttons */}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("prev")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("next")}
+          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

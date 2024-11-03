@@ -21,11 +21,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useEditFormContext } from "@/contexts/EditFormContext";
 import SheetEditForm from "@/components/sheet-edit-form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Genre {
   id: number;
@@ -40,7 +47,9 @@ const CMSGenre = () => {
   const [genresData, setGenresData] = useState<Genre[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { showNotification } = useNotification();
-  const { openEditForm } = useEditFormContext();
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // State untuk refresh data
+
+  const { openEditForm, isOpen } = useEditFormContext();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -64,6 +73,13 @@ const CMSGenre = () => {
 
     fetchGenres();
   }, []);
+
+  // Handle ketika dialog ditutup
+  useEffect(() => {
+    if (!isOpen && refreshTrigger) {
+      window.location.reload();
+    }
+  }, [isOpen, refreshTrigger]);
 
   const filteredGenres = genresData.filter((genre) =>
     genre.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -166,7 +182,7 @@ const CMSGenre = () => {
       </div>
 
       {/* Table Section */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto outline outline-1 rounded-md text-white">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
@@ -181,26 +197,37 @@ const CMSGenre = () => {
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>
-                  <div className="flex flex-row justify-center gap-4">
-                    <Button
-                      onClick={() => handleEdit(genre)}
-                      className="bg-cyan-700 p-3 hover:bg-cyan-800 hover:text-gray-400"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      onClick={() => handleDelete(genre.id)}
-                      className="bg-red-800 p-3 hover:bg-red-900 hover:text-gray-400"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <div className="flex justify-center">
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Open menu</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleEdit(genre)}
+                      >
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="hover:cursor-pointer"
+                        onClick={() => handleDelete(genre.id)}
+                      >
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-        <SheetEditForm />
+        <SheetEditForm onClose={() => window.location.reload()} />
       </div>
     </div>
   );

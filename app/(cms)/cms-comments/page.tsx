@@ -20,6 +20,8 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select"; // Import Select dari Shadcn
+import { usePaginationContext } from "@/contexts/CMSPaginationContext";
+import { Input } from "@/components/ui/input";
 
 interface Comment {
   id: number;
@@ -29,7 +31,11 @@ interface Comment {
   rating: number;
   commentText: string;
   status: string;
-  movieId: number;
+  movie: {
+    id: number;
+    title: string;
+    releaseYear: number;
+  };
 }
 
 const CMSComments = () => {
@@ -37,6 +43,16 @@ const CMSComments = () => {
   const [selectAll, setSelectAll] = useState(false);
   const [commentsData, setCommentsData] = useState<Comment[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>("all"); // Filter status
+  const [searchTerm, setSearchTerm] = useState<string>(""); // State untuk pencarian
+  const [filterRating, setFilterRating] = useState<number | null>(null); // State untuk filter rating
+
+  const {
+    currentPage,
+    itemsPerPage,
+    setCurrentPage,
+    totalItems,
+    setTotalItems,
+  } = usePaginationContext();
 
   // Fetch comments from API
   useEffect(() => {
@@ -45,18 +61,46 @@ const CMSComments = () => {
         const response = await fetch("/api/comments");
         const data = await response.json();
         setCommentsData(data);
+        setTotalItems(data.length);
       } catch (error) {
         console.error("Error fetching comments:", error);
       }
     };
     fetchComments();
-  }, []);
+  }, [setTotalItems]);
+
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   // Filter comments by status
-  const filteredComments =
-    filterStatus === "all"
-      ? commentsData
-      : commentsData.filter((comment) => comment.status === filterStatus);
+  const filteredComments = commentsData
+    .filter((comment) => {
+      // Filter by search term
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch =
+        comment.user.username.toLowerCase().includes(searchLower) ||
+        comment.commentText.toLowerCase().includes(searchLower) ||
+        comment.movie.title.toLowerCase().includes(searchLower);
+
+      // Filter by rating if filterRating is set
+      const matchesRating =
+        filterRating !== null ? comment.rating === filterRating : true;
+
+      // Filter by status
+      const matchesStatus =
+        filterStatus === "all" || comment.status === filterStatus;
+
+      return matchesSearch && matchesRating && matchesStatus;
+    })
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleToggle = (id: number) => {
     setSelectedComments((prevSelected) =>
@@ -76,7 +120,6 @@ const CMSComments = () => {
     setSelectAll(!selectAll);
   };
 
-  // Fungsi untuk menghapus beberapa komentar yang dipilih
   const handleDeleteSelected = async () => {
     if (selectedComments.length === 0) {
       alert("Please select comments to delete.");
@@ -137,6 +180,23 @@ const CMSComments = () => {
             : comment
         )
       );
+
+      // Panggil endpoint untuk update rating setiap kali ada komentar diubah statusnya ke "APPROVE"
+      const movieIdSet = new Set(
+        selectedComments.map(
+          (commentId) =>
+            commentsData.find((comment) => comment.id === commentId)?.movie.id
+        )
+      );
+
+      for (const movieId of movieIdSet) {
+        if (movieId) {
+          await fetch(`/api/comments/movie/${movieId}`, {
+            method: "PATCH",
+          });
+        }
+      }
+
       setSelectedComments([]);
     } catch (error) {
       console.error("Error toggling comment status:", error);
@@ -160,23 +220,50 @@ const CMSComments = () => {
             </SelectContent>
           </Select>
         </div>
+        {/* Search Bar */}
+        <div className="w-full sm:w-1/3">
+          <Input
+            type="text"
+            placeholder="Search by name, comment, or movie title..."
+            className="bg-transparent text-gray-400 placeholder:text-gray-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        {/* Filter by Rating */}
         <div className="flex items-center space-x-4">
-          <span className="text-white font-semibold">Show:</span>
-          <Select>
-            <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
-              <SelectValue placeholder="Rows" />
+          <span className="text-white font-semibold">Filter by rating:</span>
+          <Select
+            onValueChange={(value) => setFilterRating(Number(value) || null)}
+          >
+            <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+              <SelectValue placeholder="Rating" />
             </SelectTrigger>
             <SelectContent className="bg-[#21212E] text-gray-400">
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="1">
+                <Rating style={{ maxWidth: 65 }} value={1} />
+              </SelectItem>
+              <SelectItem value="2">
+                <Rating style={{ maxWidth: 65 }} value={2} />
+              </SelectItem>
+              <SelectItem value="3">
+                {" "}
+                <Rating style={{ maxWidth: 65 }} value={3} />
+              </SelectItem>
+              <SelectItem value="4">
+                {" "}
+                <Rating style={{ maxWidth: 65 }} value={4} />
+              </SelectItem>
+              <SelectItem value="5">
+                {" "}
+                <Rating style={{ maxWidth: 65 }} value={5} />
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
-
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto outline outline-1 rounded-md text-white">
         <Table className="min-w-full">
           <TableHeader>
             <TableRow>
@@ -207,25 +294,52 @@ const CMSComments = () => {
                   <Rating style={{ maxWidth: 65 }} value={comment.rating} />
                 </TableCell>
                 <TableCell>{comment.commentText}</TableCell>
-                <TableCell>{comment.movieId}</TableCell>
+                <TableCell>
+                  {comment.movie.title} ({comment.movie.releaseYear})
+                </TableCell>{" "}
+                {/* Display movie title */}
                 <TableCell>{comment.status}</TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-
-        <div className="flex flex-row gap-4 mt-4">
+      </div>
+      <div className="flex items-center justify-between py-4">
+        {/* Div untuk tombol operasi di kiri */}
+        <div className="flex items-center space-x-2">
           <Button
+            size="sm"
             className="bg-red-800 hover:bg-red-900"
             onClick={handleDeleteSelected}
           >
             Delete Selected
           </Button>
           <Button
+            size="sm"
             className="bg-blue-600 hover:bg-blue-700"
             onClick={handleToggleStatusSelected}
           >
             Change Status
+          </Button>
+        </div>
+
+        {/* Div untuk tombol paginasi di kanan */}
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange("prev")}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPageChange("next")}
+            disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+          >
+            Next
           </Button>
         </div>
       </div>
