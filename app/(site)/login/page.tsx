@@ -58,27 +58,19 @@ const LoginPage = () => {
         password: data.password,
       });
 
-      const user = await fetchUserByEmail(data.email)
-      if (user) {
-        if (user.status === "SUSPENDED") {
-          setWrongCredentials("Your account has been suspended.");
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
-      if (!user) {
-        setWrongCredentials("User not found");
+      const userResult = await fetchUserByEmail(data.email, data.password);
+      if (userResult.error) {
+        setWrongCredentials(userResult.error);
         setIsSubmitting(false);
         return;
       }
-
+      
       if (result?.error) {
         setWrongCredentials("Wrong email or password");
         setIsSubmitting(false);
         return;
       }
-
+      
       const session = await getSession();
       if (session?.user?.status === "SUSPENDED") {
         setWrongCredentials("Your account has been suspended.");

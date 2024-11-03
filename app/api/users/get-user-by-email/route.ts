@@ -17,10 +17,9 @@ export async function POST(request: Request) {
     if (user) {
       return NextResponse.json(user, { status: 200 });
     } else {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 });
+      return NextResponse.json({ message: 'Wrong email or password' }, { status: 404 });
     }
   } catch (error: any) {
-    console.error('Error fetching user:', error);
     return NextResponse.json({ message: 'Failed to fetch user', error: error.message }, { status: 500 });
   }
 }
