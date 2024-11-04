@@ -29,8 +29,10 @@ export async function middleware(req: NextRequest) {
     const referer = req.headers.get('referer');
 
     // Pastikan hanya permintaan dari localhost:3000 yang diizinkan
-    if (!origin?.includes('localhost:3000') && !referer?.includes('localhost:3000')) {
-      return new NextResponse('Access denied', { status: 403 });
+    if (process.env.FRONTEND_URL) {
+      if (!origin?.includes(process.env.FRONTEND_URL) && !referer?.includes(process.env.FRONTEND_URL)) {
+        return new NextResponse('Access denied', { status: 403 });
+      }
     }
   }
 
