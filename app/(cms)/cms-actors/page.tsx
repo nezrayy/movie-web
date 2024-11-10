@@ -119,11 +119,9 @@ const CMSActor: React.FC = () => {
   }, [actorsData, searchTerm, setTotalItems]);
 
   useEffect(() => {
-    // Reset current page to 1 whenever searchTerm changes
     setCurrentPage(1);
   }, [searchTerm, setCurrentPage]);
 
-  // Fetch daftar negara
   useEffect(() => {
     const fetchCountries = async () => {
       try {

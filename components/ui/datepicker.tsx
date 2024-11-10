@@ -104,7 +104,7 @@ export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
             <SelectTrigger className="w-[120px] bg-[#14141c] text-gray-400">
               <SelectValue placeholder="Month" />
             </SelectTrigger>
-            <SelectContent className="bg-[#14141c] text-gray-400">
+            <SelectContent className="bg-[#14141c] text-gray-400  z-[1051]">
               {months.map((m, index) => (
                 <SelectItem key={index} value={index.toString()}>
                   {format(m, "MMMM")}
@@ -116,7 +116,7 @@ export function DatePicker({ date, setDate, endYear }: DatePickerProps) {
             <SelectTrigger className="w-[120px] bg-[#14141c] text-gray-400">
               <SelectValue placeholder="Year" />
             </SelectTrigger>
-            <SelectContent className="bg-[#14141c] text-gray-400">
+            <SelectContent className="bg-[#14141c] text-gray-400  z-[1051]">
               {years.map((y) => (
                 <SelectItem key={y} value={y.toString()}>
                   {y}

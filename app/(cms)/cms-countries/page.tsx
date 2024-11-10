@@ -154,16 +154,16 @@ const CMSCountries = () => {
     )
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const onPageChange = (direction: "next" | "prev") => {
-    if (
-      direction === "next" &&
-      currentPage < Math.ceil(totalItems / itemsPerPage)
-    ) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === "prev" && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+    const onPageChange = (direction: "next" | "prev") => {
+      if (
+        direction === "next" &&
+        currentPage < Math.ceil(totalItems / itemsPerPage)
+      ) {
+        setCurrentPage(currentPage + 1);
+      } else if (direction === "prev" && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    };
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">

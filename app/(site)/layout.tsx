@@ -33,11 +33,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               active={pathname === "/awards"}
             />
           </Link>
-          <Link href="/celebs">
+          <Link href="/actors">
             <SidebarItem
               icon={<Users />}
               text="Celebs"
-              active={pathname === "/celebs"}
+              active={pathname === "/actors"}
             />
           </Link>
           {status === "authenticated" && (
