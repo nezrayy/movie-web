@@ -367,7 +367,7 @@ const CMSActor: React.FC = () => {
                   {(currentPage - 1) * itemsPerPage + index + 1}
                 </TableCell>{" "}
                 <TableCell>{actor.name}</TableCell>
-                <TableCell>{actor.country}</TableCell>
+                <TableCell>{actor.country?.name}</TableCell>
                 <TableCell>
                   {actor.birthdate
                     ? new Date(actor.birthdate).toLocaleDateString()

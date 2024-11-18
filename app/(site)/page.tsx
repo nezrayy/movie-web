@@ -444,7 +444,7 @@ export default function Home() {
               </div>
 
               {/* Pagination Component */}
-              <Pagination>
+              <Pagination className="mb-6">
                 <PaginationContent className="text-gray-400">
                   <PaginationItem>
                     <PaginationPrevious

@@ -13,25 +13,26 @@ export async function DELETE(
   }
 
   try {
-    // Hapus komentar yang dibuat oleh pengguna
+    // Hapus semua data terkait user secara manual sebelum menghapus user
     await prisma.comment.deleteMany({
-      where: {
-        userId: userId,
-      },
+      where: { userId: userId },
     });
 
-    // Hapus film yang diajukan/dibuat oleh pengguna
     await prisma.movie.deleteMany({
-      where: {
-        createdById: userId,
-      },
+      where: { createdById: userId },
     });
 
-    // Hapus user
+    await prisma.account.deleteMany({
+      where: { userId: userId },
+    });
+
+    await prisma.session.deleteMany({
+      where: { userId: userId },
+    });
+
+    // Setelah semua data terkait dihapus, barulah hapus user
     await prisma.user.delete({
-      where: {
-        id: userId,
-      },
+      where: { id: userId },
     });
 
     return NextResponse.json(
@@ -45,7 +46,7 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
+} 
 
 export async function PATCH(
   request: Request,
