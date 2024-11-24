@@ -7,27 +7,62 @@ export async function DELETE(
   request: Request,
   { params }: { params: { countryId: string } }
 ) {
-  const { countryId } = params;
-  console.log("Deleting country with ID:", params.countryId);
+  const countryId = parseInt(params.countryId, 10);
+
+  if (isNaN(countryId)) {
+    return NextResponse.json(
+      { message: "Invalid country ID" },
+      { status: 400 }
+    );
+  }
 
   try {
+    // Simpan semua pengecekan relasi ke dalam array promise
+    const relatedEntities = await Promise.all([
+      prisma.actor.count({ where: { countryId } }),
+      prisma.movie.count({ where: { countryId } }),
+      prisma.award.count({ where: { countryId } }),
+    ]);
+
+    // Nama-nama entitas untuk pesan error
+    const entityNames = ["actors", "movies", "awards"];
+
+    // Kumpulkan entitas yang masih memiliki relasi
+    const errorMessages = relatedEntities
+      .map((count, index) =>
+        count > 0 ? `${count} ${entityNames[index]}` : null
+      )
+      .filter(Boolean);
+
+    // Jika ada relasi, kembalikan pesan error
+    if (errorMessages.length > 0) {
+      return NextResponse.json(
+        {
+          message: `Cannot delete country. It is still associated with: ${errorMessages.join(
+            ", "
+          )}.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Jika tidak ada relasi, hapus Country
     await prisma.country.delete({
-      where: { id: parseInt(countryId, 10) },
+      where: { id: countryId },
     });
 
     return NextResponse.json(
-      { message: "country deleted successfully" },
+      { message: "Country deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting country:", error);
     return NextResponse.json(
-      { message: "Failed to delete country", error: error.message },
+      { message: "Internal Server Error", error: error.message },
       { status: 500 }
     );
   }
 }
-
 
 export async function PUT(
   request: Request,
@@ -36,7 +71,10 @@ export async function PUT(
   const countryId = parseInt(params.countryId, 10);
 
   if (isNaN(countryId)) {
-    return NextResponse.json({ message: "Invalid country ID" }, { status: 400 });
+    return NextResponse.json(
+      { message: "Invalid country ID" },
+      { status: 400 }
+    );
   }
 
   try {

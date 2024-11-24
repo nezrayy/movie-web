@@ -147,8 +147,9 @@ const CMSActor: React.FC = () => {
         method: "DELETE",
       });
 
+      const errorData = await response.json();
       if (!response.ok) {
-        showNotification("Failed to delete actor.");
+        showNotification(errorData.message);
         return;
       }
 

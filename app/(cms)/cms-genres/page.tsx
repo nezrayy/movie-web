@@ -122,8 +122,10 @@ const CMSGenre = () => {
         method: "DELETE",
       });
 
+      const errorData = await response.json();
       if (!response.ok) {
-        console.error("Failed to delete country");
+        console.error(errorData.message);
+        showNotification(errorData.message);
         return;
       }
 
