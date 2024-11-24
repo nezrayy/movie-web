@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+// import { useNotification } from "@/contexts/NotificationContext";
 import { fetchUserByEmail } from "@/lib/get-user-by-email";
 
 const formSchema = z.object({
@@ -45,6 +46,7 @@ const LoginPage = () => {
   const [wrongCredentials, setWrongCredentials] = useState("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const searchParams = useSearchParams();
+  // const { showNotification } = useNotification();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
