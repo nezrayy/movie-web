@@ -1,57 +1,3 @@
-// import fs from 'fs';
-// import path from 'path';
-
-// export const config = {
-//   api: {
-//     bodyParser: {
-//       sizeLimit: '10mb', // Batasi ukuran body yang diterima
-//     },
-//   },
-// };
-
-// export async function POST(req: Request) {
-//   try {
-//     const body = await req.json();
-//     const { image, fileName } = body;
-
-//     if (!image || !fileName) {
-//       return new Response(JSON.stringify({ error: 'Missing required parameters - image or fileName' }), {
-//         status: 400,
-//         headers: { 'Content-Type': 'application/json' },
-//       });
-//     }
-
-//     // Dekode base64 menjadi buffer
-//     const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-//     const buffer = Buffer.from(base64Data, 'base64');
-
-//     // Tentukan lokasi penyimpanan file
-//     const uploadsDir = path.join(process.cwd(), 'public/uploads');
-
-//     // Pastikan folder 'uploads' sudah ada, atau buat jika belum ada
-//     if (!fs.existsSync(uploadsDir)) {
-//       fs.mkdirSync(uploadsDir, { recursive: true });
-//     }
-
-//     const filePath = path.join(uploadsDir, fileName);
-
-//     // Simpan buffer ke lokasi yang diinginkan
-//     fs.writeFileSync(filePath, buffer);
-
-//     // Kirimkan response dengan URL file
-//     const fileUrl = `/uploads/${fileName}`;
-//     return new Response(JSON.stringify({ fileUrl }), {
-//       status: 200,
-//       headers: { 'Content-Type': 'application/json' },
-//     });
-//   } catch (error) {
-//     console.error('Error saving image:', error);
-//     return new Response(JSON.stringify({ error: 'Something went wrong while saving the image.' }), {
-//       status: 500,
-//       headers: { 'Content-Type': 'application/json' },
-//     });
-//   }
-// }
 import fs from 'fs';
 import path from 'path';
 import prisma from '@/lib/db'; // Import Prisma client Anda
@@ -64,7 +10,7 @@ export const config = {
   },
 };
 
-export async function POST(req) {
+export async function POST(req: any) {
   try {
     const body = await req.json();
     const {
@@ -138,17 +84,17 @@ export async function POST(req) {
         createdBy: { connect: { id: parseInt(createdById) } },
         country: { connect: { id: parseInt(countryId) } },
         genres: genres?.length > 0 ? {
-          create: genres.map((genreId) => ({
+          create: genres.map((genreId: any) => ({
             genre: { connect: { id: parseInt(genreId) } },
           })),
         } : undefined,
         actors: actors?.length > 0 ? {
-          create: actors.map((actorId) => ({
+          create: actors.map((actorId: any) => ({
             actor: { connect: { id: parseInt(actorId) } },
           })),
         } : undefined,
         availabilities: availabilities?.length > 0 ? {
-          create: availabilities.map((availabilityId) => ({
+          create: availabilities.map((availabilityId: any) => ({
             availability: { connect: { id: parseInt(availabilityId) } },
           })),
         } : undefined,
