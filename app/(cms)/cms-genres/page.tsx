@@ -222,7 +222,7 @@ const CMSGenre = () => {
           </TableHeader>
           <TableBody>
             {filteredGenres.map((genre, index) => (
-              <TableRow key={genre.id} className="text-white">
+              <TableRow key={genre.id} className="text-white" data-testid="row">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>

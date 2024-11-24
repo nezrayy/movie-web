@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarInputItem, SidebarItem } from "@/components/sidebar";
-import { FilterSortProvider } from "../../contexts/FilterSortContext"; // Pastikan path benar
+import { FilterSortProvider } from "../../contexts/FilterSortContext";
 import { FileVideo, Medal, MonitorPlay, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { NotificationProvider } from "@/contexts/NotificationContext";

@@ -92,7 +92,7 @@ export default function Home() {
         year: yearFilter || "",
         genre: categoryFilter || "",
         availability: availabilityFilter || "",
-        origin: "home"
+        origin: "home",
       });
 
       const response = await fetch(`/api/movies?${queryParams}`);
@@ -148,18 +148,26 @@ export default function Home() {
       if (url.startsWith("/")) {
         // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
         const path = url.toLowerCase();
-        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+        return (
+          path.endsWith(".jpg") ||
+          path.endsWith(".png") ||
+          path.endsWith(".jpeg")
+        );
       } else {
         // Jika URL penuh, buat objek URL untuk memisahkan path dan query
         const parsedUrl = new URL(url);
         const path = parsedUrl.pathname.toLowerCase();
-        return path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg");
+        return (
+          path.endsWith(".jpg") ||
+          path.endsWith(".png") ||
+          path.endsWith(".jpeg")
+        );
       }
     } catch (error) {
       // Jika URL tidak valid
       return false;
     }
-  }; 
+  };
 
   const renderPaginationItems = () => {
     const paginationItems = [];
@@ -401,7 +409,7 @@ export default function Home() {
                               ? card.posterUrl
                               : "/placeholder-image.jpg"
                           }
-                          alt=""
+                          alt={card.title}
                           className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
                         />
 
