@@ -75,18 +75,21 @@ export async function PUT(req: any) {
         genres: {
           deleteMany: {}, // Hapus relasi lama
           create: genres.map((genreId: number) => ({
+            // @ts-ignore
             genre: { connect: { id: parseInt(genreId) } },
           })),
         },
         actors: {
           deleteMany: {}, // Hapus relasi lama
           create: actors.map((actorId: number) => ({
+            // @ts-ignore
             actor: { connect: { id: parseInt(actorId) } },
           })),
         },
         availabilities: {
           deleteMany: {}, // Hapus relasi lama
           create: availabilities.map((availabilityId: number) => ({
+            // @ts-ignore
             availability: { connect: { id: parseInt(availabilityId) } },
           })),
         },
