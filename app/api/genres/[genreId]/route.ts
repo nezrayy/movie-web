@@ -17,16 +17,16 @@ export async function PUT(
     const body = await request.json();
     const { name } = body;
 
-    const existinggenreByName = await prisma.genre.findFirst({
+    const existingGenreByName = await prisma.genre.findFirst({
       where: {
         name,
         NOT: { id: genreId },
       },
     });
 
-    if (existinggenreByName) {
+    if (existingGenreByName) {
       return NextResponse.json(
-        { message: "genre name already exists" },
+        { message: "Genre name already exists" },
         { status: 400 }
       );
     }
@@ -50,20 +50,44 @@ export async function DELETE(
   request: Request,
   { params }: { params: { genreId: string } }
 ) {
-  const { genreId } = params;
-  console.log("Deleting genre with ID:", params.genreId);
+  const genreId = parseInt(params.genreId, 10);
+
+  if (isNaN(genreId)) {
+    return NextResponse.json({ message: "Invalid genre ID" }, { status: 400 });
+  }
+
+  console.log("Deleting genre with ID:", genreId);
 
   try {
-    await prisma.genre.delete({
-      where: { id: parseInt(genreId, 10) },
+    // Validasi jika genre terhubung ke entitas lain
+    const linkedMovies = await prisma.movieGenre.findMany({
+      where: { genreId },
     });
 
+    console.log("Linked movies:", linkedMovies);
+
+    if (linkedMovies.length > 0) {
+      return NextResponse.json(
+        {
+          message:
+            "Cannot delete genre. The genre is linked to one or more movies.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // Hapus genre
+    await prisma.genre.delete({
+      where: { id: genreId },
+    });
+
+    console.log("Genre deleted successfully.");
     return NextResponse.json(
       { message: "Genre deleted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error deleting genre:", error);
+    console.error("Error deleting genre. Details:", error.message);
     return NextResponse.json(
       { message: "Failed to delete genre", error: error.message },
       { status: 500 }

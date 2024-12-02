@@ -23,6 +23,15 @@ const formSchema = z.object({
     message: "Password must be at least 6 characters.",
   }),
 });
+// const formSchema = z.object({
+//   password: z
+//     .string()
+//     .min(6, { message: "Password must be at least 6 characters." })
+//     .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\W).{6,}$/, {
+//       message:
+//         "Password must contain at least one uppercase letter, one lowercase letter, one symbol, and be at least 6 characters long.",
+//     }),
+// });
 
 type FormData = z.infer<typeof formSchema>;
 

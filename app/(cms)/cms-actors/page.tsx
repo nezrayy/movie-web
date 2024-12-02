@@ -119,11 +119,9 @@ const CMSActor: React.FC = () => {
   }, [actorsData, searchTerm, setTotalItems]);
 
   useEffect(() => {
-    // Reset current page to 1 whenever searchTerm changes
     setCurrentPage(1);
   }, [searchTerm, setCurrentPage]);
 
-  // Fetch daftar negara
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -149,8 +147,9 @@ const CMSActor: React.FC = () => {
         method: "DELETE",
       });
 
+      const errorData = await response.json();
       if (!response.ok) {
-        showNotification("Failed to delete actor.");
+        showNotification(errorData.message);
         return;
       }
 
@@ -369,10 +368,10 @@ const CMSActor: React.FC = () => {
                   {(currentPage - 1) * itemsPerPage + index + 1}
                 </TableCell>{" "}
                 <TableCell>{actor.name}</TableCell>
-                <TableCell>{actor.country}</TableCell>
+                <TableCell>{actor.country?.name}</TableCell>
                 <TableCell>
                   {actor.birthdate
-                    ? new Date(actor.birthdate).toLocaleDateString()
+                    ? new Date(actor.birthdate).toLocaleDateString("en-US") // Format MM/DD/YYYY
                     : "N/A"}
                 </TableCell>
                 <TableCell>

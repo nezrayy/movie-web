@@ -64,13 +64,13 @@ const LoginPage = () => {
         setIsSubmitting(false);
         return;
       }
-      
+
       if (result?.error) {
         setWrongCredentials("Wrong email or password");
         setIsSubmitting(false);
         return;
       }
-      
+
       const session = await getSession();
       if (session?.user?.status === "SUSPENDED") {
         setWrongCredentials("Your account has been suspended.");

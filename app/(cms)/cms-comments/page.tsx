@@ -298,7 +298,7 @@ const CMSComments = () => {
                   {comment.movie.title} ({comment.movie.releaseYear})
                 </TableCell>{" "}
                 {/* Display movie title */}
-                <TableCell>{comment.status}</TableCell>
+                <TableCell>{comment.status}D</TableCell>
               </TableRow>
             ))}
           </TableBody>

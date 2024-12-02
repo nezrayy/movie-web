@@ -26,6 +26,7 @@ import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
 import { useEditFormContext } from "@/contexts/EditFormContext";
 import SheetEditForm from "@/components/sheet-edit-form";
+import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,13 @@ const CMSGenre = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { showNotification } = useNotification();
   const [refreshTrigger, setRefreshTrigger] = useState(0); // State untuk refresh data
+  const {
+    currentPage,
+    itemsPerPage,
+    setCurrentPage,
+    totalItems,
+    setTotalItems,
+  } = usePaginationContext();
 
   const { openEditForm, isOpen } = useEditFormContext();
 
@@ -65,6 +73,7 @@ const CMSGenre = () => {
         if (!response.ok) throw new Error("Failed to fetch genres");
         const data = await response.json();
         setGenresData(data);
+        setTotalItems(data.length);
       } catch (error) {
         console.error("Error fetching genres:", error);
         showNotification("Error fetching genres.");
@@ -72,7 +81,7 @@ const CMSGenre = () => {
     };
 
     fetchGenres();
-  }, []);
+  }, [refreshTrigger, setTotalItems]);
 
   // Handle ketika dialog ditutup
   useEffect(() => {
@@ -81,12 +90,30 @@ const CMSGenre = () => {
     }
   }, [isOpen, refreshTrigger]);
 
-  const filteredGenres = genresData.filter((genre) =>
-    genre.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, setCurrentPage]);
+
+  // Filter data yang akan ditampilkan di tabel berdasarkan pagination
+  const filteredGenres = genresData
+    .filter((genre) =>
+      genre.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleEdit = (genre: Genre) => {
     openEditForm("genre", genre);
+  };
+
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
   };
 
   const handleDelete = async (genreId: number) => {
@@ -95,8 +122,10 @@ const CMSGenre = () => {
         method: "DELETE",
       });
 
+      const errorData = await response.json();
       if (!response.ok) {
-        console.error("Failed to delete country");
+        console.error(errorData.message);
+        showNotification(errorData.message);
         return;
       }
 
@@ -193,7 +222,7 @@ const CMSGenre = () => {
           </TableHeader>
           <TableBody>
             {filteredGenres.map((genre, index) => (
-              <TableRow key={genre.id} className="text-white">
+              <TableRow key={genre.id} className="text-white" data-testid="row">
                 <TableCell className="font-medium">{index + 1}</TableCell>
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>
@@ -228,6 +257,24 @@ const CMSGenre = () => {
           </TableBody>
         </Table>
         <SheetEditForm onClose={() => window.location.reload()} />
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("prev")}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange("next")}
+          disabled={currentPage >= Math.ceil(totalItems / itemsPerPage)}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarInputItem, SidebarItem } from "@/components/sidebar";
-import { FilterSortProvider } from "../../contexts/FilterSortContext"; // Pastikan path benar
+import { FilterSortProvider } from "../../contexts/FilterSortContext";
 import { FileVideo, Medal, MonitorPlay, Search, Users } from "lucide-react";
 import Link from "next/link";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -33,11 +33,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               active={pathname === "/awards"}
             />
           </Link>
-          <Link href="/celebs">
+          <Link href="/actors">
             <SidebarItem
               icon={<Users />}
               text="Celebs"
-              active={pathname === "/celebs"}
+              active={pathname === "/actors"}
             />
           </Link>
           {status === "authenticated" && (

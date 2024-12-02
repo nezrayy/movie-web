@@ -97,8 +97,9 @@ const CMSCountries = () => {
       });
 
       if (!response.ok) {
-        console.error("Failed to delete country");
-        showNotification("Failed to delete country.");
+        const errorData = await response.json();
+        console.error(errorData.message);
+        showNotification(errorData.message);
         return;
       }
 
