@@ -371,7 +371,7 @@ const CMSActor: React.FC = () => {
                 <TableCell>{actor.country?.name}</TableCell>
                 <TableCell>
                   {actor.birthdate
-                    ? new Date(actor.birthdate).toLocaleDateString()
+                    ? new Date(actor.birthdate).toLocaleDateString("en-US") // Format MM/DD/YYYY
                     : "N/A"}
                 </TableCell>
                 <TableCell>

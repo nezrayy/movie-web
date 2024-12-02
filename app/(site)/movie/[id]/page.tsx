@@ -1,7 +1,7 @@
-"use client"; // Harus di paling atas
+"use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation"; // Import tanpa generic
+import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Rating } from "@smastrom/react-rating";
@@ -44,22 +44,13 @@ interface Movie {
 
 function MovieDetailContent() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const params = useParams<{ id: string }>(); // Gunakan useParams untuk mendapatkan id dari URL
+  const params = useParams<{ id: string }>();
   const movieId = parseInt(params.id, 10);
   const [movie, setMovie] = useState<Movie | null>(null);
   const { data: session } = useSession();
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-
-  // const { fetchReviews } = useReview();
-
-  // useEffect(() => {
-  //   if (params.id) {
-  //     // Fetch review hanya ketika movieId ada dan berubah
-  //     fetchReviews(Number(params.id));
-  //   }
-  // }, [params.id]); // Hanya jalankan efek ketika `params.id` berubah
 
   const fetchMovie = async () => {
     if (!params.id) return;
@@ -118,11 +109,11 @@ function MovieDetailContent() {
 
     const reviewData = {
       movieId: movie.id,
-      userId: session.user.id, // Mengambil userId dari session
+      userId: session.user.id, 
       commentText: reviewText,
       rating,
     };
-    console.log("Sending reviewData:", reviewData); // Logging data sebelum dikirim
+    console.log("Sending reviewData:", reviewData); 
 
     try {
       const response = await fetch(`/api/comments/movie/${movie.id}`, {
@@ -139,14 +130,9 @@ function MovieDetailContent() {
         return;
       }
 
-      // Reset form dan kosongkan pesan error setelah sukses
       setRating(0);
       setReviewText("");
       setErrorMessage("");
-
-      // Update tabel review setelah review baru ditambahkan
-      // Jika ReviewTable bisa menerima fungsi `refresh`, panggil di sini
-      // Example: reviewTableRef.current.refresh();
     } catch (error) {
       setErrorMessage("An error occurred while submitting the review.");
       console.error("Error submitting comment:", error);
@@ -188,7 +174,7 @@ function MovieDetailContent() {
                 <div className="flex flex-wrap gap-2 mt-2">
                   {movie.availabilities.map((movieAvailability) => (
                     <Badge
-                      key={movieAvailability.id}
+                      key={movieAvailability.availability.id} // Tambahkan key di sini
                       className="bg-gray-700 hover:bg-gray-700 text-white text-sm font-normal rounded-md shadow-md"
                     >
                       {movieAvailability.availability.name}
@@ -210,7 +196,7 @@ function MovieDetailContent() {
               <div className="genre-container flex flex-wrap gap-2 mt-4">
                 {movie.genres.map(({ genre }) => (
                   <Badge
-                    key={genre.id}
+                    key={genre.id} // Tambahkan key di sini
                     className="bg-[#21212e] hover:bg-[#191923] text-white text-sm font-normal rounded-md shadow-md"
                   >
                     {genre.name}

@@ -62,4 +62,52 @@ describe("CMS Genre", () => {
   //       expect(genreRows).toHaveLength(3); // 1 header + 2 genre
   //     });
   //   });
+
+  it("creates a new genre and updates the table", async () => {
+    (global.fetch as jest.Mock).mockImplementation((url, options) => {
+      if (url === "/api/genres" && (!options || options.method === "GET")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve([
+              { id: 1, name: "Action" },
+              { id: 2, name: "Drama" },
+            ]),
+        });
+      }
+      if (url === "/api/genres" && options?.method === "POST") {
+        const body = JSON.parse(options.body);
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 3, name: body.name }),
+        });
+      }
+      return Promise.reject(new Error("Unexpected API call"));
+    });
+  
+    renderWithProviders(<CMSGenre />);
+  
+    // Isi form genre baru
+    const input = screen.getByPlaceholderText("Enter genre...");
+    fireEvent.change(input, { target: { value: "Comedy" } });
+  
+    const submitButton = screen.getByText("Submit");
+    fireEvent.click(submitButton);
+  
+    // Tunggu hingga API POST dipanggil dan tabel diupdate
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        "/api/genres",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ name: "Comedy" }),
+        })
+      );
+    });
+  
+    // Tunggu hingga genre baru ditampilkan di tabel
+    const newGenre = await screen.findByText("Comedy");
+    expect(newGenre).toBeInTheDocument();
+  });
+  
 });
