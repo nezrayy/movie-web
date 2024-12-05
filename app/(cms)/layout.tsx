@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import MobileNav from "@/components/mobile-nav";
 import Sidebar, { SidebarItem } from "@/components/sidebar";
 import {
   Clapperboard,
@@ -19,6 +18,7 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import NotificationDialog from "@/components/notification";
 import { EditFormProvider } from "@/contexts/EditFormContext";
 import { PaginationProvider } from "@/contexts/CMSPaginationContext";
+import CMSMobileNav from "@/components/cms-mobile-nav";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -97,7 +97,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Mobile Navigation */}
-      <MobileNav />
+      <CMSMobileNav />
     </div>
   );
 }
