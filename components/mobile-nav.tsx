@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import {
   Sheet,
@@ -9,12 +9,21 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
-import { Search, MonitorPlay, Medal, Users, UserRound, LogIn, LogOut } from 'lucide-react';
+} from "@/components/ui/sheet";
+import {
+  Search,
+  MonitorPlay,
+  Medal,
+  Users,
+  UserRound,
+  LogIn,
+  LogOut,
+  FolderOpen,
+} from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { useRouter } from 'next/navigation';
-import { useState, CSSProperties } from 'react';
+import { useRouter } from "next/navigation";
+import { useState, CSSProperties } from "react";
 import { signOut, useSession } from "next-auth/react";
 import PuffLoader from "react-spinners/ClipLoader";
 
@@ -25,13 +34,13 @@ const override: CSSProperties = {
 };
 
 const MobileNav: React.FC = () => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const router = useRouter();
   const { data: session, status } = useSession();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    const formattedQuery = query.replace(/ /g, '+');
+    e.preventDefault();
+    const formattedQuery = query.replace(/ /g, "+");
     router.push(`/search?search_query=${formattedQuery}`);
   };
 
@@ -43,12 +52,14 @@ const MobileNav: React.FC = () => {
         </SheetTrigger>
         <SheetContent side="top" className="bg-[#0C0D11] text-white">
           <SheetHeader>
-            <SheetTitle className="text-white font-extrabold">Search for movie</SheetTitle>
+            <SheetTitle className="text-white font-extrabold">
+              Search for movie
+            </SheetTitle>
           </SheetHeader>
           <form onSubmit={handleSubmit}>
             <div>
-              <Input 
-                placeholder="Search..." 
+              <Input
+                placeholder="Search..."
                 className="bg-transparent text-white placeholder:text-gray-400 mt-4 mb-8"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -62,22 +73,40 @@ const MobileNav: React.FC = () => {
           </form>
         </SheetContent>
       </Sheet>
-      <div className="flex flex-col items-center">
+
+      <div
+        className="flex flex-col items-center cursor-pointer"
+        onClick={() => router.push("/")}
+      >
         <MonitorPlay className="text-white w-6 h-6" />
       </div>
-      <div className="flex flex-col items-center">
-        <Medal className="text-white w-6 h-6" />
-      </div>
-      <div className="flex flex-col items-center">
+
+      <div
+        className="flex flex-col items-center cursor-pointer"
+        onClick={() => router.push("/actors")}
+      >
         <Users className="text-white w-6 h-6" />
       </div>
+
+      {session?.user?.role === "ADMIN" && (
+        <div
+          className="flex flex-col items-center cursor-pointer p-2 rounded-md"
+          onClick={() => router.push("/cms-films")}
+        >
+          <FolderOpen className="text-white w-6 h-6" />
+        </div>
+      )}
+
       {status === "authenticated" ? (
         <div className="flex flex-col items-center bg-destructive p-2 rounded-md">
           <LogOut className="text-white w-6 h-6" onClick={() => signOut()} />
         </div>
       ) : status === "unauthenticated" ? (
         <div className="flex flex-col items-center bg-indigo-500 p-2 rounded-md">
-          <LogIn className="text-white w-6 h-6" onClick={() => router.push("/login")} />
+          <LogIn
+            className="text-white w-6 h-6"
+            onClick={() => router.push("/login")}
+          />
         </div>
       ) : status === "loading" && (
         <div className="flex flex-col items-center bg-indigo-500 p-2 rounded-md">
