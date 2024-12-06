@@ -21,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: nextjs-app
+    container_name: rewatch
     environment:
       DATABASE_URL: mysql://root:root@mysql-db:3306/mydb
     ports:
