@@ -29,6 +29,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useEditUserContext } from "@/contexts/EditUserFormContext";
 
 interface SheetEditFormProps {
   onClose?: () => void;
@@ -52,17 +53,12 @@ interface EditUserSheetProps {
   onSave: (updatedUser: any) => void; // Pastikan ini ada
 }
 
-const EditUserSheet: React.FC<EditUserSheetProps> = ({
-  isOpen,
-  onClose,
-  userId,
-  initialData,
-  onSave,
-}) => {
+const EditUserSheet: React.FC = () => {
+  const { isOpen, userId, initialData, closeEditUser } = useEditUserContext();
   const { showNotification } = useNotification();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData,
+    defaultValues: initialData || { role: "USER", status: "ACTIVE" },
   });
 
   useEffect(() => {
@@ -73,26 +69,23 @@ const EditUserSheet: React.FC<EditUserSheetProps> = ({
 
   const handleSubmit = async (data: FormValues) => {
     try {
-      console.log("Submitting data:", data); // Debug data sebelum dikirim
-
       const response = await fetch(`/api/users/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      console.log("Response status:", response.status); // Debug status respons
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Response error details:", errorText); // Debug detail error
-        throw new Error("Failed to update user");
+        throw new Error(`Failed to update user: ${errorText}`);
       }
 
       const updatedUser = await response.json();
-      console.log("Updated user data:", updatedUser); // Debug data yang diterima
       showNotification("User updated successfully!");
-      onSave(updatedUser);
-      if (onClose) onClose();
+      closeEditUser(() => {
+        // Callback tambahan jika diperlukan
+        console.log("EditUserSheet closed after saving");
+      });
     } catch (error) {
       console.error("Error updating user:", error);
       showNotification("An error occurred while updating the user.");
@@ -100,7 +93,13 @@ const EditUserSheet: React.FC<EditUserSheetProps> = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) closeEditUser();
+      }}
+    >
+      {" "}
       <SheetContent className="bg-[#14141c] border-none">
         <SheetHeader>
           <SheetTitle className="text-white">Edit User</SheetTitle>

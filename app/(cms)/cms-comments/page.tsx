@@ -204,7 +204,12 @@ const CMSComments = () => {
   };
 
   return (
-    <div className="mt-12 pl-20 pr-20 flex flex-col justify-center">
+    <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Comments
+        </h1>
+      </div>
       {/* Filter Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="flex items-center space-x-4">

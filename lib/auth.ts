@@ -8,12 +8,18 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
   adapter: PrismaAdapter(prisma),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true, // Allow linking multiple accounts with the same email
+      authorization: {
+        params: {
+          scope: "openid email profile",
+        },
+      },
       async profile(profile) {
         let user = await prisma.user.findUnique({
           where: { email: profile.email },

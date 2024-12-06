@@ -12,7 +12,7 @@ import { useSession } from "next-auth/react";
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
-  
+
   return (
     <div className="min-h-screen flex flex-col lg:flex-row relative">
       {/* Sidebar untuk Desktop */}
@@ -26,17 +26,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               active={pathname === "/"}
             />
           </Link>
-          <Link href="/awards">
-            <SidebarItem
-              icon={<Medal />}
-              text="Awards"
-              active={pathname === "/awards"}
-            />
-          </Link>
           <Link href="/actors">
             <SidebarItem
               icon={<Users />}
-              text="Celebs"
+              text="Actors"
               active={pathname === "/actors"}
             />
           </Link>
@@ -44,7 +37,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Link href="/film-input">
               <SidebarItem
                 icon={<FileVideo />}
-                text="Add Movie"
+                text="Add Film"
                 active={pathname === "/film-input"}
               />
             </Link>

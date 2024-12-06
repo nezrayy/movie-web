@@ -52,17 +52,11 @@
 //     });
 //   }
 // }
-import fs from 'fs';
-import path from 'path';
-import prisma from '@/lib/db'; // Import Prisma client Anda
+import fs from "fs";
+import path from "path";
+import prisma from "@/lib/db"; // Import Prisma client Anda
 
-export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb', // Batasi ukuran body yang diterima
-    },
-  },
-};
+export const runtime = "nodejs";
 
 export async function POST(req) {
   try {
@@ -83,18 +77,21 @@ export async function POST(req) {
     } = body;
 
     if (!image || !fileName || !title || !createdById || !countryId) {
-      return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({ error: "Missing required parameters" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Dekode base64 menjadi buffer
     const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Data, 'base64');
+    const buffer = Buffer.from(base64Data, "base64");
 
     // Tentukan lokasi penyimpanan file
-    const uploadsDir = path.join(process.cwd(), 'public/uploads');
+    const uploadsDir = path.join(process.cwd(), "public/uploads");
 
     // Pastikan folder 'uploads' sudah ada, atau buat jika belum ada
     if (!fs.existsSync(uploadsDir)) {
@@ -110,19 +107,23 @@ export async function POST(req) {
     const posterUrl = `/uploads/${fileName}`;
 
     // Cek apakah id yang digunakan untuk relasi ada
-    const createdBy = await prisma.user.findUnique({ where: { id: parseInt(createdById) } });
+    const createdBy = await prisma.user.findUnique({
+      where: { id: parseInt(createdById) },
+    });
     if (!createdBy) {
-      return new Response(JSON.stringify({ error: 'Invalid `createdById`.' }), {
+      return new Response(JSON.stringify({ error: "Invalid `createdById`." }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    const country = await prisma.country.findUnique({ where: { id: parseInt(countryId) } });
+    const country = await prisma.country.findUnique({
+      where: { id: parseInt(countryId) },
+    });
     if (!country) {
-      return new Response(JSON.stringify({ error: 'Invalid `countryId`.' }), {
+      return new Response(JSON.stringify({ error: "Invalid `countryId`." }), {
         status: 400,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
       });
     }
 
@@ -137,33 +138,45 @@ export async function POST(req) {
         linkTrailer,
         createdBy: { connect: { id: parseInt(createdById) } },
         country: { connect: { id: parseInt(countryId) } },
-        genres: genres?.length > 0 ? {
-          create: genres.map((genreId) => ({
-            genre: { connect: { id: parseInt(genreId) } },
-          })),
-        } : undefined,
-        actors: actors?.length > 0 ? {
-          create: actors.map((actorId) => ({
-            actor: { connect: { id: parseInt(actorId) } },
-          })),
-        } : undefined,
-        availabilities: availabilities?.length > 0 ? {
-          create: availabilities.map((availabilityId) => ({
-            availability: { connect: { id: parseInt(availabilityId) } },
-          })),
-        } : undefined,
+        genres:
+          genres?.length > 0
+            ? {
+                create: genres.map((genreId) => ({
+                  genre: { connect: { id: parseInt(genreId) } },
+                })),
+              }
+            : undefined,
+        actors:
+          actors?.length > 0
+            ? {
+                create: actors.map((actorId) => ({
+                  actor: { connect: { id: parseInt(actorId) } },
+                })),
+              }
+            : undefined,
+        availabilities:
+          availabilities?.length > 0
+            ? {
+                create: availabilities.map((availabilityId) => ({
+                  availability: { connect: { id: parseInt(availabilityId) } },
+                })),
+              }
+            : undefined,
       },
     });
 
     return new Response(JSON.stringify({ movie }), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error('Error saving movie:', error);
-    return new Response(JSON.stringify({ error: 'Something went wrong while saving the movie.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error("Error saving movie:", error);
+    return new Response(
+      JSON.stringify({ error: "Something went wrong while saving the movie." }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 }

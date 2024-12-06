@@ -1,15 +1,21 @@
-"use client"
+"use client";
 
-import ImageDropzone from "@/components/image-drop-zone"
-import { useToast } from "@/hooks/use-toast"
-import { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
+import ImageDropzone from "@/components/image-drop-zone";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -17,16 +23,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Availability, Country, Genre } from "@/types/type"
-import { ActorSearch } from "@/components/actor-search"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Availability, Country, Genre } from "@/types/type";
+import { ActorSearch } from "@/components/actor-search";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const MAX_FILE_SIZE = 5000000;
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
- 
+const ACCEPTED_IMAGE_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+];
+
 const formSchema = z.object({
   image: z
     .any()
@@ -37,9 +48,7 @@ const formSchema = z.object({
     ),
   title: z.string().min(1, "Title is required"),
   alternativeTitle: z.string().optional(),
-  year: z
-    .string()
-    .regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
+  year: z.string().regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
   country: z.string().min(1, "Country is required"),
   synopsis: z.string().min(10, "Synopsis must be at least 10 characters long"),
   availabilities: z
@@ -54,19 +63,17 @@ const formSchema = z.object({
     .array(z.number())
     .min(1, "At least one actor must be selected")
     .max(9, "You can select up to 9 actors"),
-  trailerLink: z
-    .string()
-    .url("Trailer link must be a valid URL"),
+  trailerLink: z.string().url("Trailer link must be a valid URL"),
 });
 
 const CMSDramaInputPage = () => {
-  const [genres, setGenres] = useState<Genre[]>([])
-  const [availabilities, setAvailabilities] = useState<Availability[]>([])
-  const [countries, setCountries] = useState<Country[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
-  const router = useRouter()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -81,26 +88,26 @@ const CMSDramaInputPage = () => {
       actors: [],
       trailerLink: "",
     },
-  })
- 
+  });
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    console.log("VALUES", values)
+    setIsLoading(true);
+    console.log("VALUES", values);
     try {
       const file = values.image;
-  
+
       // Baca file dan konversi ke base64
       const reader = new FileReader();
       reader.readAsDataURL(file);
-  
+
       reader.onload = async () => {
         const base64String = reader.result;
-  
+
         // Kirim data ke API backend
-        const response = await fetch('/api/movies/upload', {
-          method: 'POST',
+        const response = await fetch("/api/movies/upload", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             image: base64String,
@@ -117,27 +124,29 @@ const CMSDramaInputPage = () => {
             availabilities: values.availabilities, // Ini seharusnya ID availabilities jika sudah valid
           }),
         });
-  
+
         if (!response.ok) {
-          throw new Error('Something went wrong while uploading the image and saving movie data.');
+          throw new Error(
+            "Something went wrong while uploading the image and saving movie data."
+          );
         }
-  
+
         const responseData = await response.json();
-        console.log('Upload Movie Response', responseData);
+        console.log("Upload Movie Response", responseData);
       };
-  
+
       reader.onerror = (error) => {
-        console.error('Error reading file:', error);
+        console.error("Error reading file:", error);
       };
     } catch (error) {
-      console.error('Upload Error', error);
+      console.error("Upload Error", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
       toast({
         variant: "success",
         description: "New movie has been added",
-      })
-      router.push("/cms-films")
+      });
+      router.push("/cms-films");
     }
   }
 
@@ -145,19 +154,19 @@ const CMSDramaInputPage = () => {
     const response = await fetch("/api/get-genres");
     const genres = await response.json();
     return genres;
-  }
+  };
 
   const fetchAvailabilities = async () => {
     const response = await fetch("/api/get-availabilities");
     const availabilities = await response.json();
     return availabilities;
-  }
+  };
 
   const fetchCountries = async () => {
     const response = await fetch("/api/get-countries");
     const countries = await response.json();
     return countries;
-  }
+  };
 
   useEffect(() => {
     fetchGenres().then((genres) => {
@@ -180,26 +189,26 @@ const CMSDramaInputPage = () => {
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col items-center space-y-4">
-            <FormField
-              control={form.control}
-              name="image"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel className="text-white">Upload Image</FormLabel>
-                  <FormControl>
-                    <ImageDropzone
-                      value={field.value}
-                      onChange={(file) => {
-                        field.onChange(file); // Update field di form
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-              <Button 
-                type="submit" 
+              <FormField
+                control={form.control}
+                name="image"
+                render={({ field }) => (
+                  <FormItem className="w-full">
+                    <FormLabel className="text-white">Upload Image</FormLabel>
+                    <FormControl>
+                      <ImageDropzone
+                        value={field.value}
+                        onChange={(file) => {
+                          field.onChange(file); // Update field di form
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
                 className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block"
                 disabled={isLoading}
               >
@@ -232,7 +241,9 @@ const CMSDramaInputPage = () => {
                   name="alternativeTitle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">Alternative title (Optional)</FormLabel>
+                      <FormLabel className="text-white">
+                        Alternative title (Optional)
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="Alternative title"
@@ -283,7 +294,10 @@ const CMSDramaInputPage = () => {
                           </SelectTrigger>
                           <SelectContent className="bg-[#0C0D11] text-white">
                             {countries.map((item) => (
-                              <SelectItem key={item.id} value={item.id.toString()}>
+                              <SelectItem
+                                key={item.id}
+                                value={item.id.toString()}
+                              >
                                 {item.name}
                               </SelectItem>
                             ))}
@@ -323,7 +337,9 @@ const CMSDramaInputPage = () => {
                   render={() => (
                     <FormItem>
                       <div className="mb-4">
-                        <FormLabel className="text-white">Availabilities</FormLabel>
+                        <FormLabel className="text-white">
+                          Availabilities
+                        </FormLabel>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         {availabilities.map((item) => (
@@ -340,12 +356,20 @@ const CMSDramaInputPage = () => {
                                   <FormControl>
                                     <Checkbox
                                       className="border-white"
-                                      checked={field.value?.includes(item.id.toString())}
+                                      checked={field.value?.includes(
+                                        item.id.toString()
+                                      )}
                                       onCheckedChange={(checked) => {
                                         return checked
-                                          ? field.onChange([...field.value, item.id.toString()])
+                                          ? field.onChange([
+                                              ...field.value,
+                                              item.id.toString(),
+                                            ])
                                           : field.onChange(
-                                              field.value?.filter((value) => value !== item.id.toString())
+                                              field.value?.filter(
+                                                (value) =>
+                                                  value !== item.id.toString()
+                                              )
                                             );
                                       }}
                                     />
@@ -389,12 +413,20 @@ const CMSDramaInputPage = () => {
                                   <FormControl>
                                     <Checkbox
                                       className="border-white"
-                                      checked={field.value?.includes(item.id.toString())}
+                                      checked={field.value?.includes(
+                                        item.id.toString()
+                                      )}
                                       onCheckedChange={(checked) => {
                                         return checked
-                                          ? field.onChange([...field.value, item.id.toString()])
+                                          ? field.onChange([
+                                              ...field.value,
+                                              item.id.toString(),
+                                            ])
                                           : field.onChange(
-                                              field.value?.filter((value) => value !== item.id.toString())
+                                              field.value?.filter(
+                                                (value) =>
+                                                  value !== item.id.toString()
+                                              )
                                             );
                                       }}
                                     />
@@ -420,7 +452,9 @@ const CMSDramaInputPage = () => {
                   name="actors"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">Add Actors (Up to 9)</FormLabel>
+                      <FormLabel className="text-white">
+                        Add Actors (Up to 9)
+                      </FormLabel>
                       <FormControl>
                         <ActorSearch control={form.control} field={field} />
                       </FormControl>
@@ -450,9 +484,9 @@ const CMSDramaInputPage = () => {
                 />
               </div>
             </div>
-            <Button 
-              type="submit" 
-              className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden"
+            <Button
+              type="submit"
+              className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block"
               disabled={isLoading}
             >
               Submit
@@ -461,7 +495,7 @@ const CMSDramaInputPage = () => {
         </form>
       </Form>
     </div>
-  )
-}
+  );
+};
 
-export default CMSDramaInputPage
+export default CMSDramaInputPage;

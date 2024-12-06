@@ -168,6 +168,11 @@ const CMSGenre = () => {
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+            <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Genres
+        </h1>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

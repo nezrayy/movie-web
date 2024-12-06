@@ -1,8 +1,7 @@
-// components/SheetEditActor.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -32,20 +31,22 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { Country } from "@prisma/client";
 import { useNotification } from "@/contexts/NotificationContext";
+import { useEditActorContext } from "@/contexts/EditActorFormContext";
+
+export type Actor = {
+  id: number;
+  name: string;
+  birthdate: string; // String format untuk API
+  country: { id: number; name: string };
+  photoUrl: string;
+};
 
 interface EditActorProps {
   isOpen: boolean;
   onClose: () => void;
-  actorData: {
-    id: number;
-    name: string;
-    birthdate: Date;
-    countryId: number;
-    photoUrl: string;
-  };
-  onSave: (updatedActor: any) => void;
+  actorData: Actor;
+  onSave: (updatedActor: Actor) => void;
 }
 
 const formSchema = z.object({
@@ -55,21 +56,21 @@ const formSchema = z.object({
   image: z.any().optional(),
 });
 
-const SheetEditActor: React.FC<EditActorProps> = ({
-  isOpen,
-  onClose,
-  actorData,
-  onSave,
-}) => {
-  const [countriesData, setCountriesData] = useState<Country[]>([]);
+type FormValues = z.infer<typeof formSchema>;
+
+const SheetEditActor: React.FC = () => {
+  const { isOpen, closeEditForm, actorData } = useEditActorContext();
+  const [countriesData, setCountriesData] = useState<
+    { id: number; name: string }[]
+  >([]);
   const { showNotification } = useNotification();
 
-  const form = useForm({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: actorData || {
-      name: "",
-      birthdate: new Date(),
-      countryId: "",
+    defaultValues: {
+      name: actorData.name,
+      birthdate: new Date(actorData.birthdate),
+      countryId: actorData.country.id.toString(),
       image: null,
     },
   });
@@ -88,18 +89,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
     fetchCountries();
   }, []);
 
-  useEffect(() => {
-    if (actorData) {
-      form.reset({
-        name: actorData.name,
-        birthdate: new Date(actorData.birthdate),
-        countryId: actorData.countryId.toString(),
-        image: null,
-      });
-    }
-  }, [actorData, form]);
-
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: FormValues) => {
     try {
       const formData = new FormData();
       formData.append("name", data.name);
@@ -109,7 +99,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
         formData.append("image", data.image);
       }
 
-      const response = await fetch(`/api/actors/${actorData?.id}`, {
+      const response = await fetch(`/api/actors/${actorData.id}`, {
         method: "PUT",
         body: formData,
       });
@@ -120,8 +110,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
 
       const updatedActor = await response.json();
       showNotification("Actor updated successfully!");
-      onSave(updatedActor);
-      if (onClose) onClose();
+      closeEditForm(() => window.location.reload());
     } catch (error) {
       console.error("Error updating actor:", error);
       showNotification("An error occurred while updating actor.");
@@ -129,7 +118,14 @@ const SheetEditActor: React.FC<EditActorProps> = ({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          closeEditForm(() => window.location.reload());
+        }
+      }}
+    >
       <SheetContent className="bg-[#14141c] border-none">
         <SheetHeader>
           <SheetTitle className="text-white">Edit Actor</SheetTitle>
@@ -140,7 +136,6 @@ const SheetEditActor: React.FC<EditActorProps> = ({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            {/* Name Field */}
             <FormField
               control={form.control}
               name="name"
@@ -149,17 +144,14 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                   <FormLabel className="text-white">Name</FormLabel>
                   <FormControl>
                     <Input
-                      className="bg-[#14141c] text-white placeholder:text-gray-400"
-                      placeholder="Enter actor name"
                       {...field}
+                      className="bg-[#14141c] text-gray-400 placeholder:text-gray-400"
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* Birthdate Field */}
             <FormField
               control={form.control}
               name="birthdate"
@@ -168,7 +160,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                   <FormLabel className="text-white">Birthdate</FormLabel>
                   <FormControl>
                     <DatePicker
-                      date={field.value ? new Date(field.value) : undefined}
+                      date={field.value}
                       setDate={(date) => date && field.onChange(date)}
                       endYear={2024}
                     />
@@ -177,7 +169,6 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="countryId"
@@ -186,7 +177,7 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                   <FormLabel className="text-white">Country</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger className="bg-transparent text-gray-400 placeholder:text-gray-400">
+                      <SelectTrigger className="bg-[#14141c] text-gray-400 placeholder:text-gray-400">
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
                       <SelectContent className="bg-[#21212E] text-gray-400">
@@ -205,8 +196,6 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                 </FormItem>
               )}
             />
-
-            {/* Image Upload Field */}
             <FormField
               control={form.control}
               name="image"
@@ -223,7 +212,6 @@ const SheetEditActor: React.FC<EditActorProps> = ({
                 </FormItem>
               )}
             />
-
             <SheetFooter>
               <Button
                 type="submit"

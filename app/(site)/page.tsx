@@ -239,12 +239,10 @@ export default function Home() {
         );
       }
 
-      // Tampilkan ellipsis jika halaman terakhir belum ditampilkan
       if (currentPage < totalPages - 3) {
         paginationItems.push(<PaginationEllipsis key="end-ellipsis" />);
       }
 
-      // Tampilkan halaman terakhir
       paginationItems.push(
         <PaginationItem key={totalPages}>
           <PaginationLink
@@ -280,15 +278,24 @@ export default function Home() {
             }}
           >
             <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-10">
-              <h1 className="text-white sm:text-2xl md:text-5xl lg:text-6xl font-bold text-center">
-                Explore the World of Entertainment.
-              </h1>
-              <h1 className="text-white sm:text-2xl sm:mt-2 md:text-5xl lg:text-6xl font-bold text-center md:mt-4">
-                Find, Review, and Enjoy.
-              </h1>
-              <h3 className="absolute top-96 flex items-center text-gray-500 text-lg font-light italic origin-top-right z-50">
-                Deadpool and Wolverine (2024)
-              </h3>
+              {/* Conditionally Render Logo or h1 */}
+              <div className="sm:hidden">
+                {/* Mobile Layout: Show Logo */}
+                <img
+                  src="/rewatch.png"
+                  alt="Rewatch Logo"
+                  className="w-40 h-auto" // Adjust size as needed
+                />
+              </div>
+              <div className="hidden sm:block">
+                {/* Desktop Layout: Show h1 */}
+                <h1 className="text-white sm:text-2xl md:text-5xl lg:text-6xl font-bold text-center">
+                  Explore the World of Entertainment.
+                </h1>
+                <h1 className="text-white sm:text-2xl sm:mt-2 md:text-5xl lg:text-6xl font-bold text-center md:mt-4">
+                  Find, Review, and Enjoy.
+                </h1>
+              </div>
             </div>
           </div>
 
@@ -495,7 +502,7 @@ export default function Home() {
             // Pesan jika tidak ada film yang cocok
             <div className="flex justify-center items-center h-64">
               <p className="text-gray-500 text-lg">
-                Sorry! No movies found. Try another filter.{" "}
+                Sorry! No movies found. Try another filter(s) or come back later.{" "}
               </p>
             </div>
           )}

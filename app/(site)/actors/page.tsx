@@ -123,7 +123,7 @@ export default function ActorsPage() {
             }
           >
             1
-          </PaginationLink> 
+          </PaginationLink>
         </PaginationItem>
       );
 
@@ -194,7 +194,20 @@ export default function ActorsPage() {
 
   return (
     <main>
-      <div className="flex min-h-screen">
+      <div className="flex flex-col min-h-screen">
+        <div
+          className="relative w-full h-[200px] md:h-[420px] bg-center bg-cover bg-no-repeat fade-mask"
+          style={{
+            backgroundImage: "url('/batman.png')",
+            backgroundPosition: "center top", // Atur posisi vertikal ke atas
+          }}
+        >
+          <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50">
+            <h1 className="text-white sm:text-2xl md:text-5xl lg:text-6xl font-bold text-center">
+              Discover Your Favorite Actors
+            </h1>
+          </div>
+        </div>
         <div className="w-full items-center">
           {/* Filter Section */}
           <div className="text-gray-500 p-4 mb-8">
@@ -290,7 +303,9 @@ export default function ActorsPage() {
                         Born: {new Date(actor.birthdate).toLocaleDateString()}
                       </p>
                       <p className="text-sm text-gray-400">
-                      {actor.country ? actor.country.name : "Country not specified"}
+                        {actor.country
+                          ? actor.country.name
+                          : "Country not specified"}
                       </p>
                     </div>
                   </div>

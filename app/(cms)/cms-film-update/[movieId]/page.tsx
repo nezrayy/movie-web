@@ -235,6 +235,11 @@ const CMSDramaUpdatePage = () => {
 
   return (
     <div className="flex flex-col w-full h-full p-8 justify-center items-center">
+            <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Update Film
+        </h1>
+      </div>
       {movieDetails && (
         <Form {...form}>
           <form

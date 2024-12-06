@@ -5,8 +5,10 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
+
 
 datasource db {
   provider = "mysql"
@@ -44,6 +46,8 @@ model User {
 
   movies    Movie[]  @relation("CreatedMovies")
   comments  Comment[]
+
+  @@map("user")
 }
 
 model PreUser {
@@ -54,6 +58,8 @@ model PreUser {
   emailToken String   @unique
   status     String   @default("UNVERIFIED")  // Status default
   createdAt  DateTime @default(now())
+
+  @@map("preuser")
 }
 
 model Account {
@@ -77,6 +83,7 @@ model Account {
  
   @@unique([provider, providerAccountId])
   @@index([userId])
+  @@map("account")
 }
  
 model Session {
@@ -90,6 +97,7 @@ model Session {
   updatedAt DateTime @updatedAt
  
   @@index([userId])
+  @@map("session")
 }
 
 model VerificationToken {
@@ -98,6 +106,7 @@ model VerificationToken {
   expires    DateTime
  
   @@unique([identifier, token])
+  @@map("verificationtoken")
 }
 
 model Movie {
@@ -124,6 +133,8 @@ model Movie {
   genres      MovieGenre[]
   comments    Comment[]
   availabilities MovieAvailability[]
+
+  @@map("movie")
 }
 
 
@@ -133,6 +144,8 @@ model Availability {
   createdAt  DateTime  @default(now())
   
   movies     MovieAvailability[]
+
+  @@map("availability")
 }
 
 model MovieAvailability {
@@ -143,6 +156,7 @@ model MovieAvailability {
   createdAt   DateTime    @default(now())
 
   @@id([movieId, availabilityId])
+  @@map("movieavailability") 
 }
 
 model Actor {
@@ -156,6 +170,8 @@ model Actor {
   createdAt  DateTime  @default(now())
 
   movies     MovieActor[]
+
+  @@map("actor")
 }
 
 model Genre {
@@ -164,6 +180,8 @@ model Genre {
   createdAt  DateTime  @default(now()) 
 
   movies     MovieGenre[]
+
+  @@map("genre")
 }
 
 model Award {
@@ -177,6 +195,9 @@ model Award {
 
   countryId Int
   country Country @relation(fields: [countryId], references: [id])
+
+  @@map("award")
+
 }
 
 model Country {
@@ -188,6 +209,9 @@ model Country {
   actors     Actor[]
   movies     Movie[]
   awards    Award[]
+
+  @@map("country")
+
 }
 
 model Comment {
@@ -200,6 +224,8 @@ model Comment {
   rating     Int
   status     Status    @default(UNAPPROVE)
   createdAt  DateTime  @default(now())
+
+  @@map("comment")
 }
 
 model MovieActor {
@@ -210,6 +236,7 @@ model MovieActor {
   createdAt DateTime @default(now())
 
   @@id([movieId, actorId])
+  @@map("movieactor")
 }
 
 model MovieGenre {
@@ -220,4 +247,5 @@ model MovieGenre {
   createdAt DateTime @default(now())
 
   @@id([movieId, genreId])
+  @@map("moviegenre")
 }

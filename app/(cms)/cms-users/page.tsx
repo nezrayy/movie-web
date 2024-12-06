@@ -21,7 +21,7 @@ import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import "@smastrom/react-rating/style.css";
-import { MoreHorizontal} from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNotification } from "@/contexts/NotificationContext";
 import EditUserSheet from "@/components/sheet-edit-user-form";
@@ -128,6 +128,11 @@ const CMSUsers = () => {
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Users
+        </h1>
+      </div>
       {/* Filter and Search Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
         <div className="w-full sm:w-auto">

@@ -182,6 +182,11 @@ const CMSDramaInputPage = () => {
 
   return (
     <div className="flex flex-col w-full h-full p-8 justify-center items-center">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Input Film
+        </h1>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -479,7 +484,7 @@ const CMSDramaInputPage = () => {
                 />
                 <Button
                   type="submit"
-                  className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block"
+                  className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block"
                   disabled={isLoading}
                 >
                   Submit

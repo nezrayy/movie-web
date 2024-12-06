@@ -45,13 +45,13 @@ import { useNotification } from "@/contexts/NotificationContext";
 import SheetEditActor from "@/components/sheet-edit-actor-form";
 import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 
-interface Actor {
+export type Actor = {
   id: number;
   name: string;
-  country: string;
-  birthdate: Date;
+  birthdate: string; // Selalu string dari API
+  country: { id: number; name: string }; // Country harus ada
   photoUrl: string;
-}
+};
 
 interface DatePickerProps {
   date: Date | undefined;
@@ -233,6 +233,11 @@ const CMSActor: React.FC = () => {
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
+          Actors
+        </h1>
+      </div>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -371,7 +376,7 @@ const CMSActor: React.FC = () => {
                 <TableCell>{actor.country?.name}</TableCell>
                 <TableCell>
                   {actor.birthdate
-                    ? new Date(actor.birthdate).toLocaleDateString()
+                    ? new Date(actor.birthdate).toLocaleDateString("en-US") // Format MM/DD/YYYY
                     : "N/A"}
                 </TableCell>
                 <TableCell>
@@ -412,15 +417,16 @@ const CMSActor: React.FC = () => {
             ))}
           </TableBody>
         </Table>
-        <SheetEditActor
-          isOpen={isEditOpen}
-          onClose={() => {
-            setIsEditOpen(false);
-            window.location.reload(); // Refresh halaman setelah dialog ditutup
-          }}
-          actorData={selectedActor}
-          onSave={handleSave}
-        />
+        {selectedActor && (
+          <SheetEditActor
+            isOpen={isEditOpen}
+            onClose={() => {
+              window.location.reload(); // Refresh halaman setelah dialog ditutup
+            }}
+            actorData={selectedActor}
+            onSave={handleSave}
+          />
+        )}
       </div>
       {/* Pagination Buttons */}
       <div className="flex items-center justify-end space-x-2 py-4">

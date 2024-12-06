@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const token = searchParams.get("token");
 
-  console.log("Received token:", token);  // Tambahkan ini untuk melihat apakah token diterima
+  console.log("Received token:", token); // Tambahkan ini untuk melihat apakah token diterima
 
   if (!token) {
     return NextResponse.json({ message: "Invalid token." }, { status: 400 });
@@ -17,7 +17,10 @@ export async function GET(request: Request) {
     });
 
     if (!preUser) {
-      return NextResponse.json({ message: "Token not found or expired." }, { status: 400 });
+      return NextResponse.json(
+        { message: "Token not found or expired." },
+        { status: 400 }
+      );
     }
 
     await prisma.user.create({
@@ -32,11 +35,14 @@ export async function GET(request: Request) {
       where: { id: preUser.id },
     });
 
-    // return NextResponse.json({ message: "Email verified successfully. You can now log in." }, { status: 200 });
-    return NextResponse.redirect('http://localhost:3000/login');
-    
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+
+    return NextResponse.redirect(`${frontendUrl}/login`);
   } catch (error) {
     console.error("Error verifying email:", error);
-    return NextResponse.json({ message: "Failed to verify email." }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to verify email." },
+      { status: 500 }
+    );
   }
 }

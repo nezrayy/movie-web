@@ -1,0 +1,35 @@
+version: "3.8"
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./movie_web.sql:/docker-entrypoint-initdb.d/movie_web.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rewatch
+    environment:
+      DATABASE_URL: mysql://root:root@mysql-db:3306/mydb
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql-db
+    env_file:
+      - ./.env
+
+volumes:
+  db_data:
