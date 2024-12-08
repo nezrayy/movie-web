@@ -37,9 +37,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { DatePicker } from "@/components/ui/datepicker";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import "react-datepicker/dist/react-datepicker.css";
-import ImageDropzone from "@/components/image-drop-zone-sm";
+import { MoreHorizontal } from "lucide-react";
 import { Country } from "@prisma/client";
 import { useNotification } from "@/contexts/NotificationContext";
 import SheetEditActor from "@/components/sheet-edit-actor-form";
@@ -53,18 +51,40 @@ export type Actor = {
   photoUrl: string;
 };
 
-interface DatePickerProps {
-  date: Date | undefined;
-  setDate: (date: Date | undefined) => void;
-  endYear?: number; // Optional endYear prop
-}
+const isValidImageUrl = (url: string) => {
+  try {
+    // Cek apakah URL adalah path lokal (dimulai dengan "/")
+    if (url.startsWith("/")) {
+      // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+      const path = url.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    } else {
+      // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    }
+  } catch (error) {
+    // Jika URL tidak valid
+    return false;
+  }
+};
 
-// Schema validasi form
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
-  birthdate: z.date(), // Mengizinkan nilai null
-  country: z.string().min(1, { message: "Country is required" }),
-  image: z.any().optional(),
+  birthdate: z.date(),
+  countryId: z.string().min(1, { message: "Country is required" }),
+  photoUrl: z
+    .string()
+    .url({ message: "Valid URL is required" })
+    .refine((url) => isValidImageUrl(url), {
+      message: "The URL must point to a valid image (.jpg, .png, .jpeg)",
+    })
+    .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -88,39 +108,30 @@ const CMSActor: React.FC = () => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      birthdate: new Date(), // Set default ke tanggal saat ini
+      birthdate: new Date(),
       country: "",
-      image: undefined,
+      photoUrl: "",
     },
   });
 
-  // Fetch daftar aktor
   useEffect(() => {
     const fetchActors = async () => {
       try {
-        const response = await fetch("/api/actors");
+        const response = await fetch(
+          `/api/actors?search=${searchTerm}&page=${currentPage}&itemsPerPage=${itemsPerPage}`
+        );
         const data = await response.json();
-        setActorsData(data);
-        setTotalItems(data.length);
+
+        console.log("Fetched Data:", data); // Log data yang diterima
+        setActorsData(data.actors); // Memuat data actor untuk halaman tersebut
+        setTotalItems(data.total); // Total actor untuk pagination
       } catch (error) {
         console.error("Error fetching actors:", error);
       }
     };
 
     fetchActors();
-  }, [setTotalItems]);
-
-  useEffect(() => {
-    setTotalItems(
-      actorsData.filter((actor) =>
-        actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ).length
-    );
-  }, [actorsData, searchTerm, setTotalItems]);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, setCurrentPage]);
+  }, [searchTerm, currentPage, itemsPerPage]);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -141,6 +152,17 @@ const CMSActor: React.FC = () => {
     setIsEditOpen(true);
   };
 
+  const onPageChange = (direction: "next" | "prev") => {
+    if (
+      direction === "next" &&
+      currentPage < Math.ceil(totalItems / itemsPerPage)
+    ) {
+      setCurrentPage(currentPage + 1);
+    } else if (direction === "prev" && currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   const handleDelete = async (actorId: number) => {
     try {
       const response = await fetch(`/api/actors/${actorId}`, {
@@ -156,7 +178,7 @@ const CMSActor: React.FC = () => {
       setActorsData((prevData) =>
         prevData.filter((actor) => actor.id !== actorId)
       );
-      showNotification("Actor deleted succesfully.");
+      showNotification("Actor deleted successfully.");
     } catch (error) {
       console.error("Error deleting actor:", error);
     }
@@ -171,52 +193,37 @@ const CMSActor: React.FC = () => {
     showNotification("Actor updated successfully!");
   };
 
-  const filteredActors = actorsData
-    .filter((actor) =>
-      actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const onPageChange = (direction: "next" | "prev") => {
-    if (
-      direction === "next" &&
-      currentPage < Math.ceil(totalItems / itemsPerPage)
-    ) {
-      setCurrentPage(currentPage + 1);
-    } else if (direction === "prev" && currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  const handleSearch = (value: string) => {
+    setSearchTerm(value); // Perbarui kata kunci pencarian
+    setCurrentPage(1); // Reset halaman ke awal
+  };  
 
   const onSubmit = async (values: FormValues) => {
     const selectedCountry = countriesData.find(
       (country) => country.name === values.country
     );
-    const formData = new FormData();
 
-    formData.append("name", values.name);
-    formData.append(
-      "birthdate",
-      new Date(values.birthdate.setUTCHours(0, 0, 0, 0)).toISOString()
-    );
-    formData.append(
-      "countryId",
-      selectedCountry ? selectedCountry.id.toString() : ""
-    );
-    if (values.image) {
-      formData.append("image", values.image);
+    if (!selectedCountry) {
+      showNotification("Please select a valid country.");
+      return;
     }
+
+    const actorData = {
+      name: values.name,
+      birthdate: values.birthdate.toISOString(),
+      countryId: selectedCountry.id,
+      photoUrl: values.photoUrl,
+    };
 
     try {
       const response = await fetch("/api/actors", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(actorData),
       });
 
-      if (response.status === 400) {
-        showNotification("Actor already exists or invalid data.");
-        return;
-      }
       if (!response.ok) {
         throw new Error("Failed to create actor");
       }
@@ -244,7 +251,6 @@ const CMSActor: React.FC = () => {
           className="w-full flex space-x-4"
         >
           <div className="w-full mb-6 sm:flex sm:items-start sm:space-y-0">
-            {/* Left Column - Form Fields */}
             <div className="w-full sm:w-1/4 space-y-4">
               <FormField
                 control={form.control}
@@ -263,7 +269,6 @@ const CMSActor: React.FC = () => {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="birthdate"
@@ -281,7 +286,6 @@ const CMSActor: React.FC = () => {
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="country"
@@ -309,7 +313,23 @@ const CMSActor: React.FC = () => {
                   </FormItem>
                 )}
               />
-
+              <FormField
+                control={form.control}
+                name="photoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Photo URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter photo URL..."
+                        className="bg-transparent text-white placeholder:text-gray-400"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <Button
                 type="submit"
                 className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition-colors"
@@ -317,40 +337,18 @@ const CMSActor: React.FC = () => {
                 Submit
               </Button>
             </div>
-
-            {/* Right Column - Upload Image */}
-            <div className="w-full sm:w-1/4 ml-0">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <div className="pt-8">
-                        <ImageDropzone
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
           </div>
         </form>
       </Form>
 
-      {/* Filter Section */}
       <div className="w-full sm:w-1/6 mb-4 ml-auto">
         <Input
           type="text"
           placeholder="Search actor..."
           className="bg-transparent text-gray-400 placeholder:text-gray-400"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
+          onChange={(e) => handleSearch(e.target.value)}
+          />
       </div>
 
       {/* Table Section */}
@@ -363,72 +361,84 @@ const CMSActor: React.FC = () => {
               <TableHead>Country</TableHead>
               <TableHead>Birthdate</TableHead>
               <TableHead>Photo</TableHead>
-              <TableHead className="w-36 text-center">Action</TableHead>
+              <TableHead className="w-36 text-center"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredActors.map((actor, index) => (
-              <TableRow key={actor.id} className="text-white hover:bg-muted/5">
-                <TableCell className="font-medium">
-                  {(currentPage - 1) * itemsPerPage + index + 1}
-                </TableCell>{" "}
-                <TableCell>{actor.name}</TableCell>
-                <TableCell>{actor.country?.name}</TableCell>
-                <TableCell>
-                  {actor.birthdate
-                    ? new Date(actor.birthdate).toLocaleDateString("en-US") // Format MM/DD/YYYY
-                    : "N/A"}
-                </TableCell>
-                <TableCell>
-                  <img
-                    src={actor.photoUrl || "/actor-default.png"}
-                    alt="Actor"
-                    className="w-16 h-20 object-cover rounded"
-                  />
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <div className="flex justify-center">
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        onClick={() => handleEdit(actor)}
-                      >
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="hover:cursor-pointer"
-                        onClick={() => handleDelete(actor.id)}
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {actorsData && actorsData.length > 0 ? (
+              actorsData.map((actor, index) => (
+                <TableRow
+                  key={actor.id}
+                  className="text-white hover:bg-muted/5"
+                >
+                  <TableCell className="font-medium">
+                    {(currentPage - 1) * itemsPerPage + index + 1}
+                  </TableCell>{" "}
+                  <TableCell>{actor.name}</TableCell>
+                  <TableCell>{actor.country?.name}</TableCell>
+                  <TableCell>
+                    {actor.birthdate
+                      ? new Date(actor.birthdate).toLocaleDateString("en-US") // Format MM/DD/YYYY
+                      : "N/A"}
+                  </TableCell>
+                  <TableCell>
+                    <img
+                      src={
+                        isValidImageUrl(actor.photoUrl)
+                          ? actor.photoUrl
+                          : "/actor-default.png"
+                      }
+                      alt="Actor"
+                      className="w-16 h-20 object-cover rounded"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div className="flex justify-center">
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          className="hover:cursor-pointer"
+                          onClick={() => handleEdit(actor)}
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="hover:cursor-pointer"
+                          onClick={() => handleDelete(actor.id)}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center">
+                  No data available or wait a moment.
                 </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
         {selectedActor && (
           <SheetEditActor
             isOpen={isEditOpen}
-            onClose={() => {
-              window.location.reload(); // Refresh halaman setelah dialog ditutup
-            }}
+            onClose={() => setIsEditOpen(false)}
             actorData={selectedActor}
             onSave={handleSave}
           />
         )}
       </div>
-      {/* Pagination Buttons */}
       <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"

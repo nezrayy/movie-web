@@ -4,9 +4,21 @@ import React, { createContext, useContext, useState } from "react";
 
 interface EditActorContextProps {
   isOpen: boolean;
-  actorData: any;
-  openEditForm: (data: any) => void;
-  closeEditForm: (callback?: () => void) => void;
+  actorData: {
+    id: number;
+    name: string;
+    birthdate: string;
+    country: { id: number; name: string };
+    photoUrl: string;
+  } | null;
+  openEditActor: (data: {
+    id: number;
+    name: string;
+    birthdate: string;
+    country: { id: number; name: string };
+    photoUrl: string;
+  }) => void;
+  closeEditActor: (callback?: () => void) => void;
 }
 
 const EditActorContext = createContext<EditActorContextProps | undefined>(
@@ -17,14 +29,26 @@ export const EditActorProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [actorData, setActorData] = useState<any>(null);
+  const [actorData, setActorData] = useState<{
+    id: number;
+    name: string;
+    birthdate: string;
+    country: { id: number; name: string };
+    photoUrl: string;
+  } | null>(null);
 
-  const openEditForm = (data: any) => {
+  const openEditActor = (data: {
+    id: number;
+    name: string;
+    birthdate: string;
+    country: { id: number; name: string };
+    photoUrl: string;
+  }) => {
     setActorData(data);
     setIsOpen(true);
   };
 
-  const closeEditForm = (callback?: () => void) => {
+  const closeEditActor = (callback?: () => void) => {
     setIsOpen(false);
     setActorData(null);
     if (callback) callback(); // Eksekusi callback jika ada
@@ -32,7 +56,12 @@ export const EditActorProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <EditActorContext.Provider
-      value={{ isOpen, actorData, openEditForm, closeEditForm }}
+      value={{
+        isOpen,
+        actorData,
+        openEditActor,
+        closeEditActor,
+      }}
     >
       {children}
     </EditActorContext.Provider>
@@ -42,7 +71,9 @@ export const EditActorProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useEditActorContext = () => {
   const context = useContext(EditActorContext);
   if (!context) {
-    throw new Error("useEditActorContext must be used within an EditActorProvider");
+    throw new Error(
+      "useEditActorContext must be used within an EditActorProvider"
+    );
   }
   return context;
 };

@@ -1,6 +1,5 @@
 "use client";
 
-import ImageDropzone from "@/components/image-drop-zone";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -30,22 +29,37 @@ import { ActorSearch } from "@/components/actor-search";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
-const MAX_FILE_SIZE = 5000000;
-const ACCEPTED_IMAGE_TYPES = [
-  "image/jpeg",
-  "image/jpg",
-  "image/png",
-  "image/webp",
-];
+const isValidImageUrl = (url: string) => {
+  try {
+    // Cek apakah URL adalah path lokal (dimulai dengan "/")
+    if (url.startsWith("/")) {
+      // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+      const path = url.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    } else {
+      // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    }
+  } catch (error) {
+    // Jika URL tidak valid
+    return false;
+  }
+};
 
 const formSchema = z.object({
-  image: z
-    .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
-    .refine(
-      (file) => ACCEPTED_IMAGE_TYPES.includes(file?.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
-    ),
+  posterUrl: z
+    .string()
+    .url({ message: "Valid URL is required" })
+    .refine((url) => isValidImageUrl(url), {
+      message: "The URL must point to a valid image (.jpg, .png, .jpeg)",
+    })
+    .optional(),
   title: z.string().min(1, "Title is required"),
   alternativeTitle: z.string().optional(),
   year: z.string().regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
@@ -78,6 +92,7 @@ const CMSDramaInputPage = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      posterUrl: "",
       title: "",
       alternativeTitle: "",
       year: "",
@@ -94,59 +109,41 @@ const CMSDramaInputPage = () => {
     setIsLoading(true);
     console.log("VALUES", values);
     try {
-      const file = values.image;
+      const response = await fetch("/api/movies/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          posterUrl: values.posterUrl,
+          title: values.title,
+          alternativeTitle: values.alternativeTitle,
+          releaseYear: values.year,
+          synopsis: values.synopsis,
+          linkTrailer: values.trailerLink,
+          createdById: session?.user.id,
+          countryId: values.country,
+          genres: values.genres,
+          actors: values.actors,
+          availabilities: values.availabilities,
+        }),
+      });
 
-      // Baca file dan konversi ke base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
+      if (!response.ok) {
+        throw new Error("Something went wrong while saving movie data.");
+      }
 
-      reader.onload = async () => {
-        const base64String = reader.result;
-
-        // Kirim data ke API backend
-        const response = await fetch("/api/movies/upload", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            image: base64String,
-            fileName: file.name,
-            title: values.title,
-            alternativeTitle: values.alternativeTitle,
-            releaseYear: values.year,
-            synopsis: values.synopsis,
-            linkTrailer: values.trailerLink,
-            createdById: session?.user.id, // Pastikan ini adalah ID user
-            countryId: values.country, // Ambil ID negara dari nama negara
-            genres: values.genres, // Ambil array ID genres dari nama genres
-            actors: values.actors, // Ambil array ID actors dari nama actors
-            availabilities: values.availabilities, // Ini seharusnya ID availabilities jika sudah valid
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            "Something went wrong while uploading the image and saving movie data."
-          );
-        }
-
-        const responseData = await response.json();
-        console.log("Upload Movie Response", responseData);
-      };
-
-      reader.onerror = (error) => {
-        console.error("Error reading file:", error);
-      };
-    } catch (error) {
-      console.error("Upload Error", error);
-    } finally {
-      setIsLoading(false);
+      const responseData = await response.json();
+      console.log("Upload Movie Response", responseData);
       toast({
         variant: "success",
         description: "New movie has been added",
       });
       router.push("/cms-films");
+    } catch (error) {
+      console.error("Upload Error", error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -190,32 +187,11 @@ const CMSDramaInputPage = () => {
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl"
+          className="bg-[#0C0D11] p-6 rounded-lg shadow-md w-full max-w-4xl space-y-6"
         >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col items-center space-y-4">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="text-white">Upload Image</FormLabel>
-                    <FormControl>
-                      <ImageDropzone
-                        value={field.value}
-                        onChange={(file) => {
-                          field.onChange(file); // Update field di form
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="md:col-span-2 grid grid-cols-2 gap-4">
-              <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="md:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="title"
@@ -233,14 +209,13 @@ const CMSDramaInputPage = () => {
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="alternativeTitle"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">
-                        Alternative title (Optional)
+                        Alternative Title (Optional)
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -254,8 +229,7 @@ const CMSDramaInputPage = () => {
                   )}
                 />
               </div>
-
-              <div className="col-span-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
                   name="year"
@@ -273,9 +247,6 @@ const CMSDramaInputPage = () => {
                     </FormItem>
                   )}
                 />
-              </div>
-
-              <div className="col-span-1">
                 <FormField
                   control={form.control}
                   name="country"
@@ -307,236 +278,195 @@ const CMSDramaInputPage = () => {
                   )}
                 />
               </div>
-
-              <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="synopsis"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Synopsis</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Synopsis"
-                          className="bg-[#0C0D11] placeholder:text-gray-400 text-white"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="availabilities"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-white">
-                          Availabilities (Up to 5)
-                        </FormLabel>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        {availabilities.map((item) => (
-                          <FormField
-                            key={item.id}
-                            control={form.control}
-                            name="availabilities"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={item.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0 text-white"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      className="border-white"
-                                      checked={field.value?.includes(
-                                        item.id.toString()
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([
-                                              ...field.value,
-                                              item.id.toString(),
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) =>
-                                                  value !== item.id.toString()
-                                              )
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    {item.name}
-                                  </FormLabel>
-                                </FormItem>
-                              );
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="genres"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-white">
-                          Genres (Up to 7)
-                        </FormLabel>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        {genres.map((item) => (
-                          <FormField
-                            key={item.id}
-                            control={form.control}
-                            name="genres"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={item.id}
-                                  className="flex flex-row items-start space-x-3 space-y-0 text-white"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      className="border-white"
-                                      checked={field.value?.includes(
-                                        item.id.toString()
-                                      )}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([
-                                              ...field.value,
-                                              item.id.toString(),
-                                            ])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) =>
-                                                  value !== item.id.toString()
-                                              )
-                                            );
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">
-                                    {item.name}
-                                  </FormLabel>
-                                </FormItem>
-                              );
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="actors"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">
-                        Add Actors (Up to 9)
-                      </FormLabel>
-                      <FormControl>
-                        <ActorSearch control={form.control} field={field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="col-span-2">
-                <FormField
-                  control={form.control}
-                  name="trailerLink"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Link Trailer</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Link trailer"
-                          className="bg-transparent text-white placeholder:text-gray-400"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button
-                  type="submit"
-                  className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block"
-                  disabled={isLoading}
-                >
-                  Submit
-                </Button>
-              </div>
-
-              {/* <div className="col-span-1">
-                <FormField
-                  control={form.control}
-                  name="award"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-white">Award</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
-                            <SelectValue placeholder="Award" />
-                            </SelectTrigger>
-                          <SelectContent className="bg-[#0C0D11] text-white">
-                            <SelectItem value="japan-award">Japan Award</SelectItem>
-                            <SelectItem value="korea-award">Korea Award</SelectItem>
-                            <SelectItem value="china-award">China Award</SelectItem>
-                            <SelectItem value="thailand-award">Thailand Award</SelectItem>
-                            <SelectItem value="philippines-award">
-                              Philippines Award
-                            </SelectItem>
-                            <SelectItem value="india-award">India Award</SelectItem>
-                            <SelectItem value="indonesia-award">Indonesia Award</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div> */}
+              <FormField
+                control={form.control}
+                name="posterUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Poster URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Enter poster URL..."
+                        className="bg-transparent text-white placeholder:text-gray-400"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="synopsis"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Synopsis</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Synopsis"
+                        className="bg-[#0C0D11] placeholder:text-gray-400 text-white"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-            {/* <Button 
-              type="submit" 
-              className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden"
-              disabled={isLoading}
-            >
-              Submit
-            </Button> */}
+  
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="availabilities"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="text-white mb-4">
+                      Availabilities (Up to 5)
+                    </FormLabel>
+                    <div className="grid grid-cols-2 gap-4">
+                      {availabilities.map((item) => (
+                        <FormField
+                          key={item.id}
+                          control={form.control}
+                          name="availabilities"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-3 text-white">
+                              <FormControl>
+                                <Checkbox
+                                  className="border-white"
+                                  checked={field.value?.includes(
+                                    item.id.toString()
+                                  )}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          item.id.toString(),
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) =>
+                                              value !== item.id.toString()
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel>{item.name}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="genres"
+                render={() => (
+                  <FormItem>
+                    <FormLabel className="text-white mb-4">
+                      Genres (Up to 7)
+                    </FormLabel>
+                    <div className="grid grid-cols-2 gap-4">
+                      {genres.map((item) => (
+                        <FormField
+                          key={item.id}
+                          control={form.control}
+                          name="genres"
+                          render={({ field }) => (
+                            <FormItem className="flex items-center space-x-3 text-white">
+                              <FormControl>
+                                <Checkbox
+                                  className="border-white"
+                                  checked={field.value?.includes(
+                                    item.id.toString()
+                                  )}
+                                  onCheckedChange={(checked) => {
+                                    return checked
+                                      ? field.onChange([
+                                          ...field.value,
+                                          item.id.toString(),
+                                        ])
+                                      : field.onChange(
+                                          field.value?.filter(
+                                            (value) =>
+                                              value !== item.id.toString()
+                                          )
+                                        );
+                                  }}
+                                />
+                              </FormControl>
+                              <FormLabel>{item.name}</FormLabel>
+                            </FormItem>
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="actors"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white mb-4">
+                      Add Actors (Up to 9)
+                    </FormLabel>
+                    <FormControl>
+                      <ActorSearch control={form.control} field={field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="trailerLink"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">Link Trailer</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Link trailer"
+                        className="bg-transparent text-white placeholder:text-gray-400"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            <div className="md:col-span-2">
+              <Button
+                type="submit"
+                className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none"
+                disabled={isLoading}
+              >
+                Submit
+              </Button>
+            </div>
           </div>
         </form>
       </Form>
     </div>
   );
+  
 };
 
 export default CMSDramaInputPage;

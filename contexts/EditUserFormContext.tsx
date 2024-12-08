@@ -4,12 +4,12 @@ import React, { createContext, useContext, useState } from "react";
 
 interface EditUserContextProps {
   isOpen: boolean;
-  userId: number | null;
-  initialData: {
+  userData: {
+    id: number;
     role: string;
     status: string;
   } | null;
-  openEditUser: (userId: number, data: { role: string; status: string }) => void;
+  openEditUser: (data: { id: number; role: string; status: string }) => void;
   closeEditUser: (callback?: () => void) => void;
 }
 
@@ -21,31 +21,31 @@ export const EditUserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [initialData, setInitialData] = useState<{
+  const [userData, setUserData] = useState<{
+    id: number;
     role: string;
     status: string;
   } | null>(null);
 
-  const openEditUser = (
-    userId: number,
-    data: { role: string; status: string }
-  ) => {
-    setUserId(userId);
-    setInitialData(data);
+  const openEditUser = (data: { id: number; role: string; status: string }) => {
+    setUserData(data);
     setIsOpen(true);
   };
 
   const closeEditUser = (callback?: () => void) => {
     setIsOpen(false);
-    setUserId(null);
-    setInitialData(null);
-    if (callback) callback();
+    setUserData(null);
+    if (callback) callback(); // Panggil callback jika ada
   };
 
   return (
     <EditUserContext.Provider
-      value={{ isOpen, userId, initialData, openEditUser, closeEditUser }}
+      value={{
+        isOpen,
+        userData,
+        openEditUser,
+        closeEditUser,
+      }}
     >
       {children}
     </EditUserContext.Provider>

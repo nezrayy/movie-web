@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react"
- 
-import { Button } from "@/components/ui/button"
+import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 
 // This type is used to define the shape of our data.
@@ -23,10 +23,7 @@ export type Award = {
 };
 
 // Function to fetch delete awards
-export const deleteAward = async (
-  id: number,
-  onStatusUpdate: () => void
-) => {
+export const deleteAward = async (id: number, onStatusUpdate: () => void) => {
   try {
     const res = await fetch(`/api/awards/${id}`, {
       method: "DELETE",
@@ -71,12 +68,19 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Award>[] => [
         </Button>
       );
     },
+    cell: ({ row }) => (
+      <div className="text-center">{row.getValue("awardYear")}</div>
+    ),
   },
   {
     accessorKey: "country",
     header: "Country",
     cell: ({ row }) => {
-      return row.original.country.name; // Mengambil nama country dari relasi
+      return (
+        <div className="w-28 truncate">
+          {row.original.country.name}
+        </div>
+      );
     },
   },
   {
@@ -86,9 +90,9 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Award>[] => [
   {
     id: "actions",
     cell: ({ row }) => {
-      const award = row.original
-      const router = useRouter()
- 
+      const award = row.original;
+      const router = useRouter();
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -99,7 +103,7 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Award>[] => [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="hover:cursor-pointer"
               onClick={() => router.push(`/cms-awards?edit=${award.id}`)}
             >
@@ -113,7 +117,7 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Award>[] => [
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      );
     },
   },
 ];

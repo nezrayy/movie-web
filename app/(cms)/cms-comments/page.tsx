@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select"; // Import Select dari Shadcn
 import { usePaginationContext } from "@/contexts/CMSPaginationContext";
 import { Input } from "@/components/ui/input";
+import { Check, Trash2 } from "lucide-react";
 
 interface Comment {
   id: number;
@@ -212,39 +213,26 @@ const CMSComments = () => {
       </div>
       {/* Filter Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 space-y-4 sm:space-y-0 sm:space-x-4">
-        <div className="flex items-center space-x-4">
-          <span className="text-white font-semibold">Filter by status:</span>
+        <div className="flex items-center space-x-3">
+          <span className="text-white font-normal">Status:</span>
           <Select onValueChange={(value) => setFilterStatus(value)}>
             <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent className="bg-[#21212E] text-gray-400">
+            <SelectContent className="bg-[#14141c] text-gray-400">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="APPROVE">Approved</SelectItem>
               <SelectItem value="UNAPPROVE">Unapproved</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-        {/* Search Bar */}
-        <div className="w-full sm:w-1/3">
-          <Input
-            type="text"
-            placeholder="Search by name, comment, or movie title..."
-            className="bg-transparent text-gray-400 placeholder:text-gray-400"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        {/* Filter by Rating */}
-        <div className="flex items-center space-x-4">
-          <span className="text-white font-semibold">Filter by rating:</span>
+          <span className="text-white font-normal">Rating:</span>
           <Select
             onValueChange={(value) => setFilterRating(Number(value) || null)}
           >
             <SelectTrigger className="w-24 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
               <SelectValue placeholder="Rating" />
             </SelectTrigger>
-            <SelectContent className="bg-[#21212E] text-gray-400">
+            <SelectContent className="bg-[#14141c] text-gray-400">
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="1">
                 <Rating style={{ maxWidth: 65 }} value={1} />
@@ -267,6 +255,18 @@ const CMSComments = () => {
             </SelectContent>
           </Select>
         </div>
+        {/* Filter by Rating */}
+        <div className="flex items-center space-x-4"></div>
+        {/* Search Bar */}
+        <div className="w-full sm:w-1/3">
+          <Input
+            type="text"
+            placeholder="Search by name, comment, or film title..."
+            className="bg-transparent text-gray-400 placeholder:text-gray-400"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
       </div>
       <div className="overflow-x-auto outline outline-1 rounded-md text-white">
         <Table className="min-w-full">
@@ -281,7 +281,7 @@ const CMSComments = () => {
               <TableHead className="w-48">Name</TableHead>
               <TableHead className="w-32">Rating</TableHead>
               <TableHead className="w-96">Comment</TableHead>
-              <TableHead className="w-96">Movie</TableHead>
+              <TableHead className="w-96">Film</TableHead>
               <TableHead className="w-32">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -301,27 +301,51 @@ const CMSComments = () => {
                 <TableCell>{comment.commentText}</TableCell>
                 <TableCell>
                   {comment.movie.title} ({comment.movie.releaseYear})
-                </TableCell>{" "}
-                {/* Display movie title */}
-                <TableCell>{comment.status}D</TableCell>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`font-medium ${
+                      comment.status === "APPROVE"
+                        ? "text-green-400" 
+                        : comment.status === "UNAPPROVE"
+                        ? "text-yellow-500" 
+                        : "text-gray-400" 
+                    }`}
+                  >
+                    {comment.status}D
+                  </span>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
       <div className="flex items-center justify-between py-4">
-        {/* Div untuk tombol operasi di kiri */}
         <div className="flex items-center space-x-2">
           <Button
             size="sm"
-            className="bg-red-800 hover:bg-red-900"
+            className="bg-red-800 hover:bg-red-900 flex sm:hidden"
+            onClick={handleDeleteSelected}
+          >
+            <Trash2 className="w-12 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 flex sm:hidden"
+            onClick={handleToggleStatusSelected}
+          >
+            <Check className="w-12 h-4" />
+          </Button>
+          <Button
+            size="sm"
+            className="bg-red-800 hover:bg-red-900 hidden sm:flex"
             onClick={handleDeleteSelected}
           >
             Delete Selected
           </Button>
           <Button
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 hidden sm:flex"
             onClick={handleToggleStatusSelected}
           >
             Change Status

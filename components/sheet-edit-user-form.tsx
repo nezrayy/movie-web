@@ -53,12 +53,17 @@ interface EditUserSheetProps {
   onSave: (updatedUser: any) => void; // Pastikan ini ada
 }
 
-const EditUserSheet: React.FC = () => {
-  const { isOpen, userId, initialData, closeEditUser } = useEditUserContext();
+const EditUserSheet: React.FC<EditUserSheetProps> = ({
+  isOpen,
+  onClose,
+  userId,
+  initialData,
+  onSave,
+}) => {
   const { showNotification } = useNotification();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData || { role: "USER", status: "ACTIVE" },
+    defaultValues: initialData,
   });
 
   useEffect(() => {
@@ -76,16 +81,13 @@ const EditUserSheet: React.FC = () => {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to update user: ${errorText}`);
+        throw new Error("Failed to update user");
       }
 
       const updatedUser = await response.json();
+      onSave(updatedUser);
       showNotification("User updated successfully!");
-      closeEditUser(() => {
-        // Callback tambahan jika diperlukan
-        console.log("EditUserSheet closed after saving");
-      });
+      onClose();
     } catch (error) {
       console.error("Error updating user:", error);
       showNotification("An error occurred while updating the user.");
@@ -93,12 +95,7 @@ const EditUserSheet: React.FC = () => {
   };
 
   return (
-    <Sheet
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) closeEditUser();
-      }}
-    >
+    <Sheet open={isOpen} onOpenChange={onClose}>
       {" "}
       <SheetContent className="bg-[#14141c] border-none">
         <SheetHeader>
@@ -116,15 +113,14 @@ const EditUserSheet: React.FC = () => {
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel className="text-white">Role</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="bg-[#14141c] text-white">
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#14141c] text-gray-400">
                         <SelectItem value="ADMIN">Admin</SelectItem>
-                        <SelectItem value="WRITER">Writer</SelectItem>
                         <SelectItem value="USER">User</SelectItem>
                       </SelectContent>
                     </Select>
@@ -140,13 +136,13 @@ const EditUserSheet: React.FC = () => {
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Status</FormLabel>
+                  <FormLabel className="text-white">Status</FormLabel>
                   <FormControl>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger className="bg-[#14141c] text-white">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-[#14141c] text-gray-400">
                         <SelectItem value="ACTIVE">Active</SelectItem>
                         <SelectItem value="SUSPENDED">Suspended</SelectItem>
                       </SelectContent>

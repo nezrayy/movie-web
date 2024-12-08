@@ -152,11 +152,11 @@ const CMSUsers = () => {
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">#</TableHead>
-              <TableHead>Username</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead className="w-36">Role</TableHead>
-              <TableHead className="w-36">Status</TableHead>
-              <TableHead className="w-40 text-center">Action</TableHead>
+              <TableHead className="w-auto">Username</TableHead>
+              <TableHead className="w-auto">Email</TableHead>
+              <TableHead className="w-auto">Role</TableHead>
+              <TableHead className="w-auto">Status</TableHead>
+              <TableHead className="w-20 text-center"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -168,7 +168,19 @@ const CMSUsers = () => {
                 <TableCell>{user.username}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.role}</TableCell>
-                <TableCell>{user.status}</TableCell>
+                <TableCell>
+                  <span
+                    className={`font-medium ${
+                      user.status === "ACTIVE"
+                        ? "text-green-400" // Warna hijau untuk ACTIVE
+                        : user.status === "SUSPENDED"
+                        ? "text-red-500" // Warna merah untuk SUSPENDED
+                        : "text-gray-400" // Warna default untuk status lain
+                    }`}
+                  >
+                    {user.status}
+                  </span>
+                </TableCell>
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

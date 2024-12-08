@@ -168,7 +168,7 @@ const CMSGenre = () => {
 
   return (
     <div className="mt-12 px-2 sm:px-20 flex flex-col justify-center">
-            <div className="mb-6 text-center">
+      <div className="mb-6 text-center">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
           Genres
         </h1>
@@ -222,13 +222,15 @@ const CMSGenre = () => {
             <TableRow>
               <TableHead className="w-16">#</TableHead>
               <TableHead>Genre</TableHead>
-              <TableHead className="w-32 text-center">Action</TableHead>
+              <TableHead className="w-32 text-center"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredGenres.map((genre, index) => (
               <TableRow key={genre.id} className="text-white" data-testid="row">
-                <TableCell className="font-medium">{index + 1}</TableCell>
+                <TableCell className="font-medium">
+                  {(currentPage - 1) * itemsPerPage + index + 1}
+                </TableCell>
                 <TableCell>{genre.name}</TableCell>
                 <TableCell>
                   <DropdownMenu>

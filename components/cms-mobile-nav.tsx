@@ -23,6 +23,7 @@ import {
   SquareLibrary,
   FileVideo,
   House,
+  FolderOpen,
 } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -62,14 +63,16 @@ const CMSMobileNav: React.FC = () => {
             <div>
               <Input
                 placeholder="Search..."
-                className="bg-transparent text-white placeholder:text-gray-400 mt-4 mb-8"
+                className="bg-transparent text-white placeholder:text-gray-400 mt-4 mb-4"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
             </div>
             <SheetFooter>
               <SheetClose asChild>
-                <Button type="submit">Search</Button>
+                <Button type="submit" className="bg-[#21212E]">
+                  Search
+                </Button>
               </SheetClose>
             </SheetFooter>
           </form>
@@ -84,24 +87,13 @@ const CMSMobileNav: React.FC = () => {
         <House className="text-white w-6 h-6" />
       </div>
 
-      {/* Actors Button */}
-      <div
-        className="flex flex-col items-center cursor-pointer"
-        onClick={() => router.push("/actors")}
-      >
-        <Users className="text-white w-6 h-6" />
-      </div>
-
       {/* CMS Dropdown */}
       <Sheet>
         <SheetTrigger className="flex flex-col items-center">
-          <MoreHorizontal className="text-white w-6 h-6" />
+          <FolderOpen className="text-white w-6 h-6" />
         </SheetTrigger>
         <SheetContent side="top" className="bg-[#0C0D11] text-white">
-          <SheetHeader>
-            <SheetTitle className="text-white font-extrabold">CMS</SheetTitle>
-          </SheetHeader>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-col gap-4">
             {[
               { name: "Actors", path: "/cms-actors", icon: <Sparkles /> },
               { name: "Awards", path: "/cms-awards", icon: <Medal /> },
@@ -122,31 +114,32 @@ const CMSMobileNav: React.FC = () => {
             ].map((item) => (
               <div
                 key={item.name}
-                className="flex items-center justify-between p-3 hover:bg-[#1B1C23] cursor-pointer"
+                className={`flex items-center justify-between p-3 cursor-pointer rounded-md transition-colors ${
+                  router.pathname === item.path
+                    ? "bg-indigo-500 text-white"
+                    : "hover:bg-[#1B1C23]"
+                }`}
                 onClick={() => router.push(item.path)}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
                   {item.icon}
                   <span>{item.name}</span>
                 </div>
               </div>
             ))}
-
-            {/* Logout Button */}
-            {status === "authenticated" && (
-              <div
-                className="flex items-center justify-between p-3 hover:bg-[#1B1C23] cursor-pointer mt-4 text-red-500"
-                onClick={handleLogout}
-              >
-                <div className="flex items-center gap-2">
-                  <LogOut className="text-red-500" />
-                  <span>Logout</span>
-                </div>
-              </div>
-            )}
           </div>
         </SheetContent>
       </Sheet>
+      {status === "authenticated" && (
+        <div
+          className="flex flex-col items-center cursor-pointer"
+          onClick={handleLogout}
+        >
+          <div className="flex items-center gap-2">
+            <LogOut className="text-red-500" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

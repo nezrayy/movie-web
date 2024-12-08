@@ -19,8 +19,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
+// import { useNotification } from "@/contexts/NotificationContext";
 import { fetchUserByEmail } from "@/lib/get-user-by-email";
-import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -46,23 +46,24 @@ const LoginPage = () => {
   const [wrongCredentials, setWrongCredentials] = useState("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const searchParams = useSearchParams();
-  const router = useRouter();
   // const { showNotification } = useNotification();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
-    setWrongCredentials("");
 
     try {
-      // Lakukan login menggunakan next-auth
       const result = await signIn("credentials", {
         redirect: false,
         email: data.email,
         password: data.password,
       });
 
-      // Logging hasil signIn
-      console.log("SignIn Result:", result);
+      const userResult = await fetchUserByEmail(data.email, data.password);
+      if (userResult.error) {
+        setWrongCredentials(userResult.error);
+        setIsSubmitting(false);
+        return;
+      }
 
       if (result?.error) {
         setWrongCredentials("Wrong email or password");
@@ -70,35 +71,18 @@ const LoginPage = () => {
         return;
       }
 
-      // Tambahkan delay kecil untuk memastikan token telah diatur
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // Ambil session setelah login
       const session = await getSession();
-
-      // Logging session untuk debugging
-      console.log("Session after SignIn:", session);
-
-      if (!session) {
-        setWrongCredentials(
-          "Failed to establish session. Please try logging in again."
-        );
-        setIsSubmitting(false);
-        return;
-      }
-
       if (session?.user?.status === "SUSPENDED") {
         setWrongCredentials("Your account has been suspended.");
         setIsSubmitting(false);
         return;
       }
 
-      // Redirect sesuai role
       const role = session?.user?.role;
       if (role === "ADMIN") {
-        router.push("/cms-films");
+        window.location.href = "/cms-films";
       } else {
-        router.push("/");
+        window.location.href = "/";
       }
     } catch (error: any) {
       console.error("Login error:", error);

@@ -62,10 +62,10 @@ const CountriesSelect = React.lazy(async () => ({
   }) {
     return (
       <Select value={field.value} onValueChange={field.onChange}>
-        <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
+        <SelectTrigger className="w-full bg-[#14141c] text-gray-400">
           <SelectValue placeholder="Country" />
         </SelectTrigger>
-        <SelectContent className="bg-[#0C0D11] text-white">
+        <SelectContent className="bg-[#14141c] text-white">
           {countries.map((item) => (
             <SelectItem key={item.id} value={item.id.toString()}>
               {item.name}
@@ -82,10 +82,10 @@ const MoviesSelect = React.lazy(async () => ({
   default: function ({ field, movies }: { field: any; movies: Movie[] }) {
     return (
       <Select value={field.value} onValueChange={field.onChange}>
-        <SelectTrigger className="w-full bg-[#0C0D11] text-gray-400">
+        <SelectTrigger className="w-full bg-[#14141c] text-gray-400">
           <SelectValue placeholder="Movie" />
         </SelectTrigger>
-        <SelectContent className="bg-[#0C0D11] text-white">
+        <SelectContent className="bg-[#14141c] text-white">
           {movies
             .sort((a, b) => a.title.localeCompare(b.title))
             .map((item) => (
@@ -272,7 +272,7 @@ const CMSAwards = () => {
               <FormItem>
                 <FormLabel className="text-white">Country</FormLabel>
                 <FormControl>
-                  <Suspense fallback={<div>Loading countries...</div>}>
+                  <Suspense fallback={<div className="text-white">Loading formies...</div>}>
                     <CountriesSelect field={field} countries={countries} />
                   </Suspense>
                 </FormControl>
@@ -306,7 +306,7 @@ const CMSAwards = () => {
               <FormItem>
                 <FormLabel className="text-white">Movie</FormLabel>
                 <FormControl>
-                  <Suspense fallback={<div>Loading movies...</div>}>
+                  <Suspense fallback={<div className="text-white">Loading form...</div>}>
                     <MoviesSelect field={field} movies={movies} />
                   </Suspense>
                 </FormControl>

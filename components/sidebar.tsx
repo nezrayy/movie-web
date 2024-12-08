@@ -8,10 +8,11 @@ import {
   LogOut,
   LogIn,
   FolderOpen,
+  Home,
 } from "lucide-react";
 import { useContext, createContext, useState, ReactNode, useRef } from "react";
 import { Input } from "./ui/input";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { Button } from "./ui/button";
 
@@ -32,7 +33,10 @@ export default function Sidebar({ children }: SidebarProps) {
   const [expanded, setExpanded] = useState<boolean>(true);
   const router = useRouter();
   const { data: session, status } = useSession(); // Ambil status dari useSession()
+  const pathname = usePathname();
 
+  // Cek apakah sedang berada di halaman /cms-*
+  const isCmsPage = pathname.startsWith("/cms-");
   return (
     <aside className="h-screen outline-0">
       <nav className="h-full flex flex-col bg-[#0C0D11] shadow-sm">
@@ -66,9 +70,14 @@ export default function Sidebar({ children }: SidebarProps) {
           ) : status === "authenticated" && session.user.role === "ADMIN" ? (
             <div
               className="relative group p-3 rounded-md bg-indigo-500 hover:cursor-pointer hover:bg-indigo-700 transition-colors ease-in-out"
-              onClick={() => router.push("/cms-films")}
+              onClick={() => router.push(isCmsPage ? "/" : "/cms-films")}
             >
-              <FolderOpen className="text-white" />
+              {/* Icon berubah tergantung halaman */}
+              {isCmsPage ? (
+                <Home className="text-white" />
+              ) : (
+                <FolderOpen className="text-white" />
+              )}
 
               {/* Tooltip */}
               {!expanded && (
@@ -80,7 +89,7 @@ export default function Sidebar({ children }: SidebarProps) {
         group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
       "
                 >
-                  CMS
+                  {isCmsPage ? "Home" : "CMS"}
                 </div>
               )}
             </div>
@@ -101,7 +110,7 @@ export default function Sidebar({ children }: SidebarProps) {
             {status === "authenticated" && (
               <div className="leading-4 max-w-[120px]">
                 {session?.user?.username && (
-                  <h4 className="font-semibold text-white">
+                  <h4 className="font-semibold text-white mb-1">
                     {session?.user?.username}
                   </h4>
                 )}
@@ -114,12 +123,11 @@ export default function Sidebar({ children }: SidebarProps) {
             )}
             {status === "authenticated" && (
               <div className="ml-5">
-                <Button variant="destructive" onClick={() => signOut()}>
+                <Button variant="destructive" className="py-6 px-3" onClick={() => signOut()}>
                   <LogOut />
                 </Button>
               </div>
             )}
-            <MoreVertical size={20} />
           </div>
         </div>
       </nav>
@@ -173,11 +181,12 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
         {!expanded && (
           <div
             className={`
-          absolute left-full rounded-md px-2 py-1 ml-6
-          bg-white text-[#0C0D11] text-md
-          invisible opacity-20 -translate-x-3 transition-all
-          group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-      `}
+      absolute left-full rounded-md px-2 py-1 ml-6
+      bg-white text-[#0C0D11] text-md
+      invisible opacity-20 -translate-x-3 transition-all
+      group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
+      whitespace-nowrap overflow-hidden text-ellipsis
+    `}
           >
             {text}
           </div>

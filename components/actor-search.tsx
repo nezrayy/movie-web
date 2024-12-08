@@ -1,9 +1,8 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
 import { Input } from "./ui/input";
-import Image from "next/image";
-
+import { X } from "lucide-react";
 export const ActorSearch = ({ control, field, defaultValues = [] }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [actors, setActors] = useState([]); // Menyimpan hasil pencarian aktor
@@ -11,19 +10,26 @@ export const ActorSearch = ({ control, field, defaultValues = [] }) => {
 
   // Set nilai awal selectedActors dari defaultValues saat komponen mount
   useEffect(() => {
+    console.log("Default values for actors:", defaultValues);
     setSelectedActors(defaultValues);
     field.onChange(defaultValues.map((a) => a.id));
   }, []); // Hanya dijalankan satu kali saat komponen mount
 
   // Fetch aktor dari backend saat user mengetik
   const fetchActors = async (term) => {
-    const response = await fetch(`/api/actors?search=${term}`);
-    const data = await response.json();
-    setActors(data);
+    try {
+      const response = await fetch(`/api/actors?search=${term}`);
+      const data = await response.json();
+      console.log("Actors fetched:", data);
+      setActors(data.actors || []); // Sesuaikan dengan response API
+    } catch (error) {
+      console.error("Error fetching actors:", error);
+    }
   };
 
   // Lakukan pencarian setiap kali nilai searchTerm berubah
   useEffect(() => {
+    console.log("Search term changed:", searchTerm);
     if (searchTerm.length > 2) {
       fetchActors(searchTerm);
     } else {
@@ -33,11 +39,19 @@ export const ActorSearch = ({ control, field, defaultValues = [] }) => {
 
   // Fungsi untuk menambahkan aktor yang dipilih
   const addActor = (actor) => {
-    if (selectedActors.length < 9 && !selectedActors.find((a) => a.id === actor.id)) {
-      const updatedActors = [...selectedActors, { id: actor.id, name: actor.name, photoUrl: actor.photoUrl }];
+    if (
+      selectedActors.length < 9 &&
+      !selectedActors.find((a) => a.id === actor.id)
+    ) {
+      const updatedActors = [
+        ...selectedActors,
+        { id: actor.id, name: actor.name, photoUrl: actor.photoUrl },
+      ];
       setSelectedActors(updatedActors);
       field.onChange(updatedActors.map((a) => a.id));
     }
+    setSearchTerm("");
+    setActors([]);
   };
 
   // Fungsi untuk menghapus aktor yang dipilih
@@ -87,26 +101,24 @@ export const ActorSearch = ({ control, field, defaultValues = [] }) => {
 };
 
 const ActorCard = ({ actor, onRemove }) => {
-  console.log("ACTOR:", actor)
+  console.log("ACTOR:", actor);
   return (
     <div className="flex items-start justify-between space-x-2 bg-gray-200 rounded p-2">
       <div className="flex space-x-2">
         {actor.photoUrl ? (
           <div className="w-12 h-16 bg-gray-400 rounded relative">
-            <Image
-              src={actor.photoUrl}
-              alt={actor.name}
-              fill
-              className="rounded"
-            />
+            <img src={actor.photoUrl} alt={actor.name} className="rounded" />
           </div>
         ) : (
-          <div className="w-12 h-16 bg-gray-400 rounded"></div>
+          <img src="/actor-default.png" alt="" className="w-12 h-16 rounded" />
         )}
         <span className="text-gray-700">{actor.name}</span>
       </div>
-      <button className="text-red-500 font-semibold p-0 leading-none" onClick={onRemove}>
-        x
+      <button
+        className="text-red-500 font-semibold p-0 leading-none"
+        onClick={onRemove}
+      >
+        <X className="w-4"/>
       </button>
     </div>
   );

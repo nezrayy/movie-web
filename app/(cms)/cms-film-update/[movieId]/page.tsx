@@ -1,15 +1,20 @@
-"use client"
+"use client";
 
-import ImageDropzone from "@/components/image-drop-zone"
-import { useEffect, useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/hooks/use-toast"
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Form,
   FormControl,
@@ -18,30 +23,43 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Availability, Country, Genre } from "@/types/type"
-import { ActorSearch } from "@/components/actor-search"
-import { useSession } from "next-auth/react"
-import { redirect, useParams, useRouter } from "next/navigation"
+} from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Availability, Country, Genre } from "@/types/type";
+import { ActorSearch } from "@/components/actor-search";
+import { useSession } from "next-auth/react";
+import { redirect, useParams, useRouter } from "next/navigation";
 
-const MAX_FILE_SIZE = 5000000;
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
- 
+const isValidImageUrl = (url: string) => {
+  try {
+    if (url.startsWith("/")) {
+      const path = url.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    } else {
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    }
+  } catch {
+    return false;
+  }
+};
+
 const formSchema = z.object({
-  image: z
-    .any()
-    .optional()
-    .refine((file) => !file || file.size <= MAX_FILE_SIZE, `Max image size is 5MB.`)
-    .refine(
-      (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-      "Only .jpg, .jpeg, .png and .webp formats are supported."
-    ),
+  posterUrl: z
+    .string()
+    .url({ message: "Valid URL is required" })
+    .refine((url) => isValidImageUrl(url), {
+      message: "The URL must point to a valid image (.jpg, .png, .jpeg)",
+    })
+    .optional(),
   title: z.string().min(1, "Title is required"),
   alternativeTitle: z.string().optional(),
-  year: z
-    .string()
-    .regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
+  year: z.string().regex(/^\d{4}$/, "Year must be a valid 4-digit number"),
   country: z.string().min(1, "Country is required"),
   synopsis: z.string().min(10, "Synopsis must be at least 10 characters long"),
   availabilities: z
@@ -56,23 +74,20 @@ const formSchema = z.object({
     .array(z.number())
     .min(1, "At least one actor must be selected")
     .max(9, "You can select up to 9 actors"),
-  trailerLink: z
-    .string()
-    .url("Trailer link must be a valid URL"),
-  award: z.string().optional(),
+  trailerLink: z.string().url("Trailer link must be a valid URL"),
 });
 
 const CMSDramaUpdatePage = () => {
-  const [genres, setGenres] = useState<Genre[]>([])
-  const [availabilities, setAvailabilities] = useState<Availability[]>([])
-  const [countries, setCountries] = useState<Country[]>([])
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [availabilities, setAvailabilities] = useState<Availability[]>([]);
+  const [countries, setCountries] = useState<Country[]>([]);
   const [movieDetails, setMovieDetails] = useState(null);
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
   const { data: session } = useSession();
-  const params = useParams<{ movieId: string }>(); 
+  const params = useParams<{ movieId: string }>();
   const movieId = params.movieId;
-  const router = useRouter()
-  const { toast } = useToast()
+  const router = useRouter();
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,38 +101,17 @@ const CMSDramaUpdatePage = () => {
       genres: [],
       actors: [],
       trailerLink: "",
-      award: "",
     },
-  })
+  });
 
   const { reset } = form;
- 
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      let base64String = null;
-      let fileName = null;
-  
-      if (values.image) {
-        const file = values.image;
-  
-        // Baca file dan konversi ke base64 hanya jika ada file baru
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-  
-        await new Promise((resolve, reject) => {
-          reader.onload = () => {
-            base64String = reader.result;
-            fileName = file.name;
-            resolve(null);
-          };
-          reader.onerror = reject;
-        });
-      }
-  
-      // Persiapkan payload data untuk dikirim ke backend
-      const payload: any = {
-        id: movieId, // Mengirim id dari movie
+      const payload = {
+        id: movieId,
+        posterUrl: values.posterUrl,
         title: values.title,
         alternativeTitle: values.alternativeTitle,
         releaseYear: values.year,
@@ -129,14 +123,7 @@ const CMSDramaUpdatePage = () => {
         actors: values.actors,
         availabilities: values.availabilities,
       };
-  
-      // Tambahkan field image jika ada file baru
-      if (base64String && fileName) {
-        payload.image = base64String;
-        payload.fileName = fileName;
-      }
-  
-      // Kirim data ke API backend
+
       const response = await fetch(`/api/movies/${movieId}/update`, {
         method: "PUT",
         headers: {
@@ -144,22 +131,22 @@ const CMSDramaUpdatePage = () => {
         },
         body: JSON.stringify(payload),
       });
-  
+
       if (!response.ok) {
-        throw new Error("Something went wrong while uploading the image and saving movie data.");
+        throw new Error("Something went wrong while updating movie data.");
       }
-  
+
       const responseData = await response.json();
-      console.log("Upload Movie Response", responseData);
-    } catch (error) {
-      console.error("Upload Error", error);
-    } finally {
-      setIsLoading(false);
+      console.log("Update Movie Response", responseData);
       toast({
         variant: "success",
         description: "Movie updated successfully",
-      })
-      router.push("/cms-films")
+      });
+      router.push("/cms-films");
+    } catch (error) {
+      console.error("Update Error", error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -167,75 +154,77 @@ const CMSDramaUpdatePage = () => {
     const response = await fetch(`/api/get-movie-details/${movieId}`);
     const movie = await response.json();
     return movie;
-  }
+  };
 
   const fetchGenres = async () => {
     const response = await fetch("/api/get-genres");
     const genres = await response.json();
     return genres;
-  }
+  };
 
   const fetchAvailabilities = async () => {
     const response = await fetch("/api/get-availabilities");
     const availabilities = await response.json();
     return availabilities;
-  }
+  };
 
   const fetchCountries = async () => {
     const response = await fetch("/api/get-countries");
     const countries = await response.json();
     return countries;
-  }
+  };
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // Fetch genres, availabilities, and countries in parallel
-        const [genres, availabilities, countries, movieDetails] = await Promise.all([
-          fetchGenres(),
-          fetchAvailabilities(),
-          fetchCountries(),
-          fetchMovieDetails(movieId),
-        ]);
-  
+        const [genres, availabilities, countries, movieDetails] =
+          await Promise.all([
+            fetchGenres(),
+            fetchAvailabilities(),
+            fetchCountries(),
+            fetchMovieDetails(movieId),
+          ]);
+
         setGenres(genres);
         setAvailabilities(availabilities);
         setCountries(countries);
         setMovieDetails(movieDetails);
-  
+
         if (movieDetails) {
           reset({
-            image: movieDetails.posterUrl ?? "",
+            posterUrl: movieDetails.posterUrl ?? "",
             title: movieDetails.title ?? "",
             alternativeTitle: movieDetails.alternativeTitle ?? "",
             year: movieDetails.releaseYear?.toString() ?? "",
             country: movieDetails.countryId?.toString() ?? "",
             synopsis: movieDetails.synopsis ?? "",
             availabilities: movieDetails.availabilities
-              ? movieDetails.availabilities.map((a: any) => a.availability?.id?.toString() ?? "")
+              ? movieDetails.availabilities.map(
+                  (a: any) => a.availability?.id?.toString() ?? ""
+                )
               : [],
             genres: movieDetails.genres
-              ? movieDetails.genres.map((g: any) => g.genre?.id?.toString() ?? "")
+              ? movieDetails.genres.map(
+                  (g: any) => g.genre?.id?.toString() ?? ""
+                )
               : [],
             actors: movieDetails.actors
               ? movieDetails.actors.map((a: any) => a.actor?.id ?? 0)
               : [],
             trailerLink: movieDetails.linkTrailer ?? "",
-            award: movieDetails.award?.id?.toString() ?? "",
           });
         }
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
       }
     };
-  
+
     fetchInitialData();
   }, [movieId, reset]);
-  
 
   return (
     <div className="flex flex-col w-full h-full p-8 justify-center items-center">
-            <div className="mb-6 text-center">
+      <div className="mb-6 text-center">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
           Update Film
         </h1>
@@ -248,32 +237,16 @@ const CMSDramaUpdatePage = () => {
           >
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex flex-col items-center space-y-4">
-              <FormField
-                control={form.control}
-                name="image"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="text-white">Upload Image</FormLabel>
-                    <FormControl>
-                      <ImageDropzone
-                        value={field.value}
-                        onChange={(file) => {
-                          field.onChange(file); // Update field di form
-                        }}
-                      />
-                    </FormControl>
-                    <FormDescription className="text-destructive">Please re-upload or update the movie poster</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-                <Button 
-                  type="submit" 
-                  className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none hidden md:block"
-                  disabled={isLoading}
-                >
-                  Submit
-                </Button>
+                <div className="flex text-white font-semibold justify-start">
+                  Current Poster
+                </div>
+                <div>
+                  <img
+                    src={movieDetails.posterUrl || "/placeholder-image.jpg"}
+                    alt="Current Poster"
+                    className="w-full h-auto rounded-lg"
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2 grid grid-cols-2 gap-4">
@@ -301,7 +274,9 @@ const CMSDramaUpdatePage = () => {
                     name="alternativeTitle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">Alternative title (Optional)</FormLabel>
+                        <FormLabel className="text-white">
+                          Alternative title (Optional)
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Alternative title"
@@ -352,7 +327,10 @@ const CMSDramaUpdatePage = () => {
                             </SelectTrigger>
                             <SelectContent className="bg-[#0C0D11] text-white">
                               {countries.map((item) => (
-                                <SelectItem key={item.id} value={item.id.toString()}>
+                                <SelectItem
+                                  key={item.id}
+                                  value={item.id.toString()}
+                                >
                                   {item.name}
                                 </SelectItem>
                               ))}
@@ -366,6 +344,23 @@ const CMSDramaUpdatePage = () => {
                 </div>
 
                 <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="posterUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-white">Poster URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Enter poster URL..."
+                            className="bg-transparent text-white placeholder:text-gray-400"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormField
                     control={form.control}
                     name="synopsis"
@@ -392,7 +387,9 @@ const CMSDramaUpdatePage = () => {
                     render={() => (
                       <FormItem>
                         <div className="mb-4">
-                          <FormLabel className="text-white">Availabilities (Up to 5)</FormLabel>
+                          <FormLabel className="text-white">
+                            Availabilities (Up to 5)
+                          </FormLabel>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           {availabilities.map((item) => (
@@ -409,12 +406,20 @@ const CMSDramaUpdatePage = () => {
                                     <FormControl>
                                       <Checkbox
                                         className="border-white"
-                                        checked={field.value?.includes(item.id.toString())}
+                                        checked={field.value?.includes(
+                                          item.id.toString()
+                                        )}
                                         onCheckedChange={(checked) => {
                                           return checked
-                                            ? field.onChange([...field.value, item.id.toString()])
+                                            ? field.onChange([
+                                                ...field.value,
+                                                item.id.toString(),
+                                              ])
                                             : field.onChange(
-                                                field.value?.filter((value) => value !== item.id.toString())
+                                                field.value?.filter(
+                                                  (value) =>
+                                                    value !== item.id.toString()
+                                                )
                                               );
                                         }}
                                       />
@@ -441,7 +446,9 @@ const CMSDramaUpdatePage = () => {
                     render={() => (
                       <FormItem>
                         <div className="mb-4">
-                          <FormLabel className="text-white">Genres (Up to 7)</FormLabel>
+                          <FormLabel className="text-white">
+                            Genres (Up to 7)
+                          </FormLabel>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           {genres.map((item) => (
@@ -458,12 +465,20 @@ const CMSDramaUpdatePage = () => {
                                     <FormControl>
                                       <Checkbox
                                         className="border-white"
-                                        checked={field.value?.includes(item.id.toString())}
+                                        checked={field.value?.includes(
+                                          item.id.toString()
+                                        )}
                                         onCheckedChange={(checked) => {
                                           return checked
-                                            ? field.onChange([...field.value, item.id.toString()])
+                                            ? field.onChange([
+                                                ...field.value,
+                                                item.id.toString(),
+                                              ])
                                             : field.onChange(
-                                                field.value?.filter((value) => value !== item.id.toString())
+                                                field.value?.filter(
+                                                  (value) =>
+                                                    value !== item.id.toString()
+                                                )
                                               );
                                         }}
                                       />
@@ -489,13 +504,22 @@ const CMSDramaUpdatePage = () => {
                     name="actors"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">Add Actors (Up to 9)</FormLabel>
+                        <FormLabel className="text-white">
+                          Add Actors (Up to 9)
+                        </FormLabel>
                         <FormControl>
-                          <ActorSearch 
-                            control={form.control} 
-                            field={field} 
+                          <ActorSearch
+                            control={form.control}
+                            field={field}
                             // @ts-ignore
-                            defaultValues={movieDetails.actors ? movieDetails.actors.map((a) => ({ id: a.actor?.id, name: a.actor?.name })) : []} 
+                            defaultValues={
+                              movieDetails.actors
+                                ? movieDetails.actors.map((a) => ({
+                                    id: a.actor?.id,
+                                    name: a.actor?.name,
+                                  }))
+                                : []
+                            }
                           />
                         </FormControl>
                         <FormMessage />
@@ -510,7 +534,9 @@ const CMSDramaUpdatePage = () => {
                     name="trailerLink"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-white">Link Trailer</FormLabel>
+                        <FormLabel className="text-white">
+                          Link Trailer
+                        </FormLabel>
                         <FormControl>
                           <Input
                             placeholder="Link trailer"
@@ -522,21 +548,21 @@ const CMSDramaUpdatePage = () => {
                       </FormItem>
                     )}
                   />
+                  <Button
+                    type="submit"
+                    className="w-full mt-6 bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block"
+                    disabled={isLoading}
+                  >
+                    Update
+                  </Button>
                 </div>
               </div>
-              <Button 
-                type="submit" 
-                className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600 focus:outline-none block md:hidden"
-                disabled={isLoading}
-              >
-                Update
-              </Button>
             </div>
           </form>
         </Form>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default CMSDramaUpdatePage
+export default CMSDramaUpdatePage;

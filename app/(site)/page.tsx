@@ -46,6 +46,35 @@ interface Movie {
 }
 
 export default function Home() {
+  const images = [
+    "/header/films/nowayhome.png",
+    "/header/films/avatar.png",
+    "/header/films/blade.png",
+    "/header/films/deadpool.png",
+    "/header/films/dune2.png",
+    "/header/films/granturismo.png",
+    "/header/films/knives.png",
+    "/header/films/thor.png",
+    "/header/films/kyloren.png",
+    "/header/films/kingsman.png",
+  ];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+
+      setTimeout(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+        setIsTransitioning(false);
+      }, 550);
+    }, 5000); // Ganti gambar setiap 10 detik
+
+    return () => clearInterval(interval); // Bersihkan interval saat unmount
+  }, []);
+
   const {
     sortBy,
     yearFilter,
@@ -270,36 +299,58 @@ export default function Home() {
         {/* Main Content */}
         <div className="w-full items-center">
           {/* Image Header with Fade Effect */}
-          <div
-            className="relative w-full h-[200px] md:h-[420px] bg-center bg-cover bg-no-repeat fade-mask"
-            style={{
-              backgroundImage: "url('/wolverine.jpg')",
-              backgroundPosition: "center",
-            }}
-          >
+          <div className="relative w-full xs:h-[120px] sm:h-[240px] md:h-[340px] lg:h-[460px] overflow-hidden fade-mask">
+            {/* Layer gambar */}
+            <div
+              className={`absolute inset-0 w-full h-full bg-center bg-cover bg-no-repeat transition-opacity duration-1000 fade-mask ${
+                isTransitioning ? "opacity-0" : "opacity-100"
+              }`}
+              style={{
+                backgroundImage: `url(${images[currentImageIndex]})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            ></div>
+
+            {/* Overlay teks */}
             <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-10">
-              {/* Conditionally Render Logo or h1 */}
-              <div className="sm:hidden">
-                {/* Mobile Layout: Show Logo */}
+              {/* Mobile Layout: Logo */}
+              <div className="block lg:hidden">
                 <img
                   src="/rewatch.png"
                   alt="Rewatch Logo"
-                  className="w-40 h-auto" // Adjust size as needed
+                  className="w-40 md:w-60 h-auto"
                 />
               </div>
-              <div className="hidden sm:block">
-                {/* Desktop Layout: Show h1 */}
-                <h1 className="text-white sm:text-2xl md:text-5xl lg:text-6xl font-bold text-center">
+
+              {/* Desktop Layout: Teks */}
+              <div className="hidden lg:block">
+                <h1 className="text-white sm:text-2xl md:text-3xl lg:text-4xl xl:text-6xl font-bold text-center">
                   Explore the World of Entertainment.
                 </h1>
-                <h1 className="text-white sm:text-2xl sm:mt-2 md:text-5xl lg:text-6xl font-bold text-center md:mt-4">
+                <h1 className="text-white sm:text-2xl sm:mt-2 md:text-3xl lg:text-4xl xl:text-6xl font-bold text-center md:mt-4">
                   Find, Review, and Enjoy.
                 </h1>
               </div>
             </div>
+
+            {/* Media Query via Tailwind */}
+            <style jsx>{`
+              @media (max-width: 640px) {
+                .fade-mask {
+                  background-position: center top; /* Posisi gambar untuk layar kecil */
+                  height: 250px; /* Tinggi yang sesuai */
+                }
+              }
+              @media (min-width: 641px) {
+                .fade-mask {
+                  background-position: center -55px; /* Posisi gambar untuk desktop */
+                }
+              }
+            `}</style>
           </div>
 
-          <div className="text-gray-500 p-4 mb-8">
+          <div className="text-gray-500 py-0 px-4 mb-8">
             <Accordion type="single" collapsible>
               <AccordionItem
                 value="item-1"
@@ -405,7 +456,7 @@ export default function Home() {
           </div>
           {currentItems.length > 0 ? (
             <div className="container flex-1 relative mx-auto">
-              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 text-white">
+              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 text-white">
                 {currentItems.map((card) => (
                   <div key={card.id} className="container mb-6 mx-auto sm:mx-0">
                     <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
@@ -501,8 +552,8 @@ export default function Home() {
           ) : (
             // Pesan jika tidak ada film yang cocok
             <div className="flex justify-center items-center h-64">
-              <p className="text-gray-500 text-lg">
-                Sorry! No movies found. Try another filter(s) or come back later.{" "}
+              <p className="text-gray-500 text-sm md:text-lg">
+                No films found. Try different filter(s) or wait a moment.
               </p>
             </div>
           )}

@@ -28,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (user) {
           // Periksa status user
           if (user.status === "SUSPENDED") {
-            throw new Error("Your account is suspended");
+            throw new RedirectError("Your account is suspended", "/login"); // Tambahkan pengalihan
           }
 
           const existingAccount = await prisma.account.findFirst({
@@ -134,6 +134,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   pages: {
     signIn: "/login",
+    error: "/login"
   },
   session: {
     strategy: "jwt",

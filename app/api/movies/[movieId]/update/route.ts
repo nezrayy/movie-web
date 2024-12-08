@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import prisma from "@/lib/db"; // Prisma client Anda
 
 export const runtime = "nodejs"; // Gunakan Node.js runtime
@@ -9,8 +7,7 @@ export async function PUT(req: Request) {
     const body = await req.json();
     const {
       id,
-      image,
-      fileName,
+      posterUrl, // Ganti image/fileName menjadi posterUrl
       title,
       alternativeTitle,
       releaseYear,
@@ -32,23 +29,7 @@ export async function PUT(req: Request) {
       );
     }
 
-    let posterUrl = undefined;
-
-    if (image && fileName) {
-      const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-      const buffer = Buffer.from(base64Data, "base64");
-
-      const uploadsDir = path.join(process.cwd(), "public/uploads");
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-
-      const filePath = path.join(uploadsDir, fileName);
-      fs.writeFileSync(filePath, buffer);
-
-      posterUrl = `/uploads/${fileName}`;
-    }
-
+    // Update data film di database
     const updatedMovie = await prisma.movie.update({
       where: {
         id: parseInt(id),
@@ -58,7 +39,7 @@ export async function PUT(req: Request) {
         alternativeTitle,
         releaseYear: releaseYear ? parseInt(releaseYear) : null,
         synopsis,
-        posterUrl,
+        posterUrl, // Simpan link langsung
         linkTrailer,
         country: { connect: { id: parseInt(countryId) } },
         genres: {

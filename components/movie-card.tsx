@@ -19,12 +19,10 @@ const MovieCard = ({
     <div className="flex flex-col items-start p-4 rounded-lg shadow-lg h-fit text-white">
       {/* Bagian gambar di atas */}
       <div className="w-full bg-gray-200 rounded-lg overflow-hidden relative mb-4 group-hover:opacity-60 transition-opacity duration-500 ease-in-out" style={{ aspectRatio: '3 / 4' }}>
-        <Image
+      <img
           src={imageLink}
           alt={title}
-          layout="fill"
-          objectFit="cover"
-          className="rounded-lg"
+          className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
         />
       </div>
 

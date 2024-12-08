@@ -239,7 +239,7 @@ const CMSCountries = () => {
               <TableHead className="w-16">#</TableHead>
               <TableHead>Country</TableHead>
               <TableHead>Code</TableHead>
-              <TableHead className="w-36 text-center">Action</TableHead>
+              <TableHead className="w-36 text-center"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

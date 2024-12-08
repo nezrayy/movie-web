@@ -23,7 +23,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { DatePicker } from "@/components/ui/datepicker";
-import ImageDropzone from "@/components/image-drop-zone-sm";
 import {
   Select,
   SelectTrigger,
@@ -32,12 +31,11 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { useNotification } from "@/contexts/NotificationContext";
-import { useEditActorContext } from "@/contexts/EditActorFormContext";
 
 export type Actor = {
   id: number;
   name: string;
-  birthdate: string; // String format untuk API
+  birthdate: string;
   country: { id: number; name: string };
   photoUrl: string;
 };
@@ -45,21 +43,54 @@ export type Actor = {
 interface EditActorProps {
   isOpen: boolean;
   onClose: () => void;
-  actorData: Actor;
+  actorData: Actor | null;
   onSave: (updatedActor: Actor) => void;
 }
+
+const isValidImageUrl = (url: string) => {
+  try {
+    // Cek apakah URL adalah path lokal (dimulai dengan "/")
+    if (url.startsWith("/")) {
+      // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+      const path = url.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    } else {
+      // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname.toLowerCase();
+      return (
+        path.endsWith(".jpg") || path.endsWith(".png") || path.endsWith(".jpeg")
+      );
+    }
+  } catch (error) {
+    // Jika URL tidak valid
+    return false;
+  }
+};
 
 const formSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   birthdate: z.date(),
   countryId: z.string().min(1, { message: "Country is required" }),
-  image: z.any().optional(),
+  photoUrl: z
+    .string()
+    .url({ message: "Valid URL is required" })
+    .refine((url) => isValidImageUrl(url), {
+      message: "The URL must point to a valid image (.jpg, .png, .jpeg)",
+    })
+    .optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-const SheetEditActor: React.FC = () => {
-  const { isOpen, closeEditForm, actorData } = useEditActorContext();
+const SheetEditActor: React.FC<EditActorProps> = ({
+  isOpen,
+  onClose,
+  actorData,
+  onSave,
+}) => {
   const [countriesData, setCountriesData] = useState<
     { id: number; name: string }[]
   >([]);
@@ -68,12 +99,28 @@ const SheetEditActor: React.FC = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: actorData.name,
-      birthdate: new Date(actorData.birthdate),
-      countryId: actorData.country.id.toString(),
-      image: null,
+      name: actorData?.name || "",
+      birthdate: actorData?.birthdate
+        ? new Date(actorData.birthdate)
+        : undefined,
+      countryId: actorData?.country?.id.toString() || "",
+      photoUrl: actorData?.photoUrl || "",
     },
   });
+
+  useEffect(() => {
+    // Update default values whenever actorData changes
+    if (actorData) {
+      form.reset({
+        name: actorData.name || "",
+        birthdate: actorData.birthdate
+          ? new Date(actorData.birthdate)
+          : undefined,
+        countryId: actorData.country?.id.toString() || "",
+        photoUrl: actorData?.photoUrl || "",
+      });
+    }
+  }, [actorData, form]);
 
   useEffect(() => {
     const fetchCountries = async () => {
@@ -91,17 +138,15 @@ const SheetEditActor: React.FC = () => {
 
   const handleSubmit = async (data: FormValues) => {
     try {
-      const formData = new FormData();
-      formData.append("name", data.name);
-      formData.append("birthdate", data.birthdate.toISOString());
-      formData.append("countryId", data.countryId);
-      if (data.image) {
-        formData.append("image", data.image);
-      }
-
-      const response = await fetch(`/api/actors/${actorData.id}`, {
+      const response = await fetch(`/api/actors/${actorData?.id}`, {
         method: "PUT",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          birthdate: data.birthdate.toISOString(),
+          countryId: data.countryId,
+          photoUrl: data.photoUrl,
+        }),
       });
 
       if (!response.ok) {
@@ -109,12 +154,19 @@ const SheetEditActor: React.FC = () => {
       }
 
       const updatedActor = await response.json();
+      onSave(updatedActor);
       showNotification("Actor updated successfully!");
-      closeEditForm(() => window.location.reload());
+      onClose();
+      window.location.reload();
     } catch (error) {
       console.error("Error updating actor:", error);
       showNotification("An error occurred while updating actor.");
     }
+  };
+
+  const handleCloseSheet = () => {
+    onClose();
+    window.location.reload();
   };
 
   return (
@@ -122,7 +174,7 @@ const SheetEditActor: React.FC = () => {
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          closeEditForm(() => window.location.reload());
+          handleCloseSheet();
         }
       }}
     >
@@ -180,7 +232,7 @@ const SheetEditActor: React.FC = () => {
                       <SelectTrigger className="bg-[#14141c] text-gray-400 placeholder:text-gray-400">
                         <SelectValue placeholder="Select country" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#21212E] text-gray-400">
+                      <SelectContent className="bg-[#14141c] text-gray-400">
                         {countriesData.map((country) => (
                           <SelectItem
                             key={country.id}
@@ -198,14 +250,15 @@ const SheetEditActor: React.FC = () => {
             />
             <FormField
               control={form.control}
-              name="image"
+              name="photoUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Photo</FormLabel>
+                  <FormLabel className="text-white">Photo URL</FormLabel>
                   <FormControl>
-                    <ImageDropzone
-                      value={field.value}
-                      onChange={(file) => field.onChange(file)}
+                    <Input
+                      {...field}
+                      placeholder="Enter photo URL..."
+                      className="bg-[#14141c] text-gray-400 placeholder:text-gray-400"
                     />
                   </FormControl>
                   <FormMessage />

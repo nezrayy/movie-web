@@ -63,7 +63,7 @@ export function DataTable<TData, TValue>({
           onChange={(event) =>
             table.getColumn(filter)?.setFilterValue(event.target.value)
           }
-          className="w-40 bg-[#14141c] text-gray-300 placeholder:text-gray-400"
+          className="w-60 bg-[#14141c] text-gray-300 placeholder:text-gray-400"
         />
       </div>
       <div className="rounded-md border text-white">

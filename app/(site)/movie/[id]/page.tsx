@@ -50,6 +50,7 @@ function MovieDetailContent() {
   const { data: session } = useSession();
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const fetchMovie = async () => {
@@ -93,7 +94,27 @@ function MovieDetailContent() {
   const embedLink = convertToEmbedLink(movie?.linkTrailer || "");
 
   if (!movie) {
-    return <p>Loading...</p>;
+    return (
+      <main>
+        <div className="flex min-h-screen">
+          {/* Main Content */}
+          <div className="w-full items-center">
+            {/* Video Header Placeholder */}
+            <div className="relative w-full h-[200px] md:h-[420px] mb-4 bg-center bg-cover bg-no-repeat fade-mask">
+              <div className="absolute inset-0 bg-[#1C1C28] animate-pulse"></div>
+            </div>
+
+            <div className="container flex flex-col md:flex-row mx-auto gap-4 p-4">
+              {/* Poster Placeholder */}
+              <div className="flex flex-col w-full sm:w-auto items-center">
+                <div className="w-[120px] h-[180px] sm:w-[240px] sm:h-[360px] bg-[#1C1C28] animate-pulse rounded-lg shadow-md"></div>
+                <div className="mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md w-full sm:w-[240px]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const handleSubmit = async () => {
@@ -103,7 +124,7 @@ function MovieDetailContent() {
     }
 
     if (rating === 0 || reviewText.trim() === "") {
-      setErrorMessage("Please provide a rating and a comment.");
+      setErrorMessage("Please provide a rating and a review.");
       return;
     }
 
@@ -130,9 +151,11 @@ function MovieDetailContent() {
         return;
       }
 
+      // Reset form and show success message
       setRating(0);
       setReviewText("");
       setErrorMessage("");
+      setSuccessMessage("Submitted. Wait for admin to approve your review.");
     } catch (error) {
       setErrorMessage("An error occurred while submitting the review.");
       console.error("Error submitting comment:", error);
@@ -198,10 +221,10 @@ function MovieDetailContent() {
                 />
               </div>
               <div className="mt-4 p-4 bg-[#1C1C28] rounded-lg shadow-md w-full sm:w-[240px]">
-                <h3 className="text-white text-md font-normal mb-4">
+                <h3 className="text-white text-md font-normal mb-2">
                   AVAILABILITY
                 </h3>
-                <Separator className="my-4 bg-gray-500" />
+                <Separator className="bg-gray-500" />
                 <div className="flex flex-wrap gap-2 mt-2">
                   {movie.availabilities.map((movieAvailability) => (
                     <Badge
@@ -224,7 +247,7 @@ function MovieDetailContent() {
                 {movie.synopsis}
               </div>
               {/* <h3 className="text-white text-lg font-semibold">Genre</h3> */}
-              <div className="genre-container flex flex-wrap gap-2 mt-4">
+              <div className="genre-container flex flex-wrap gap-2 mt-1">
                 {movie.genres.map(({ genre }) => (
                   <Badge
                     key={genre.id} // Tambahkan key di sini
@@ -235,9 +258,10 @@ function MovieDetailContent() {
                 ))}
               </div>
               <div className="text-white text-lg font-semibold mb-4 pt-4">
-                <div className="flex items-center justify-start gap-2 w-16 p-2 rounded-md">
-                  <p className="font-light text-lg">{movie.rating}</p>
-                  <Star className="text-yellow-500 w-5" />
+                <div className="flex items-center gap-2 w-fit px-2 py-1 rounded-md bg-yellow-500">
+                  <p className="font-normal text-xl min-w-[2rem] text-center text-black">
+                    {(movie.rating ?? 0).toFixed(1)}
+                  </p>
                 </div>
               </div>
               <div className="actor-container justify-center bg-[#1C1C28] rounded-lg shadow-md p-4">
@@ -287,6 +311,11 @@ function MovieDetailContent() {
                       {errorMessage && (
                         <p className="text-red-500 text-sm ml-4">
                           {errorMessage}
+                        </p>
+                      )}
+                      {successMessage && (
+                        <p className="text-green-500 text-sm ml-4">
+                          {successMessage}
                         </p>
                       )}
                     </div>

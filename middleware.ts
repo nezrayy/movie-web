@@ -56,7 +56,12 @@ export async function middleware(req: NextRequest) {
 
   if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
     if (token) {
-      return NextResponse.redirect(new URL("/", req.url)); // Redirect ke home jika sudah login
+      // Jika user adalah admin, arahkan ke /cms-films
+      if (token.role === "ADMIN") {
+        return NextResponse.redirect(new URL("/cms-films", req.url));
+      }
+      // Jika user bukan admin, arahkan ke halaman home
+      return NextResponse.redirect(new URL("/", req.url));
     }
   }
 
@@ -75,7 +80,6 @@ export async function middleware(req: NextRequest) {
   // Lanjutkan jika user punya akses
   return NextResponse.next();
 }
-
 // Aktifkan middleware hanya untuk path /api/* dan halaman admin
 export const config = {
   matcher: [
@@ -89,6 +93,9 @@ export const config = {
     "/cms-genres/:path*",
     "/cms-header/:path*",
     "/cms-users/:path*",
+    "/images/:path*", // Tambahkan ini
+    "/images/actors/:path*", // Tambahkan ini
+    "/uploads/:path*", // Tambahkan ini
     "/login",
     "/register",
   ],

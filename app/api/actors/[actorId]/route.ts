@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import fs from "fs";
-import path from "path";
 
 export async function DELETE(
   request: Request,
@@ -62,16 +60,13 @@ export async function PUT(
 
   try {
     // Parse form data
-    const formData = await request.formData();
-    const name = formData.get("name")?.toString();
-    const birthdate = formData.get("birthdate")
-      ? new Date(formData.get("birthdate").toString())
+    const jsonBody = await request.json();
+    const name = jsonBody.name?.toString();
+    const birthdate = jsonBody.birthdate
+      ? new Date(jsonBody.birthdate.toString())
       : null;
-    const countryId = parseInt(
-      formData.get("countryId")?.toString() || "0",
-      10
-    );
-    const file = formData.get("image") as File | null;
+    const countryId = parseInt(jsonBody.countryId, 10); // Convert to Int
+    const photoUrl = jsonBody.photoUrl?.toString();
 
     if (!name || !birthdate || isNaN(countryId)) {
       return NextResponse.json(
@@ -80,32 +75,16 @@ export async function PUT(
       );
     }
 
-    let photoUrl = null;
-    if (file) {
-      const filename = `${Date.now()}-${file.name}`;
-      const filePath = path.join(
-        process.cwd(),
-        "public",
-        "images",
-        "actors",
-        filename
-      );
-
-      const buffer = await file.arrayBuffer();
-      fs.writeFileSync(filePath, Buffer.from(buffer));
-      photoUrl = `/images/actors/${filename}`;
-    }
-
     // Update actor di database
     const updatedActor = await prisma.actor.update({
       where: { id: actorId },
       data: {
         name,
         birthdate,
+        photoUrl,
         country: {
           connect: { id: countryId },
         },
-        ...(photoUrl && { photoUrl }),
       },
     });
 

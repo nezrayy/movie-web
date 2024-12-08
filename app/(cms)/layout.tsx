@@ -19,6 +19,9 @@ import NotificationDialog from "@/components/notification";
 import { EditFormProvider } from "@/contexts/EditFormContext";
 import { PaginationProvider } from "@/contexts/CMSPaginationContext";
 import CMSMobileNav from "@/components/cms-mobile-nav";
+import { EditActorProvider } from "@/contexts/EditActorFormContext";
+import { EditUserProvider } from "@/contexts/EditUserFormContext";
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -88,12 +91,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Konten Utama */}
       <div className="flex-grow flex flex-col mb-20 lg:mb-0">
-        <EditFormProvider>
-          <NotificationProvider>
-            <PaginationProvider>{children}</PaginationProvider>
-            <NotificationDialog />
-          </NotificationProvider>
-        </EditFormProvider>
+        {pathname.startsWith("/cms-users") ? (
+          <EditUserProvider>
+            <NotificationProvider>
+              <PaginationProvider>{children}</PaginationProvider>
+              <NotificationDialog />
+            </NotificationProvider>
+          </EditUserProvider>
+        ) : (
+          <EditFormProvider>
+            <NotificationProvider>
+              <PaginationProvider>{children}</PaginationProvider>
+              <NotificationDialog />
+            </NotificationProvider>
+          </EditFormProvider>
+        )}
       </div>
 
       {/* Mobile Navigation */}

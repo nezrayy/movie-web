@@ -11,20 +11,11 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { RotateCcwIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface Actor {
@@ -39,56 +30,96 @@ interface Actor {
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<Actor[]>([]);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [yearFilter, setYearFilter] = useState<string>("");
-  const [countryFilter, setCountryFilter] = useState<string>("");
-  const [countries, setCountries] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>(""); // Pencarian
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
 
+  const images = [
+    "/header/actors/babydriver.png",
+    "/header/actors/batman.png",
+    "/header/actors/inception.png",
+    "/header/films/500.png",
+    "/header/actors/potter.png",
+    "/header/actors/oppen.png",
+    "/header/actors/thelastjedi.png",
+  ];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   useEffect(() => {
-    const fetchActors = async () => {
-      try {
-        const queryParams = new URLSearchParams({
-          year: yearFilter || "",
-          country: countryFilter || "",
-        });
-        const response = await fetch(`/api/actors?${queryParams}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch actors: ${response.status}`);
-        }
-        const data = await response.json();
-        setActors(data);
-      } catch (error) {
-        console.error("Error fetching actors:", error);
+    const interval = setInterval(() => {
+      setIsTransitioning(true);
+
+      setTimeout(() => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+        setIsTransitioning(false);
+      }, 550);
+    }, 6000); // Ganti gambar setiap 10 detik
+
+    return () => clearInterval(interval); // Bersihkan interval saat unmount
+  }, []);
+
+  const fetchActors = async (page: number = 1) => {
+    try {
+      const queryParams = new URLSearchParams({
+        search: searchTerm || "",
+        page: page.toString(),
+        itemsPerPage: itemsPerPage.toString(),
+      });
+
+      const response = await fetch(`/api/actors?${queryParams}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setActors(data.actors || []);
+        setTotalPages(Math.ceil((data.total || 0) / itemsPerPage)); // Update total halaman
+      } else {
+        console.error("Failed to fetch actors:", data.error);
+        setActors([]);
+        setTotalPages(1); // Reset ke 1 halaman jika gagal
       }
-    };
-
-    const fetchCountries = async () => {
-      try {
-        const response = await fetch("/api/countries");
-        if (!response.ok) throw new Error("Failed to fetch countries");
-        const data = await response.json();
-        setCountries(data.map((country: { name: string }) => country.name));
-      } catch (error) {
-        console.error("Error fetching countries:", error);
-      }
-    };
-
-    fetchActors();
-    fetchCountries();
-  }, [yearFilter, countryFilter]);
-
-  const handlePageChange = (page: number) => {
-    if (page > 0 && page <= Math.ceil(actors.length / itemsPerPage)) {
-      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error fetching actors:", error);
+      setActors([]);
+      setTotalPages(1); // Reset ke 1 halaman jika gagal
     }
   };
+
+  const fetchCountries = async () => {
+    try {
+      const response = await fetch("/api/countries");
+      const data = await response.json();
+      setCountries(data.map((country: { name: string }) => country.name));
+    } catch (error) {
+      console.error("Error fetching countries:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchActors(currentPage); // Panggil ulang fetchActors saat filter berubah
+  }, [searchTerm, currentPage]);
+
+  useEffect(() => {
+    fetchCountries();
+  }, []);
+
+  const paginatedActors = actors.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    if (page > 0 && page <= totalPages) {
+      setCurrentPage(page); // Set halaman baru
+    }
+  };
+
   const renderPaginationItems = () => {
     const paginationItems = [];
 
     if (totalPages <= 5) {
-      // Jika total halaman 5 atau kurang, tampilkan semua halaman
       for (let i = 1; i <= totalPages; i++) {
         paginationItems.push(
           <PaginationItem key={i}>
@@ -98,8 +129,8 @@ export default function ActorsPage() {
               isActive={currentPage === i}
               className={
                 currentPage === i
-                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500" // Border untuk halaman aktif
-                  : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E]"
+                  : "hover:bg-[#21212E] hover:text-gray-400"
               }
             >
               {i}
@@ -108,8 +139,6 @@ export default function ActorsPage() {
         );
       }
     } else {
-      // Jika total halaman lebih dari 5
-      // Tampilkan halaman pertama
       paginationItems.push(
         <PaginationItem key={1}>
           <PaginationLink
@@ -118,8 +147,8 @@ export default function ActorsPage() {
             isActive={currentPage === 1}
             className={
               currentPage === 1
-                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
-                : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E]"
+                : "hover:bg-[#21212E] hover:text-gray-400"
             }
           >
             1
@@ -127,7 +156,6 @@ export default function ActorsPage() {
         </PaginationItem>
       );
 
-      // Tampilkan halaman kedua hingga kelima atau sampai sebelum halaman terakhir
       if (currentPage > 4) {
         paginationItems.push(<PaginationEllipsis key="start-ellipsis" />);
       }
@@ -144,8 +172,8 @@ export default function ActorsPage() {
               isActive={currentPage === i}
               className={
                 currentPage === i
-                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
-                  : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+                  ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E]"
+                  : "hover:bg-[#21212E] hover:text-gray-400"
               }
             >
               {i}
@@ -154,12 +182,10 @@ export default function ActorsPage() {
         );
       }
 
-      // Tampilkan ellipsis jika halaman terakhir belum ditampilkan
       if (currentPage < totalPages - 3) {
         paginationItems.push(<PaginationEllipsis key="end-ellipsis" />);
       }
 
-      // Tampilkan halaman terakhir
       paginationItems.push(
         <PaginationItem key={totalPages}>
           <PaginationLink
@@ -168,8 +194,8 @@ export default function ActorsPage() {
             isActive={currentPage === totalPages}
             className={
               currentPage === totalPages
-                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E] hover:text-gray-500"
-                : "hover:bg-[#21212E] hover:text-gray-400 focus:border"
+                ? "border border-gray-500 text-gray-500 bg-[#14141C] hover:bg-[#21212E]"
+                : "hover:bg-[#21212E] hover:text-gray-400"
             }
           >
             {totalPages}
@@ -181,95 +207,105 @@ export default function ActorsPage() {
     return paginationItems;
   };
 
-  const filteredActors = actors.filter((actor) =>
-    actor.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const paginatedActors = filteredActors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredActors.length / itemsPerPage);
+  const isValidImageUrl = (url: string) => {
+    try {
+      // Cek apakah URL adalah path lokal (dimulai dengan "/")
+      if (url.startsWith("/")) {
+        // Periksa apakah path diakhiri dengan ekstensi gambar yang valid
+        const path = url.toLowerCase();
+        return (
+          path.endsWith(".jpg") ||
+          path.endsWith(".png") ||
+          path.endsWith(".jpeg")
+        );
+      } else {
+        // Jika URL penuh, buat objek URL untuk memisahkan path dan query
+        const parsedUrl = new URL(url);
+        const path = parsedUrl.pathname.toLowerCase();
+        return (
+          path.endsWith(".jpg") ||
+          path.endsWith(".png") ||
+          path.endsWith(".jpeg")
+        );
+      }
+    } catch (error) {
+      // Jika URL tidak valid
+      return false;
+    }
+  };
 
   return (
     <main>
       <div className="flex flex-col min-h-screen">
         <div
-          className="relative w-full h-[200px] md:h-[420px] bg-center bg-cover bg-no-repeat fade-mask"
-          style={{
-            backgroundImage: "url('/batman.png')",
-            backgroundPosition: "center top", // Atur posisi vertikal ke atas
-          }}
+          className={`relative w-full h-[150px] sm:h-[180px] md:h-[250px] lg:h-[300px] xl:h-[420px] overflow-hidden fade-mask`}
         >
-          <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50">
-            <h1 className="text-white sm:text-2xl md:text-5xl lg:text-6xl font-bold text-center">
-              Discover Your Favorite Actors
-            </h1>
+          {" "}
+          {/* Layer gambar */}
+          <div
+            className={`absolute inset-0 w-full h-full bg-center bg-cover bg-no-repeat transition-opacity duration-1000 fade-mask ${
+              isTransitioning ? "opacity-0" : "opacity-100"
+            }`}
+            style={{
+              backgroundImage: `url(${images[currentImageIndex]})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          ></div>
+          {/* Overlay teks */}
+          <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-10">
+            {/* Mobile Layout: Logo */}
+            <div className="block lg:hidden">
+              <img
+                src="/rewatch.png"
+                alt="Rewatch Logo"
+                className="w-40 md:w-60 h-auto"
+              />
+            </div>
+
+            {/* Desktop Layout: Teks */}
+            <div className="hidden lg:block">
+              <h1 className="text-white sm:text-2xl sm:mt-2 md:text-3xl lg:text-4xl xl:text-6xl font-bold text-center md:mt-4">
+                Discover Your Favorite Actors
+              </h1>
+            </div>
           </div>
+          {/* Media Query via Tailwind */}
+          <style jsx>{`
+            @media (max-width: 640px) {
+              .fade-mask {
+                background-position: center top; /* Posisi gambar untuk layar kecil */
+                height: 250px; /* Tinggi yang sesuai */
+              }
+            }
+            @media (min-width: 641px) {
+              .fade-mask {
+                background-position: center -55px; /* Posisi gambar untuk desktop */
+              }
+            }
+          `}</style>
         </div>
+
         <div className="w-full items-center">
           {/* Filter Section */}
-          <div className="text-gray-500 p-4 mb-8">
+          <div className="text-gray-500 px-4 py-0 mb-8">
             <Accordion type="single" collapsible>
               <AccordionItem
                 value="item-1"
                 className="border-b border-[#21212E]"
               >
-                <AccordionTrigger>Filter & Sort</AccordionTrigger>
+                <AccordionTrigger>Find Actors</AccordionTrigger>
                 <AccordionContent>
-                  <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:justify-between md:items-center">
+                  <div className="flex flex-col space-y-4">
                     {/* Filter Inputs */}
-                    <div className="flex flex-col space-y-4 md:space-y-0 md:flex-row md:items-center md:space-x-4">
+                    <div className="flex items-center">
                       <Input
                         type="text"
                         placeholder="Search actor..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-36 bg-[#21212E] text-gray-400"
+                        className="w-96 bg-[#14141c] text-gray-400"
                       />
-                      <Select onValueChange={(value) => setYearFilter(value)}>
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none">
-                          <SelectValue placeholder="Year" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#21212E] text-white">
-                          <SelectItem value="<1990">&lt;1990</SelectItem>
-                          <SelectItem value="1990_1994">1990 - 1994</SelectItem>
-                          <SelectItem value="1995_1999">1995 - 1999</SelectItem>
-                          <SelectItem value="2000_2004">2000 - 2004</SelectItem>
-                          <SelectItem value="2005_2009">2005 - 2009</SelectItem>
-                          <SelectItem value="2010_2014">2010 - 2014</SelectItem>
-                          <SelectItem value="2015_2019">2015 - 2019</SelectItem>
-                          <SelectItem value="2020_2024">2020 - 2024</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      <Select
-                        onValueChange={(value) => setCountryFilter(value)}
-                      >
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none">
-                          <SelectValue placeholder="Country" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#21212E] text-white">
-                          {countries.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Button
-                        onClick={() => {
-                          setSearchTerm("");
-                          setYearFilter("");
-                          setCountryFilter("");
-                          setCurrentPage(1);
-                        }}
-                        className="bg-[#21212E] text-gray-400 hover:bg-[#1c1c26]"
-                      >
-                        <RotateCcwIcon className="w-4 h-4 inline" />
-                      </Button>
                     </div>
                   </div>
                 </AccordionContent>
@@ -280,7 +316,7 @@ export default function ActorsPage() {
           {/* Actor List */}
           {paginatedActors.length > 0 ? (
             <div className="container flex-1 relative mx-auto">
-              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 text-white gap-4">
+              <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 text-white gap-4">
                 {paginatedActors.map((actor) => (
                   <div
                     key={actor.id}
@@ -289,23 +325,21 @@ export default function ActorsPage() {
                     <div className="relative w-[200px] h-[297px] overflow-hidden rounded-xl shadow-2xl mx-auto">
                       <img
                         src={
-                          actor.photoUrl
+                          isValidImageUrl(actor.photoUrl)
                             ? actor.photoUrl
-                            : "/placeholder-image.jpg"
+                            : "/actor-default.png"
                         }
                         alt={actor.name}
                         className="w-full h-full object-cover transition-transform duration-500 ease-in-out hover:scale-[102%]"
                       />
                     </div>
                     <div className="text-center mt-2">
-                      <h3 className="font-bold">{actor.name}</h3>
+                      <h3 className="font-semibold pt-4">{actor.name}</h3>
                       <p className="text-sm text-gray-400">
                         Born: {new Date(actor.birthdate).toLocaleDateString()}
                       </p>
                       <p className="text-sm text-gray-400">
-                        {actor.country
-                          ? actor.country.name
-                          : "Country not specified"}
+                        {actor.country.name}
                       </p>
                     </div>
                   </div>
@@ -313,7 +347,7 @@ export default function ActorsPage() {
               </div>
 
               {/* Pagination */}
-              <Pagination>
+              <Pagination className="mb-6">
                 <PaginationContent className="text-gray-400">
                   <PaginationItem>
                     <PaginationPrevious
@@ -326,23 +360,9 @@ export default function ActorsPage() {
                       }
                     />
                   </PaginationItem>
+
                   {renderPaginationItems()}
 
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={() => {
-                        if (currentPage < totalPages) {
-                          handlePageChange(currentPage + 1);
-                        }
-                      }}
-                      className={
-                        currentPage === totalPages
-                          ? "opacity-50 cursor-not-allowed hover:bg-transparent hover:text-gray-400"
-                          : "hover:bg-[#21212E] hover:text-gray-400"
-                      }
-                    />
-                  </PaginationItem>
                   <PaginationItem>
                     <PaginationNext
                       href="#"
@@ -359,8 +379,8 @@ export default function ActorsPage() {
             </div>
           ) : (
             <div className="flex justify-center items-center h-64">
-              <p className="text-gray-500 text-lg">
-                No actors found. Try different filters.
+              <p className="text-gray-500 text-sm md:text-lg">
+                No actors found. Try different keyword or wait a moment.
               </p>
             </div>
           )}
