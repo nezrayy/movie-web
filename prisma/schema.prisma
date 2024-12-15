@@ -1,0 +1,251 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+enum Role {
+  ADMIN
+  WRITER
+  USER
+}
+
+enum Status {
+  APPROVE
+  UNAPPROVE
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String?   @unique
+  email     String?   @unique
+  password  String?
+  role      Role     @default(USER)
+  status    AccountStatus @default(ACTIVE)
+  emailVerified DateTime?
+  resetPasswordToken   String?  
+  resetPasswordExpiry  DateTime? 
+  accounts      Account[]
+  sessions      Session[]
+  createdAt DateTime @default(now())
+
+  movies    Movie[]  @relation("CreatedMovies")
+  comments  Comment[]
+
+  @@map("user")
+}
+
+model PreUser {
+  id         Int      @id @default(autoincrement())
+  username   String
+  email      String   @unique
+  password   String
+  emailToken String   @unique
+  status     String   @default("UNVERIFIED")  // Status default
+  createdAt  DateTime @default(now())
+
+  @@map("preuser")
+}
+
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   Int  
+  type                     String
+  provider                 String
+  providerAccountId        String
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+  user                     User    @relation(fields: [userId], references: [id], onDelete: Cascade) // Cascade delete diterapkan di sini
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("account")
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade) // Cascade delete ketika user dihapus
+ 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+ 
+  @@index([userId])
+  @@map("session")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@unique([identifier, token])
+  @@map("verificationtoken")
+}
+
+model Movie {
+  id          Int       @id @default(autoincrement())
+  title       String
+  alternativeTitle String?
+  releaseYear Int?
+  synopsis    String?
+  availability String?
+  posterUrl   String?
+  rating      Float?   
+  linkTrailer String?
+  isDeleted   Boolean   @default(false)
+  status      Status    @default(UNAPPROVE)
+  createdBy   User      @relation("CreatedMovies", fields: [createdById], references: [id], onDelete: Cascade) // Cascade delete diterapkan di sini
+  createdById Int
+  createdAt   DateTime  @default(now())
+
+  country     Country   @relation(fields: [countryId], references: [id])
+  countryId   Int
+
+  awards      Award[]
+  actors      MovieActor[]
+  genres      MovieGenre[]
+  comments    Comment[]
+  availabilities MovieAvailability[]
+
+  @@map("movie")
+}
+
+
+model Availability {
+  id         Int       @id @default(autoincrement())
+  name       String @unique
+  createdAt  DateTime  @default(now())
+  
+  movies     MovieAvailability[]
+
+  @@map("availability")
+}
+
+model MovieAvailability {
+  movie       Movie       @relation(fields: [movieId], references: [id])
+  movieId     Int
+  availability Availability @relation(fields: [availabilityId], references: [id])
+  availabilityId Int
+  createdAt   DateTime    @default(now())
+
+  @@id([movieId, availabilityId])
+  @@map("movieavailability") 
+}
+
+model Actor {
+  id         Int       @id @default(autoincrement())
+  name       String
+  birthdate  DateTime?
+  biography  String?
+  photoUrl   String?
+  country    Country   @relation(fields: [countryId], references: [id])
+  countryId  Int
+  createdAt  DateTime  @default(now())
+
+  movies     MovieActor[]
+
+  @@map("actor")
+}
+
+model Genre {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  createdAt  DateTime  @default(now()) 
+
+  movies     MovieGenre[]
+
+  @@map("genre")
+}
+
+model Award {
+  id         Int       @id @default(autoincrement())
+  name       String
+  description String?
+  movie      Movie     @relation(fields: [movieId], references: [id])
+  movieId    Int
+  awardYear  Int
+  createdAt  DateTime  @default(now())
+
+  countryId Int
+  country Country @relation(fields: [countryId], references: [id])
+
+  @@map("award")
+
+}
+
+model Country {
+  id         Int       @id @default(autoincrement())
+  name       String    @unique
+  code       String?
+  createdAt  DateTime  @default(now())
+
+  actors     Actor[]
+  movies     Movie[]
+  awards    Award[]
+
+  @@map("country")
+
+}
+
+model Comment {
+  id         Int       @id @default(autoincrement())
+  movie      Movie     @relation(fields: [movieId], references: [id])
+  movieId    Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade) // Cascade delete ketika user dihapus
+  userId     Int
+  commentText String
+  rating     Int
+  status     Status    @default(UNAPPROVE)
+  createdAt  DateTime  @default(now())
+
+  @@map("comment")
+}
+
+model MovieActor {
+  movie     Movie   @relation(fields: [movieId], references: [id])
+  movieId   Int
+  actor     Actor   @relation(fields: [actorId], references: [id])
+  actorId   Int
+  createdAt DateTime @default(now())
+
+  @@id([movieId, actorId])
+  @@map("movieactor")
+}
+
+model MovieGenre {
+  movie     Movie   @relation(fields: [movieId], references: [id])
+  movieId   Int
+  genre     Genre   @relation(fields: [genreId], references: [id])
+  genreId   Int
+  createdAt DateTime @default(now())
+
+  @@id([movieId, genreId])
+  @@map("moviegenre")
+}

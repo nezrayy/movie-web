@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html,
+body,
+:root {
+  background-color: #14141C;
+  height: 100%;
+  color-scheme: dark;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -66,4 +74,30 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.fade-mask::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  background: linear-gradient(to top, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 8%),
+              linear-gradient(to left, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 8%),
+              linear-gradient(to right, rgba(20, 20, 28, 1) 0%, rgba(20, 20, 28, 0) 8%);
+  pointer-events: none;
+}
+
+.actor-container {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.actor-item {
+  flex-shrink: 0;
+  width: 120px; /* Sesuaikan dengan kebutuhan */
 }
