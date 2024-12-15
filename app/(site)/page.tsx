@@ -364,7 +364,7 @@ export default function Home() {
                       <p className="text-white">Filtered by:</p>
 
                       <Select onValueChange={(value) => setYearFilter(value)}>
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-full md:w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Year" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-white">
@@ -382,7 +382,7 @@ export default function Home() {
                       <Select
                         onValueChange={(value) => setCategoryFilter(value)}
                       >
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-full md:w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Genre" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
@@ -399,7 +399,7 @@ export default function Home() {
                       <Select
                         onValueChange={(value) => setAvailabilityFilter(value)}
                       >
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-full md:w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Availability" />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-gray-400">
@@ -418,7 +418,7 @@ export default function Home() {
 
                       <Button
                         onClick={resetFilters}
-                        className="bg-[#21212E] text-gray-400 hover:bg-[#1c1c26]"
+                        className="w-full md:w-12 bg-[#21212E] text-gray-400 hover:bg-[#1c1c26]"
                       >
                         <RotateCcwIcon className="w-4 h-4 inline" />
                       </Button>
@@ -428,7 +428,7 @@ export default function Home() {
                       <p className="text-white">Sorted by:</p>
 
                       <Select onValueChange={(value) => setSortBy(value)}>
-                        <SelectTrigger className="w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
+                        <SelectTrigger className="w-full md:w-36 bg-[#21212E] text-gray-400 border-none focus:ring-transparent">
                           <SelectValue placeholder="Sort by..." />
                         </SelectTrigger>
                         <SelectContent className="bg-[#21212E] text-white">

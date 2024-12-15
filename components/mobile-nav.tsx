@@ -90,7 +90,7 @@ const MobileNav: React.FC = () => {
       {status === "authenticated" && (
         <div
           className="flex flex-col items-center cursor-pointer"
-          onClick={() => router.push("/input-film")}
+          onClick={() => router.push("/film-input")}
         >
           <FileVideo className="text-white w-6 h-6" />
         </div>

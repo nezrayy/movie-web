@@ -64,28 +64,36 @@ export default function ActorsPage() {
   const fetchActors = async (page: number = 1) => {
     try {
       const queryParams = new URLSearchParams({
-        search: searchTerm || "",
         page: page.toString(),
         itemsPerPage: itemsPerPage.toString(),
       });
+
+      // Hanya tambahkan search jika ada nilai
+      if (searchTerm.trim()) {
+        queryParams.append("search", searchTerm.trim());
+      }
 
       const response = await fetch(`/api/actors?${queryParams}`);
       const data = await response.json();
 
       if (response.ok) {
         setActors(data.actors || []);
-        setTotalPages(Math.ceil((data.total || 0) / itemsPerPage)); // Update total halaman
+        setTotalPages(Math.ceil((data.total || 0) / itemsPerPage));
       } else {
         console.error("Failed to fetch actors:", data.error);
         setActors([]);
-        setTotalPages(1); // Reset ke 1 halaman jika gagal
+        setTotalPages(1);
       }
     } catch (error) {
       console.error("Error fetching actors:", error);
       setActors([]);
-      setTotalPages(1); // Reset ke 1 halaman jika gagal
+      setTotalPages(1);
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const fetchCountries = async () => {
     try {
@@ -98,21 +106,17 @@ export default function ActorsPage() {
   };
 
   useEffect(() => {
-    fetchActors(currentPage); // Panggil ulang fetchActors saat filter berubah
+    fetchActors(currentPage);
   }, [searchTerm, currentPage]);
 
   useEffect(() => {
     fetchCountries();
   }, []);
 
-  const paginatedActors = actors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
   const handlePageChange = (page: number) => {
     if (page > 0 && page <= totalPages) {
-      setCurrentPage(page); // Set halaman baru
+      setCurrentPage(page);
+      fetchActors(page); // Panggil ulang fetchActors dengan halaman baru
     }
   };
 
@@ -237,11 +241,7 @@ export default function ActorsPage() {
   return (
     <main>
       <div className="flex flex-col min-h-screen">
-        <div
-          className={`relative w-full h-[150px] sm:h-[180px] md:h-[250px] lg:h-[300px] xl:h-[420px] overflow-hidden fade-mask`}
-        >
-          {" "}
-          {/* Layer gambar */}
+        <div className="relative w-full xs:h-[120px] sm:h-[240px] md:h-[340px] lg:h-[460px] overflow-hidden fade-mask">
           <div
             className={`absolute inset-0 w-full h-full bg-center bg-cover bg-no-repeat transition-opacity duration-1000 fade-mask ${
               isTransitioning ? "opacity-0" : "opacity-100"
@@ -297,14 +297,13 @@ export default function ActorsPage() {
                 <AccordionTrigger>Find Actors</AccordionTrigger>
                 <AccordionContent>
                   <div className="flex flex-col space-y-4">
-                    {/* Filter Inputs */}
                     <div className="flex items-center">
                       <Input
                         type="text"
                         placeholder="Search actor..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-96 bg-[#14141c] text-gray-400"
+                        className="w-full md:w-96 bg-[#14141c] text-gray-400"
                       />
                     </div>
                   </div>
@@ -314,10 +313,10 @@ export default function ActorsPage() {
           </div>
 
           {/* Actor List */}
-          {paginatedActors.length > 0 ? (
+          {actors.length > 0 ? (
             <div className="container flex-1 relative mx-auto">
               <div className="grid xs:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 text-white gap-4">
-                {paginatedActors.map((actor) => (
+                {actors.map((actor) => (
                   <div
                     key={actor.id}
                     className="container mb-6 mx-auto sm:mx-0"

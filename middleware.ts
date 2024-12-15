@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// Daftar folder yang hanya bisa diakses oleh admin
+const authenticatedPaths = ["/film-input"];
 const adminPaths = [
   "/cms-actors",
   "/cms-awards",
@@ -51,6 +51,14 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Cek apakah path memerlukan autentikasi
+  const isAuthenticatedPath = authenticatedPaths.some((path) =>
+    pathname.startsWith(path)
+  );
+  // Redirect jika user belum login untuk halaman autentikasi tertentu
+  if (isAuthenticatedPath && !token) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
   // Cek apakah path ada dalam daftar path admin
   const isAdminPath = adminPaths.some((path) => pathname.startsWith(path));
 
@@ -93,9 +101,10 @@ export const config = {
     "/cms-genres/:path*",
     "/cms-header/:path*",
     "/cms-users/:path*",
-    "/images/:path*", // Tambahkan ini
-    "/images/actors/:path*", // Tambahkan ini
-    "/uploads/:path*", // Tambahkan ini
+    "/images/:path*",
+    "/images/actors/:path*",
+    "/uploads/:path*",
+    "/film-input",
     "/login",
     "/register",
   ],

@@ -56,10 +56,10 @@ export default function Sidebar({ children }: SidebarProps) {
           </button>
         </div>
         <SidebarContext.Provider value={{ expanded, setExpanded }}>
-          <ul className="flex-1 px-3">{children}</ul>
+          <ul className="flex-1 px-3 space-y-6">{children}</ul>
         </SidebarContext.Provider>
 
-        <div className="flex p-3 justify-between gap-2">
+        <div className="flex p-3 items-center gap-2 justify-between w-full">
           {status === "loading" ? (
             // Tampilkan loading indicator jika status masih loading
             <div className="text-white">Loading...</div>
@@ -104,7 +104,9 @@ export default function Sidebar({ children }: SidebarProps) {
 
           <div
             className={`flex justify-between items-center overflow-hidden transition-all gap-x-2 ${
-              expanded ? "w-52 ml-3" : "w-0"
+              expanded
+                ? "w-52 ml-3 opacity-100 translate-x-0"
+                : "w-0 opacity-0 -translate-x-4"
             }`}
           >
             {status === "authenticated" && (
@@ -123,7 +125,11 @@ export default function Sidebar({ children }: SidebarProps) {
             )}
             {status === "authenticated" && (
               <div className="ml-5">
-                <Button variant="destructive" className="py-6 px-3" onClick={() => signOut()}>
+                <Button
+                  variant="destructive"
+                  className="py-6 px-3"
+                  onClick={() => signOut()}
+                >
                   <LogOut />
                 </Button>
               </div>
@@ -152,21 +158,20 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
   const { expanded } = context;
 
   return (
-    <div className="my-2">
+    <div className="my-1">
       <li
         className={`
-          relative flex items-center py-4 px-4 my-1 mt-2 mb-2
-          font-medium rounded-md cursor-pointer
+          relative flex items-center h-14 px-4 mb-2 font-medium rounded-md cursor-pointer
           transition-colors group
           ${
             active ? "bg-[#21212E] text-white" : "hover:bg-[#21212E] text-white"
           }
-      `}
+        `}
       >
         {icon}
         <span
-          className={`text-xl overflow-hidden transition-all ${
-            expanded ? "w-30 ml-3" : "w-0"
+          className={`text-lg overflow-hidden transition-all ${
+            expanded ? "w-auto ml-3" : "w-0"
           }`}
         >
           {text}
@@ -180,13 +185,11 @@ export function SidebarItem({ icon, text, active, alert }: SidebarItemProps) {
         )}
         {!expanded && (
           <div
-            className={`
-      absolute left-full rounded-md px-2 py-1 ml-6
+            className={`absolute left-full rounded-md px-2 py-1 ml-6
       bg-white text-[#0C0D11] text-md
       invisible opacity-20 -translate-x-3 transition-all
       group-hover:visible group-hover:opacity-100 group-hover:translate-x-0
-      whitespace-nowrap overflow-hidden text-ellipsis
-    `}
+      whitespace-nowrap overflow-hidden text-ellipsis`}
           >
             {text}
           </div>
@@ -250,7 +253,7 @@ export function SidebarInputItem({
           <Input
             ref={inputRef}
             placeholder={placeholder}
-            className="bg-[#21212E] flex h-14 w-full rounded-md px-4 text-sm border-none ring-offset-background file:bg-transparent file:text-sm file:font-light font-light text-white caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="bg-[#14141c] text-gray-400 flex h-14 w-full rounded-md px-4 text-sm border-gray-400 ring-offset-background file:bg-transparent file:text-sm file:font-light font-light caret-white placeholder:text-white placeholder:font-normal focus:ring-[#414164] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyPress={handleKeyPress}

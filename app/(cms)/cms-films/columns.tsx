@@ -17,11 +17,12 @@ export type Film = {
   id: number;
   title: string;
   releaseYear: number;
-  actors: { actor: { id: number; name: string } }[]; // Menyimpan relasi actor dalam array objek
-  genres: { genre: { id: number; name: string } }[]; // Menyimpan relasi genre dalam array objek
+  actors: { actor: { id: number; name: string } }[];
+  genres: { genre: { id: number; name: string } }[];
   availabilities: { availability: { id: number; name: string } }[];
   synopsis: string;
   status: "APPROVE" | "UNAPPROVE";
+  posterUrl: string;
 };
 
 const isValidImageUrl = (url: string) => {
@@ -91,6 +92,26 @@ const deleteMovie = async (id: number, onStatusUpdate: () => void) => {
 
 export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
   {
+    accessorKey: "posterUrl",
+    header: "Poster",
+    cell: ({ row }) => {
+      const posterUrl = row.original.posterUrl;
+      return (
+        <div className="w-[50px] flex-none">
+          {" "}
+          {/* Lebar tetap 80px */}
+          <img
+            src={
+              isValidImageUrl(posterUrl) ? posterUrl : "/placeholder-image.jpg"
+            }
+            className="w-16 h-20 object-cover rounded"
+          />
+        </div>
+      );
+    },
+  },
+
+  {
     accessorKey: "title",
     header: ({ column }) => {
       return (
@@ -119,21 +140,6 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
     },
   },
   {
-    accessorKey: "posterUrl",
-    header: "Poster",
-    cell: ({ row }) => {
-      const posterUrl = row.original.posterUrl;
-      return (
-        <img
-          src={
-            isValidImageUrl(posterUrl) ? posterUrl : "/placeholder-image.jpg"
-          }
-          className="w-16 h-20 object-cover rounded"
-        />
-      );
-    },
-  },
-  {
     accessorKey: "releaseYear",
     header: ({ column }) => {
       return (
@@ -142,16 +148,13 @@ export const columns = (onStatusUpdate: () => void): ColumnDef<Film>[] => [
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           className="w-20" // Atur lebar tombol header
         >
-          Release Year
+          Year
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
     cell: ({ row }) => (
-      <div
-        className="text-center truncate w-16" // Tambahkan kelas dengan lebar tetap
-        title={row.getValue("releaseYear")} // Tooltip jika teks terpotong
-      >
+      <div className="text-center" title={row.getValue("releaseYear")}>
         {row.getValue("releaseYear")}
       </div>
     ),

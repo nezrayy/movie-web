@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Filter from "@/components/filter";
 import MovieCard from "@/components/movie-card";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 interface Actor {
   id: number;
@@ -164,6 +165,18 @@ const SearchPage = () => {
           ))}
         </div>
       </div>
+      {movies.length === 0 && !loading && (
+        <div className="text-center mt-10">
+          <p className="text-gray-400 text-lg">
+            Can't find the movie you're looking for?{" "}
+            <Link href="/film-input">
+              <span className="text-orange-500 hover:underline cursor-pointer">
+                Submit a movie here!
+              </span>
+            </Link>
+          </p>
+        </div>
+      )}
       {hasMore && !loading && movies.length > 0 && (
         <button
           onClick={handleLoadMore}
